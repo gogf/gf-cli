@@ -1,4 +1,4 @@
-# GFT
+# GF-CLI
 
 I'm being under construction.
 
