@@ -1,5 +1,18 @@
 # GF-CLI
 
+## Install
+
+It's suggested using pre-compiled binaries:
+https://goframe.org/cli/
+
+Popular binaries:
+- `Linux   (amd64)`: https://goframe.org/cli/latest/linux_amd64/gf
+- `Mac     (amd64)`: https://goframe.org/cli/latest/darwin_amd64/gf
+- `Windows (amd64)`: https://goframe.org/cli/latest/windows_amd64/gf.exe
+
+After downloads, please use `gf install` installing gf binary to system bin path.
+
+## Commands
 ```html
 $ gf
 Usage   : gf [COMMAND] [OPTION]
