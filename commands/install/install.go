@@ -8,18 +8,18 @@ import (
 )
 
 func Run() {
-	binPath := "/usr/bin"
+	binPath := "/usr/local/bin"
 	if "windows" == runtime.GOOS {
 		binPath = "C:\\Windows"
 	}
 	if gfile.Exists(binPath) {
-		dst := binPath + gfile.Separator + gfile.SelfName()
+		dst := binPath + gfile.Separator + "gf"
 		err := gfile.CopyFile(gfile.SelfPath(), dst)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "install to '%s' failed: %v\n", dst, err)
+			fmt.Fprintf(os.Stderr, "install gf binary to '%s' failed: %v\n", dst, err)
 			os.Exit(1)
 		} else {
-			fmt.Fprintf(os.Stdout, "done!\n")
+			fmt.Fprintf(os.Stdout, "install gf binary done!\n")
 		}
 	} else {
 		fmt.Fprintf(os.Stderr, "'%s' does not exist\n", binPath)
