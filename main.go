@@ -1,27 +1,32 @@
 package main
 
 import (
+	"github.com/gogf/gf-cli/commands/compile"
+	"github.com/gogf/gf-cli/commands/get"
 	"github.com/gogf/gf-cli/commands/help"
 	"github.com/gogf/gf-cli/commands/initialize"
 	"github.com/gogf/gf-cli/commands/install"
+	"github.com/gogf/gf-cli/commands/upgrade"
 	"github.com/gogf/gf-cli/commands/version"
 	"github.com/gogf/gf/g/os/gcmd"
-)
-
-const (
-	VERSION = "v0.0.1"
 )
 
 func main() {
 	switch gcmd.Value.Get(1) {
 	case "help":
 		help.Run()
-	case "info", "version":
+	case "version":
 		version.Run()
+	case "get":
+		get.Run()
 	case "init":
 		initialize.Run()
 	case "install":
 		install.Run()
+	case "compile":
+		compile.Run()
+	case "upgrade":
+		upgrade.Run()
 	default:
 		for k, _ := range gcmd.Option.GetAll() {
 			switch k {
