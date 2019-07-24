@@ -59,9 +59,6 @@ func Run() {
 		return
 	}
 	version := gcmd.Option.Get("version", gcmd.Option.Get("v"))
-	if len(version) > 0 {
-		name += "_" + version
-	}
 	arches := strings.Split(gcmd.Option.Get("arch", gcmd.Option.Get("a")), ",")
 	oses := strings.Split(gcmd.Option.Get("os"), ",")
 	ext := ""
