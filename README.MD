@@ -1,6 +1,6 @@
 # GF-CLI
 
-```shell
+```html
 $ gf
 Usage   : gf [COMMAND] [OPTION]
 Commands:
