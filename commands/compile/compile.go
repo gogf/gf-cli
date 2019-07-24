@@ -10,7 +10,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	"sync"
 )
 
 const platforms = `
@@ -47,7 +46,6 @@ const platforms = `
 `
 
 func Run() {
-	var wg sync.WaitGroup
 	file := gcmd.Value.Get(2)
 	if len(file) < 1 {
 		fmt.Fprintln(os.Stderr, "ERROR: file path cannot be empty.")
@@ -90,17 +88,11 @@ func Run() {
 		genv.Set("GOOS", array[0])
 		genv.Set("GOARCH", array[1])
 		cmd = fmt.Sprintf("go build -o %s/%s/%s%s %s", path, array[0]+"_"+array[1], name, ext, file)
-		wg.Add(1)
-		go func(cmd string) {
-			defer wg.Done()
-			_, err := gproc.ShellExec(cmd)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "ERROR: build failed:", cmd)
-				return
-			} else {
-				fmt.Fprintln(os.Stdout, cmd)
-			}
-		}(cmd)
+		if _, err := gproc.ShellExec(cmd); err != nil {
+			fmt.Fprintln(os.Stderr, "ERROR: build failed:", cmd)
+			return
+		} else {
+			fmt.Fprintln(os.Stdout, cmd)
+		}
 	}
-	wg.Wait()
 }
