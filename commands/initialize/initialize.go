@@ -18,15 +18,13 @@ const (
 
 func Run() {
 	name := gcmd.Value.Get(2, defaultProjectName)
-	client := ghttp.NewClient()
 	fmt.Fprintln(os.Stdout, "initializing...")
-	response, err := client.Get(emptyProjectZipUrl)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "ERROR:", err.Error())
+	data := ghttp.GetBytes(emptyProjectZipUrl)
+	if len(data) == 0 {
+		fmt.Fprintln(os.Stderr, "ERROR:", "got empty project zip data, please tray again later")
 		os.Exit(1)
 	}
-	defer response.Close()
-	err = gcompress.UnZipContent(response.ReadAll(), ".", emptyProjectName+"-master")
+	err := gcompress.UnZipContent(data, ".", emptyProjectName+"-master")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "ERROR:", err.Error())
 		os.Exit(1)

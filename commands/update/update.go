@@ -10,12 +10,18 @@ import (
 	"runtime"
 )
 
+const (
+	gCLI_URL = `https://goframe.org/cli/`
+)
+
 func Run() {
-	checkUrl := `https://goframe.org/cli/check`
+	checkUrl := gCLI_URL + `check`
 	md5, err := gmd5.EncryptFile(gfile.SelfPath())
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "ERROR:", err.Error())
+		os.Exit(1)
 	}
+	fmt.Fprintln(os.Stdout, "checking...")
 	content := ghttp.GetContent(checkUrl, g.Map{
 		"md5":  md5,
 		"os":   runtime.GOOS,
@@ -25,12 +31,23 @@ func Run() {
 	case "0":
 		fmt.Fprintln(os.Stdout, "it's the latest version, no need updates")
 	case "1":
-		downloadUrl := `https://goframe.org/cli/download`
-		content := ghttp.GetContent(downloadUrl, g.Map{
+		fmt.Fprintln(os.Stdout, "downloading...")
+		downloadUrl := gCLI_URL + `download`
+		data := ghttp.GetBytes(downloadUrl, g.Map{
 			"md5":  md5,
 			"os":   runtime.GOOS,
 			"arch": runtime.GOARCH,
 		})
+		if len(data) == 0 {
+			fmt.Fprintln(os.Stderr, "ERROR:", "downloading failed, please try again later")
+			os.Exit(1)
+		}
+		fmt.Fprintln(os.Stdout, "installing...")
+		if err := gfile.PutBytes(gfile.SelfPath(), data); err != nil {
+			fmt.Fprintln(os.Stderr, "ERROR:", err.Error())
+			os.Exit(1)
+		}
+		fmt.Fprintln(os.Stdout, "gf binary is now updated to the latest version")
 	default:
 		fmt.Fprintln(os.Stderr, "ERROR:", content)
 	}

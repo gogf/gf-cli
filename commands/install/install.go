@@ -25,5 +25,4 @@ func Run() {
 		fmt.Fprintf(os.Stderr, "ERROR: '%s' does not exist\n", binPath)
 		os.Exit(1)
 	}
-
 }
