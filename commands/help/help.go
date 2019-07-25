@@ -22,10 +22,10 @@ Commands:
         -a, --arch    : output binary architecture, multiple arch separated with ','.
         -o, --os      : output binary system, multiple os separated with ','.
         -p, --path    : output binary directory path, default is './bin'.
-    update        : update current gf binary to latest one.
+    update        : update current gf binary to latest one (you may need root/admin permission).
     install       : install gf binary to system (you may need root/admin permission).
     upgrade       : upgrade current project from older GF version to newer one if there's any compatibility issue.
-        1.9       : upgrade to 1.9.x version, it will automatically change *.go files.
+        1.9       : upgrade to 1.9.x version, it recursively updates *.go files in current working directory.
 `
 	fmt.Println(gstr.Trim(help))
 }
