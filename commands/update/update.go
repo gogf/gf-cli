@@ -36,7 +36,7 @@ func Run() {
 	}
 	localMd5, err := gmd5.EncryptFile(gfile.SelfPath())
 	if err != nil {
-		mlog.Fatal("calculate local binary md5 failed:,", err.Error())
+		mlog.Fatal("calculate local binary md5 failed,", err.Error())
 	}
 	if localMd5 != latestMd5 {
 		mlog.Print("downloading...")
@@ -50,7 +50,7 @@ func Run() {
 		}
 		mlog.Print("installing...")
 		if err := gfile.PutBytes(gfile.SelfPath(), data); err != nil {
-			mlog.Fatal("installing binary failed:", err.Error())
+			mlog.Fatal("installing binary failed,", err.Error())
 		}
 		mlog.Print("gf binary is now updated to the latest version")
 	} else {

@@ -5,9 +5,9 @@ import (
 )
 
 const (
-	VERSION = "v0.1.0"
+	VERSION = "v0.2.0"
 )
 
 func Run() {
-	mlog.Print("GoFrame CLI Tool Version", VERSION)
+	mlog.Printf("GoFrame CLI Tool Version %s, https://goframe.org", VERSION)
 }
