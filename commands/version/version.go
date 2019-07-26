@@ -1,11 +1,13 @@
 package version
 
-import "fmt"
+import (
+	"github.com/gogf/gf-cli/library/mlog"
+)
 
 const (
 	VERSION = "v0.1.0"
 )
 
 func Run() {
-	fmt.Println("GoFrame CLI Tool Version", VERSION)
+	mlog.Print("GoFrame CLI Tool Version", VERSION)
 }

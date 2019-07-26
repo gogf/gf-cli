@@ -2,12 +2,12 @@ package build
 
 import (
 	"fmt"
+	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/g/os/gcmd"
 	"github.com/gogf/gf/g/os/genv"
 	"github.com/gogf/gf/g/os/gfile"
 	"github.com/gogf/gf/g/os/gproc"
 	"github.com/gogf/gf/g/text/gstr"
-	"os"
 	"regexp"
 	"strings"
 )
@@ -48,14 +48,12 @@ const platforms = `
 func Run() {
 	file := gcmd.Value.Get(2)
 	if len(file) < 1 {
-		fmt.Fprintln(os.Stderr, "ERROR: file path cannot be empty.")
-		os.Exit(1)
+		mlog.Fatal("file path cannot be empty")
 	}
 	path := gcmd.Option.Get("path", gcmd.Option.Get("p", "./bin"))
 	name := gcmd.Option.Get("name", gcmd.Option.Get("n", gfile.Name(file)))
 	if len(name) < 1 || name == "*" {
-		fmt.Println("ERROR: name cannot be empty")
-		return
+		mlog.Fatal("name cannot be empty")
 	}
 	version := gcmd.Option.Get("version", gcmd.Option.Get("v"))
 	arches := strings.Split(gcmd.Option.Get("arch", gcmd.Option.Get("a")), ",")
@@ -67,7 +65,7 @@ func Run() {
 	}
 	reg := regexp.MustCompile(`\s+`)
 	lines := strings.Split(strings.TrimSpace(platforms), "\n")
-	fmt.Println("building...")
+	mlog.Print("building...")
 	genv.Set("CGO_ENABLED", "0")
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
@@ -88,11 +86,10 @@ func Run() {
 		genv.Set("GOOS", array[0])
 		genv.Set("GOARCH", array[1])
 		cmd = fmt.Sprintf("go build -o %s/%s/%s%s %s", path, array[0]+"_"+array[1], name, ext, file)
-		fmt.Fprintln(os.Stdout, cmd)
+		mlog.Print(cmd)
 		_, err := gproc.ShellExec(cmd)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "ERROR: build failed:", cmd)
-			return
+			mlog.Fatal("build failed:", cmd)
 		}
 	}
 }

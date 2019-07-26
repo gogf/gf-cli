@@ -1,9 +1,8 @@
 package install
 
 import (
-	"fmt"
+	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/g/os/gfile"
-	"os"
 	"runtime"
 )
 
@@ -16,13 +15,11 @@ func Run() {
 		dst := binPath + gfile.Separator + "gf" + gfile.Ext(gfile.SelfPath())
 		err := gfile.CopyFile(gfile.SelfPath(), dst)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "ERROR: install gf binary to '%s' failed: %v\n", dst, err)
-			os.Exit(1)
+			mlog.Fatalf("install gf binary to '%s' failed: %v", dst, err)
 		} else {
-			fmt.Fprintf(os.Stdout, "gf binary is successfully installed to: %s\n", dst)
+			mlog.Printf("gf binary is successfully installed to: %s", dst)
 		}
 	} else {
-		fmt.Fprintf(os.Stderr, "ERROR: '%s' does not exist\n", binPath)
-		os.Exit(1)
+		mlog.Fatal("'%s' does not exist\n", binPath)
 	}
 }

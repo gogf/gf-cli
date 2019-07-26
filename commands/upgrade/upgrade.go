@@ -1,7 +1,7 @@
 package upgrade
 
-import "fmt"
+import "github.com/gogf/gf-cli/library/mlog"
 
 func Run() {
-	fmt.Println("under construction")
+	mlog.Print("under construction")
 }

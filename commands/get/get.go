@@ -2,13 +2,14 @@ package get
 
 import (
 	"fmt"
+	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf/g"
 	"github.com/gogf/gf/g/net/ghttp"
 	"github.com/gogf/gf/g/os/gcmd"
 	"github.com/gogf/gf/g/os/genv"
 	"github.com/gogf/gf/g/os/gproc"
 	"github.com/gogf/gf/g/os/gtime"
 	"math"
-	"os"
 	"time"
 )
 
@@ -17,10 +18,6 @@ const (
 )
 
 var (
-	proxies = []string{
-		"https://mirrors.aliyun.com/goproxy/",
-		"https://goproxy.io/",
-	}
 	httpClient = ghttp.NewClient()
 )
 
@@ -30,7 +27,7 @@ func init() {
 
 func Run() {
 	genv.Set("GOPROXY", getProxy())
-	fmt.Fprintln(os.Stdout, "cleaning cache...")
+	mlog.Print("cleaning cache...")
 	gproc.ShellRun("go clean -modcache")
 	if value := gcmd.Value.Get(2); value != "" {
 		options := gcmd.Option.Build("-")
@@ -39,7 +36,7 @@ func Run() {
 		}
 		gproc.ShellRun(fmt.Sprintf(`go get %s %s`, options, value))
 	} else {
-		fmt.Fprintln(os.Stdout, "downloading the latest version of GF...")
+		mlog.Print("downloading the latest version of GF...")
 		gproc.ShellRun("go get -u github.com/gogf/gf")
 	}
 }
@@ -51,7 +48,7 @@ func getProxy() string {
 	}
 	url := ""
 	latency := math.MaxInt32
-	for _, proxy := range proxies {
+	for _, proxy := range g.Config().GetStrings("proxy.urls") {
 		if n := checkProxyLatency(proxy); n < latency {
 			url = proxy
 		}

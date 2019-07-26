@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "github.com/gogf/gf-cli/boot"
 	"github.com/gogf/gf-cli/commands/build"
 	"github.com/gogf/gf-cli/commands/get"
 	"github.com/gogf/gf-cli/commands/help"

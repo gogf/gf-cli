@@ -1,7 +1,7 @@
 package help
 
 import (
-	"fmt"
+	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/g/text/gstr"
 )
 
@@ -27,5 +27,5 @@ Commands:
     upgrade       : upgrade current project from older GF version to newer one if there's any compatibility issue.
         1.9       : upgrade to 1.9.x version, it recursively updates *.go files in current working directory.
 `
-	fmt.Println(gstr.Trim(help))
+	mlog.Print(gstr.Trim(help))
 }
