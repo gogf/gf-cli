@@ -53,6 +53,7 @@ func getProxy() string {
 	for _, proxy := range g.Config().GetStrings("proxy.urls") {
 		wg.Add(1)
 		go func(url string) {
+			defer wg.Done()
 			checkMap.Set(checkProxyLatency(proxy), url)
 		}(proxy)
 	}
