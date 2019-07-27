@@ -18,7 +18,6 @@ var (
 		"https://goproxy.io/", 
 		"https://goproxy.cn"
 	]
-
 `
 )
 

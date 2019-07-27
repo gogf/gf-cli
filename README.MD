@@ -16,7 +16,7 @@ After downloads, please use `gf install` installing gf binary to system binary p
     ```
 1. `Mac`
     ```
-    wget https://goframe.org/cli/darwin_amd64/gf && chmod +x gf && ./gf install
+    wget https://goframe.org/cli/darwin_amd64/gf && chmod +x gf && sudo ./gf install
     ```
 1. `Windows`
 
