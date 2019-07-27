@@ -1,18 +1,32 @@
 # GF-CLI
 
-## Install
+## 1. Install
 
 It's suggested using pre-compiled binaries:
-https://goframe.org/cli
-
-Popular binaries:
 - `Linux   (amd64)`: https://goframe.org/cli/linux_amd64/gf
 - `Mac     (amd64)`: https://goframe.org/cli/darwin_amd64/gf
 - `Windows (amd64)`: https://goframe.org/cli/windows_amd64/gf.exe
+- [More...](https://goframe.org/cli)
 
-After downloads, please use `gf install` installing gf binary to system bin path.
+After downloads, please use `gf install` installing gf binary to system binary path.
 
-## Commands
+1. `Linux`
+    ```
+    wget https://goframe.org/cli/linux_amd64/gf && chmod +x gf
+    sudo ./gf install
+    gf --help
+    ```
+1. `Mac`
+    ```
+    wget https://goframe.org/cli/darwin_amd64/gf && chmod +x gf
+    ./gf install
+    gf --help
+    ```
+1. `Windows`
+
+    This is a command tool, you can manually download and move it to `C:\Windows` folder, and then you can enjoy it in `cmd`.
+
+## 2. Commands
 ```html
 $ gf
 Usage   : gf [COMMAND] [OPTION]
@@ -32,6 +46,5 @@ Commands:
         -p, --path    : output binary directory path, default is './bin'.
     update        : update current gf binary to latest one (you may need root/admin permission).
     install       : install gf binary to system (you may need root/admin permission).
-    upgrade       : upgrade current project from older GF version to newer one if there's any compatibility issue.
-        1.9       : upgrade to 1.9.x version, it recursively updates *.go files in current working directory.
+    upgrade       : automatically upgrade current project from older GF version to latest version.
 ```
