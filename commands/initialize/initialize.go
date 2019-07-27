@@ -31,12 +31,12 @@ func init() {
 
 func Run() {
 	mlog.Print("initializing...")
-	remoteMd5 := ghttp.GetContent(homeUrl + "/project/md5")
+	remoteMd5 := ghttp.GetContent(homeUrl + "/cli/project/md5")
 	if remoteMd5 == "" {
 		mlog.Fatal("get the project zip md5 failed")
 	}
 	name := gcmd.Value.Get(2, defaultProjectName)
-	zipUrl := cdnUrl + "/project/zip?" + remoteMd5
+	zipUrl := cdnUrl + "/cli/project/zip?" + remoteMd5
 	data := ghttp.GetBytes(zipUrl)
 	if len(data) == 0 {
 		mlog.Fatal("got empty project zip data, please tray again later")

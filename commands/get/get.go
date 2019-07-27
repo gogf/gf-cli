@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/g"
+	"github.com/gogf/gf/g/container/gmap"
 	"github.com/gogf/gf/g/net/ghttp"
 	"github.com/gogf/gf/g/os/gcmd"
 	"github.com/gogf/gf/g/os/genv"
 	"github.com/gogf/gf/g/os/gproc"
 	"github.com/gogf/gf/g/os/gtime"
 	"math"
+	"sync"
 	"time"
 )
 
@@ -46,13 +48,25 @@ func getProxy() string {
 	if p := genv.Get("GOPROXY"); p != "" {
 		return p
 	}
+	wg := sync.WaitGroup{}
+	checkMap := gmap.NewIntStrMap(true)
+	for _, proxy := range g.Config().GetStrings("proxy.urls") {
+		wg.Add(1)
+		go func(url string) {
+			checkMap.Set(checkProxyLatency(proxy), url)
+		}(proxy)
+	}
+	wg.Wait()
+
 	url := ""
 	latency := math.MaxInt32
-	for _, proxy := range g.Config().GetStrings("proxy.urls") {
-		if n := checkProxyLatency(proxy); n < latency {
-			url = proxy
+	checkMap.Iterator(func(k int, v string) bool {
+		if k < latency {
+			url = v
+			latency = k
 		}
-	}
+		return true
+	})
 	return url
 }
 

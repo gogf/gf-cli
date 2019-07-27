@@ -26,7 +26,7 @@ func init() {
 
 func Run() {
 	mlog.Print("checking...")
-	md5Url := homeUrl + `/cli/md5`
+	md5Url := homeUrl + `/cli/binary/md5`
 	latestMd5 := ghttp.GetContent(md5Url, g.Map{
 		"os":   runtime.GOOS,
 		"arch": runtime.GOARCH,
@@ -40,7 +40,7 @@ func Run() {
 	}
 	if localMd5 != latestMd5 {
 		mlog.Print("downloading...")
-		downloadUrl := fmt.Sprintf(`%s/%s_%s/gf`, cdnUrl, runtime.GOOS, runtime.GOARCH)
+		downloadUrl := fmt.Sprintf(`%s/cli/binary/%s_%s/gf`, cdnUrl, runtime.GOOS, runtime.GOARCH)
 		if runtime.GOOS == "windows" {
 			downloadUrl += ".exe"
 		}

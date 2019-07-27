@@ -3,5 +3,5 @@ package upgrade
 import "github.com/gogf/gf-cli/library/mlog"
 
 func Run() {
-	mlog.Print("under construction")
+	mlog.Print("this feature is not completed yet")
 }

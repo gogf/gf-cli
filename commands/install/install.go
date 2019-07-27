@@ -20,6 +20,6 @@ func Run() {
 			mlog.Printf("gf binary is successfully installed to: %s", dst)
 		}
 	} else {
-		mlog.Fatal("'%s' does not exist\n", binPath)
+		mlog.Fatal("'%s' does not exist", binPath)
 	}
 }

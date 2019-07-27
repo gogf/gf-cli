@@ -13,7 +13,11 @@ var (
     url = "https://goframe.org"
 
 [proxy]
-    urls = ["https://mirrors.aliyun.com/goproxy/", "https://goproxy.io/"]
+    urls = [
+		"https://mirrors.aliyun.com/goproxy/", 
+		"https://goproxy.io/", 
+		"https://goproxy.cn"
+	]
 
 `
 )
