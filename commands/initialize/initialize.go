@@ -7,6 +7,7 @@ import (
 	"github.com/gogf/gf/g/net/ghttp"
 	"github.com/gogf/gf/g/os/gcmd"
 	"github.com/gogf/gf/g/os/gfile"
+	"github.com/gogf/gf/g/text/gstr"
 )
 
 const (
@@ -27,6 +28,16 @@ func init() {
 	if homeUrl == "" {
 		mlog.Fatal("Home configuration cannot be empty")
 	}
+}
+
+func Help() {
+	mlog.Print(gstr.TrimLeft(`
+USAGE    
+    gf init [ARGUMENT]
+
+ARGUMENT 
+    [NAME]  name for current project, not necessary, default name is 'gf-app'
+`))
 }
 
 func Run() {

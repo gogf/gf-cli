@@ -25,22 +25,24 @@ After downloads, please use `gf install` installing gf binary to system binary p
 ## 2. Commands
 ```html
 $ gf
-Usage   : gf [COMMAND] [OPTION]
-Commands:
-    ?,-?,-h,help  : this help.
-    -v,-i,version : show version info.
-    get           : install or update GF to system in default.
-        [PKG]     : install specified golang package, it also supports 'go get' options.
-    init          : initialize an empty GF project at current working directory in default.
-        [NAME]    : name for current GF project, not necessary, default name is 'gf-app'.
-    build         : cross-building go project.
-        FILE          : building file path.
-        -n, --name    : output binary name.
-        -v, --version : output binary version.
-        -a, --arch    : output binary architecture, multiple arch separated with ','.
-        -o, --os      : output binary system, multiple os separated with ','.
-        -p, --path    : output binary directory path, default is './bin'.
-    update        : update current gf binary to latest one (you may need root/admin permission).
-    install       : install gf binary to system (you may need root/admin permission).
-    upgrade       : automatically upgrade current project from older GF version to latest version.
+USAGE
+    gf COMMAND [ARGUMENT] [OPTION]
+
+COMMAND
+    get        install or update GF to system in default...
+    fix        automatically fix current project for upgrading with compatible issue
+    init       initialize an empty GF project at current working directory in default...
+    help       show more information about a specified command
+    build      cross-building go project for lots of platforms...
+    update     update current gf binary to latest one (you may need root/admin permission)
+    install    install gf binary to system (you may need root/admin permission)
+    version    show version info
+
+OPTION
+    -?,-h      show this help or detail for specified command
+    -v,-i      show version information
+
+ADDITIONAL
+    Use 'gf help COMMAND' or 'gf COMMAND -h' for detail about a command, which has '...' in the tail of their comments.
+
 ```

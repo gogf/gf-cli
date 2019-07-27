@@ -1,4 +1,4 @@
-package upgrade
+package fix
 
 import "github.com/gogf/gf-cli/library/mlog"
 

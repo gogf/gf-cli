@@ -48,6 +48,23 @@ const platforms = `
     windows   amd64
 `
 
+func Help() {
+	mlog.Print(gstr.TrimLeft(`
+USAGE 
+    gf build [OPTION] FILE
+
+ARGUMENT
+    FILE  building file path.
+
+OPTION
+    -n, --name       output binary name
+    -v, --version    output binary version
+    -a, --arch       output binary architecture, multiple arch separated with ','
+    -o, --os         output binary system, multiple os separated with ','
+    -p, --path       output binary directory path, default is './bin'
+`))
+}
+
 func Run() {
 	file := gcmd.Value.Get(2)
 	if len(file) < 1 {

@@ -10,6 +10,7 @@ import (
 	"github.com/gogf/gf/g/os/genv"
 	"github.com/gogf/gf/g/os/gproc"
 	"github.com/gogf/gf/g/os/gtime"
+	"github.com/gogf/gf/g/text/gstr"
 	"math"
 	"sync"
 	"time"
@@ -25,6 +26,17 @@ var (
 
 func init() {
 	httpClient.SetTimeOut(gPROXY_CHECK_TIMEOUT)
+}
+
+func Help() {
+	mlog.Print(gstr.TrimLeft(`
+USAGE    
+    gf get [ARGUMENT]
+
+ARGUMENT 
+    [PACKAGE]  remote golang package path, eg: github.com/gogf/gf
+               it's optional, it updates GF version in default
+`))
 }
 
 func Run() {
