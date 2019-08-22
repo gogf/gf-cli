@@ -2,12 +2,12 @@ package initialize
 
 import (
 	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf/g"
-	"github.com/gogf/gf/g/encoding/gcompress"
-	"github.com/gogf/gf/g/net/ghttp"
-	"github.com/gogf/gf/g/os/gcmd"
-	"github.com/gogf/gf/g/os/gfile"
-	"github.com/gogf/gf/g/text/gstr"
+	"github.com/gogf/gf/encoding/gcompress"
+	"github.com/gogf/gf/frame/g"
+	"github.com/gogf/gf/net/ghttp"
+	"github.com/gogf/gf/os/gcmd"
+	"github.com/gogf/gf/os/gfile"
+	"github.com/gogf/gf/text/gstr"
 )
 
 const (

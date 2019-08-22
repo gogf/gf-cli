@@ -2,7 +2,7 @@ package install
 
 import (
 	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf/g/os/gfile"
+	"github.com/gogf/gf/os/gfile"
 	"runtime"
 )
 

@@ -1,7 +1,7 @@
 package boot
 
 import (
-	"github.com/gogf/gf/g/os/gcfg"
+	"github.com/gogf/gf/os/gcfg"
 )
 
 var (

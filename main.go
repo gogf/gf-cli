@@ -8,10 +8,11 @@ import (
 	"github.com/gogf/gf-cli/commands/get"
 	"github.com/gogf/gf-cli/commands/initialize"
 	"github.com/gogf/gf-cli/commands/install"
+	"github.com/gogf/gf-cli/commands/pack"
 	"github.com/gogf/gf-cli/commands/update"
 	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf/g/os/gcmd"
-	"github.com/gogf/gf/g/text/gstr"
+	"github.com/gogf/gf/os/gcmd"
+	"github.com/gogf/gf/text/gstr"
 )
 
 const (
@@ -26,9 +27,9 @@ USAGE
 
 COMMAND
     get        install or update GF to system in default...
-    fix        automatically fix current project for upgrading with compatible issue
     init       initialize an empty GF project at current working directory in default...
     help       show more information about a specified command
+    pack       packing any file/directory to a resource file, or a go file
     build      cross-building go project for lots of platforms...
     update     update current gf binary to latest one (you may need root/admin permission)
     install    install gf binary to system (you may need root/admin permission)
@@ -61,6 +62,8 @@ func main() {
 		fix.Run()
 	case "init":
 		initialize.Run()
+	case "pack":
+		pack.Run()
 	case "update":
 		update.Run()
 	case "install":
@@ -91,5 +94,7 @@ func help(command string) {
 		initialize.Help()
 	case "build":
 		build.Help()
+	case "pack":
+		pack.Help()
 	}
 }

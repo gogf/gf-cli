@@ -1,9 +1,9 @@
 package mlog
 
 import (
-	"github.com/gogf/gf/g"
-	"github.com/gogf/gf/g/os/gcmd"
-	"github.com/gogf/gf/g/os/glog"
+	"github.com/gogf/gf/frame/g"
+	"github.com/gogf/gf/os/gcmd"
+	"github.com/gogf/gf/os/glog"
 )
 
 var (

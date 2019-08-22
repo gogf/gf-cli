@@ -3,11 +3,11 @@ package build
 import (
 	"fmt"
 	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf/g/os/gcmd"
-	"github.com/gogf/gf/g/os/genv"
-	"github.com/gogf/gf/g/os/gfile"
-	"github.com/gogf/gf/g/os/gproc"
-	"github.com/gogf/gf/g/text/gstr"
+	"github.com/gogf/gf/os/gcmd"
+	"github.com/gogf/gf/os/genv"
+	"github.com/gogf/gf/os/gfile"
+	"github.com/gogf/gf/os/gproc"
+	"github.com/gogf/gf/text/gstr"
 	"regexp"
 	"strings"
 )
@@ -62,6 +62,33 @@ OPTION
     -a, --arch       output binary architecture, multiple arch separated with ','
     -o, --os         output binary system, multiple os separated with ','
     -p, --path       output binary directory path, default is './bin'
+
+PLATFORMS
+	darwin    386
+	darwin    amd64
+	dragonfly amd64
+	freebsd   386
+	freebsd   amd64
+	freebsd   arm
+	linux     386
+	linux     amd64
+	linux     arm
+	linux     arm64
+	linux     ppc64
+	linux     ppc64le
+	linux     mips
+	linux     mipsle
+	linux     mips64
+	linux     mips64le
+	netbsd    386
+	netbsd    amd64
+	netbsd    arm
+	openbsd   386
+	openbsd   amd64
+	openbsd   arm
+    solaris   amd64
+    windows   386
+    windows   amd64
 `))
 }
 
