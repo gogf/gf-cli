@@ -35,8 +35,8 @@ COMMAND
     build      cross-building go project for lots of platforms...
     update     update current gf binary to latest one (you may need root/admin permission)
     install    install gf binary to system (you may need root/admin permission)
-	version    show version info
-	run        Listen for files in the current directory and build and run the facts
+    version    show version info
+    run        Listen for files in the current directory and build and run the facts
 
 OPTION
     -?,-h      show this help or detail for specified command
