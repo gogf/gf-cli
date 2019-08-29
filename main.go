@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	_ "github.com/gogf/gf-cli/boot"
 	"github.com/gogf/gf-cli/commands/build"
 	"github.com/gogf/gf-cli/commands/fix"
@@ -9,6 +10,7 @@ import (
 	"github.com/gogf/gf-cli/commands/initialize"
 	"github.com/gogf/gf-cli/commands/install"
 	"github.com/gogf/gf-cli/commands/pack"
+	"github.com/gogf/gf-cli/commands/run"
 	"github.com/gogf/gf-cli/commands/update"
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/os/gcmd"
@@ -33,7 +35,8 @@ COMMAND
     build      cross-building go project for lots of platforms...
     update     update current gf binary to latest one (you may need root/admin permission)
     install    install gf binary to system (you may need root/admin permission)
-    version    show version info
+	version    show version info
+	run        Listen for files in the current directory and build and run the facts
 
 OPTION
     -?,-h      show this help or detail for specified command
@@ -70,6 +73,8 @@ func main() {
 		install.Run()
 	case "build":
 		build.Run()
+	case "run":
+		run.Run()
 	default:
 		for k := range gcmd.Option.GetAll() {
 			switch k {
@@ -96,5 +101,7 @@ func help(command string) {
 		build.Help()
 	case "pack":
 		pack.Help()
+	case "run":
+		run.Help()
 	}
 }
