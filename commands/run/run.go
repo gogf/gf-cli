@@ -17,45 +17,50 @@ import (
 	"github.com/gogf/gf/text/gstr"
 )
 
-func Help() {
-	mlog.Print(gstr.TrimLeft(`
-USAGE 
-    gf run
-`))
-}
-
+// App app
 type App struct {
 	Name        string
 	Path        string
 	FullPath    string
 	BuildTags   string
-	debugCmd    *exec.Cmd
-	isModule    bool
+	CMD         *exec.Cmd
 	Locker      *gmlock.Locker
 	Timer       *gtimer.Entry
 	WatchList   []string
 	UnWatchList []string
 }
 
-// New
+// Help how to use
+func Help() {
+	mlog.Print(gstr.TrimLeft(`
+USAGE 
+    gf run
+EXAMPLES
+    gf run
+`))
+}
+
+// New new app
 func New() *App {
 	return &App{
 		Locker:      gmlock.New(),
 		WatchList:   []string{"(.go)$"},
-		UnWatchList: []string{"(.js|.html|.bat|.txt|.md|.exe)$"},
+		UnWatchList: []string{"(.js|.html|.bat|.txt|.md|.exe|.exe~)$"},
 	}
 }
 
-// Run description
+// Run run
 func Run() {
-	path, _ := os.Getwd()
 	app := New()
 
-	app.Name = filepath.Base(path)
+	// 获取当前目录
+	app.Path, _ = os.Getwd()
 
-	_, err := gfsnotify.Add(path, func(event *gfsnotify.Event) {
-		//app.isModule = isModule
-		if app.IsUnWatch(event.Path) {
+	app.Name = filepath.Base(app.Path)
+	// 监控目录
+	_, err := gfsnotify.Add(app.Path, func(event *gfsnotify.Event) {
+		// 排除文件
+		if app.IsUnwatch(event.Path) {
 			return
 		}
 
@@ -73,30 +78,32 @@ func Run() {
 		default:
 			mlog.Print(event)
 		}
+
+		// 非目标文件不重新编译
 		if !app.IsWatch(event.Path) {
 			return
 		}
+
 		if app.Timer != nil {
-			app.Timer.Stop()
+			app.Timer.Close()
 			app.Timer = nil
 		}
-		if app.Timer == nil {
-			app.Timer = gtimer.AddOnce(time.Second, func() {
-				app.Build()
-			})
-		}
-
+		// 使用延时执行，避免短时间内多次文件变动导致异常
+		app.Timer = gtimer.AddOnce(time.Second, func() {
+			app.Build()
+		})
 	}, true)
-	app.Build()
+
 	if err != nil {
 		mlog.Fatal("%v", err)
 	} else {
+		app.Build()
 		select {}
 	}
 }
 
-// IsUnWatch
-func (app *App) IsUnWatch(filename string) bool {
+// IsUnwatch is file unwatch or not
+func (app *App) IsUnwatch(filename string) bool {
 	for _, regex := range app.UnWatchList {
 		r, err := regexp.Compile(regex)
 		if err != nil {
@@ -110,7 +117,7 @@ func (app *App) IsUnWatch(filename string) bool {
 	return false
 }
 
-// IsWatch
+// IsWatch is file watch or not
 func (app *App) IsWatch(filename string) bool {
 	for _, regex := range app.WatchList {
 		r, err := regexp.Compile(regex)
@@ -125,7 +132,7 @@ func (app *App) IsWatch(filename string) bool {
 	return false
 }
 
-// Build
+// Build build the app
 func (app *App) Build() {
 	app.Locker.Lock(app.Name)
 	defer app.Locker.Unlock(app.Name)
@@ -147,9 +154,7 @@ func (app *App) Build() {
 	}
 	buildCmd := exec.Command(cmdName, args...)
 	buildCmd.Env = append(os.Environ(), "GOGC=off")
-	if app.isModule {
-		buildCmd.Env = append(os.Environ(), "GO111MODULE=auto")
-	}
+	//buildCmd.Env = append(os.Environ(), "GO111MODULE=auto")
 	buildCmd.Stderr = &stderr
 	err = buildCmd.Run()
 	if err != nil {
@@ -159,38 +164,38 @@ func (app *App) Build() {
 	app.Restart()
 }
 
-// Kill
+// Kill kill the app
 func (app *App) Kill() {
 	defer func() {
 		if e := recover(); e != nil {
 		}
 	}()
-	if app.debugCmd != nil && app.debugCmd.Process != nil {
-		err := app.debugCmd.Process.Kill()
+	if app.CMD != nil && app.CMD.Process != nil {
+		err := app.CMD.Process.Kill()
 		if err != nil {
 			mlog.Fatal(err)
 		}
 	}
 }
 
-// Restart
+// Restart restart the app
 func (app *App) Restart() {
 	app.Kill()
 	go app.Start()
 }
 
-// Start
+// Start start the app
 func (app *App) Start() {
 	appname := app.Name
 	if !strings.Contains(appname, "./") {
 		appname = "./" + appname
 	}
 
-	app.debugCmd = exec.Command(appname)
-	app.debugCmd.Stdout = os.Stdout
-	app.debugCmd.Stderr = os.Stderr
+	app.CMD = exec.Command(appname)
+	app.CMD.Stdout = os.Stdout
+	app.CMD.Stderr = os.Stderr
 	//cmd.Args = append([]string{appname}, config.Conf.CmdArgs...)
 	//cmd.Env = append(os.Environ(), config.Conf.Envs...)
 
-	go app.debugCmd.Run()
+	go app.CMD.Run()
 }
