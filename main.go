@@ -96,5 +96,7 @@ func help(command string) {
 		build.Help()
 	case "pack":
 		pack.Help()
+	default:
+		mlog.Print(helpContent)
 	}
 }

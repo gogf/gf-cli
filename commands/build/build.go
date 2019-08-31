@@ -9,6 +9,7 @@ import (
 	"github.com/gogf/gf/os/gproc"
 	"github.com/gogf/gf/text/gstr"
 	"regexp"
+	"runtime"
 	"strings"
 )
 
@@ -63,6 +64,12 @@ OPTION
     -o, --os         output binary system, multiple os separated with ','
     -p, --path       output binary directory path, default is './bin'
 
+EXAMPLES
+    gf build main.go
+    gf build main.go -n=my-app -a=all -o=all
+    gf build main.go -n=my-app -a=amd64,386 -o=linux -p=.
+    gf build main.go -n=my-app -v=1.0 -a=amd64,386 -o=linux,windows,darwin -p=./bin
+
 PLATFORMS
 	darwin    386
 	darwin    amd64
@@ -103,8 +110,16 @@ func Run() {
 		mlog.Fatal("name cannot be empty")
 	}
 	version := gcmd.Option.Get("version", gcmd.Option.Get("v"))
-	arches := strings.Split(gcmd.Option.Get("arch", gcmd.Option.Get("a")), ",")
-	oses := strings.Split(gcmd.Option.Get("os", gcmd.Option.Get("o")), ",")
+	osOption := gcmd.Option.Get("os", gcmd.Option.Get("o", runtime.GOOS))
+	archOption := gcmd.Option.Get("arch", gcmd.Option.Get("a", runtime.GOARCH))
+	if strings.EqualFold(osOption, "all") {
+		osOption = ""
+	}
+	if strings.EqualFold(archOption, "all") {
+		archOption = ""
+	}
+	oses := strings.Split(osOption, ",")
+	arches := strings.Split(archOption, ",")
 	ext := ""
 	cmd := ""
 	if len(version) > 0 {
