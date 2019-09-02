@@ -102,5 +102,7 @@ func help(command string) {
 		pack.Help()
 	case "run":
 		run.Help()
+	default:
+		mlog.Print(helpContent)
 	}
 }
