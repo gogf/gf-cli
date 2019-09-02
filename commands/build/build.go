@@ -21,6 +21,7 @@ import (
 //    darwin	arm64
 //    plan9     386
 //    plan9     amd64
+//    solaris   amd64
 const platforms = `
 	darwin    386
 	darwin    amd64
@@ -52,7 +53,7 @@ const platforms = `
 func Help() {
 	mlog.Print(gstr.TrimLeft(`
 USAGE 
-    gf build [OPTION] FILE
+    gf build FILE [OPTION]
 
 ARGUMENT
     FILE  building file path.
@@ -93,7 +94,6 @@ PLATFORMS
 	openbsd   386
 	openbsd   amd64
 	openbsd   arm
-    solaris   amd64
     windows   386
     windows   amd64
 `))

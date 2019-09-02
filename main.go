@@ -5,6 +5,7 @@ import (
 	_ "github.com/gogf/gf-cli/boot"
 	"github.com/gogf/gf-cli/commands/build"
 	"github.com/gogf/gf-cli/commands/fix"
+	"github.com/gogf/gf-cli/commands/gen"
 	"github.com/gogf/gf-cli/commands/get"
 	"github.com/gogf/gf-cli/commands/initialize"
 	"github.com/gogf/gf-cli/commands/install"
@@ -16,7 +17,7 @@ import (
 )
 
 const (
-	VERSION = "v0.2.0"
+	VERSION = "v0.3.0"
 )
 
 var (
@@ -27,6 +28,7 @@ USAGE
 
 COMMAND
     get        install or update GF to system in default...
+    gen        automatically generate go files for ORM model...
     init       initialize an empty GF project at current working directory in default...
     help       show more information about a specified command
     pack       packing any file/directory to a resource file, or a go file
@@ -58,6 +60,8 @@ func main() {
 		mlog.Print(verContent)
 	case "get":
 		get.Run()
+	case "gen":
+		gen.Run()
 	case "fix":
 		fix.Run()
 	case "init":
@@ -90,6 +94,8 @@ func help(command string) {
 	switch command {
 	case "get":
 		get.Help()
+	case "gen":
+		gen.Help()
 	case "init":
 		initialize.Help()
 	case "build":

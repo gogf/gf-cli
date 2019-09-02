@@ -33,10 +33,14 @@ func init() {
 func Help() {
 	mlog.Print(gstr.TrimLeft(`
 USAGE    
-    gf init [ARGUMENT]
+    gf init [NAME]
 
 ARGUMENT 
-    [NAME]  name for current project, not necessary, default name is 'gf-app'
+    NAME  name for current project, not necessary, default name is 'gf-app'
+
+EXAMPLES
+    gf init
+    gf init my-project-name
 `))
 }
 
