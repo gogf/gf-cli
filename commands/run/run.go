@@ -158,7 +158,7 @@ func (app *App) Build() {
 	buildCmd.Stderr = &stderr
 	err = buildCmd.Run()
 	if err != nil {
-		mlog.Fatal("Build Failed:", stderr.String())
+		mlog.Print("Build Failed:", stderr.String())
 		return
 	}
 	app.Restart()
