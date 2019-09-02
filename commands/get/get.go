@@ -62,7 +62,7 @@ func getProxy() string {
 	}
 	wg := sync.WaitGroup{}
 	checkMap := gmap.NewIntStrMap(true)
-	for _, proxy := range g.Config().GetStrings("proxy.urls") {
+	for _, proxy := range g.Config("url").GetStrings("proxy.urls") {
 		wg.Add(1)
 		go func(url string) {
 			defer wg.Done()

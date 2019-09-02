@@ -17,8 +17,8 @@ const (
 )
 
 var (
-	cdnUrl  = g.Config().GetString("cdn.url")
-	homeUrl = g.Config().GetString("home.url")
+	cdnUrl  = g.Config("url").GetString("cdn.url")
+	homeUrl = g.Config("url").GetString("home.url")
 )
 
 func init() {
