@@ -30,9 +30,9 @@ USAGE
 
 COMMAND
     get        install or update GF to system in default...
-    fix        automatically fix current project for upgrading with compatible issue
     init       initialize an empty GF project at current working directory in default...
     help       show more information about a specified command
+    pack       packing any file/directory to a resource file, or a go file
     build      cross-building go project for lots of platforms...
     update     update current gf binary to latest one (you may need root/admin permission)
     install    install gf binary to system (you may need root/admin permission)
