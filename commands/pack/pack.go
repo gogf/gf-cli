@@ -13,19 +13,22 @@ USAGE
     gf pack SRC DST
 
 ARGUMENT
-    SRC  source path for packing
-    DST  destination file path for packed file,
-         if extension of the filename is '.go', it then outputs to a go file
+    SRC  source path for packing, which can be multiple source paths.
+    DST  destination file path for packed file.
+         if extension of the filename is ".go" and "-n" option is given, 
+         it enables packing SRC to go file, or else it packs SRC into a binary file.
 
 OPTION
     -n, --name      package name for output go file
     -p, --prefix    prefix for each file packed into the resource file
 
 EXAMPLES
-    gf pack ./public ./data.bin
-    gf pack ./public ./data/data.go -n=data
-    gf pack ./public ./resource/resource.go -n=resource -p=/var/www/public
-    gf pack /var/www/public ./resource/resource.go -n=resource
+    gf pack public data.bin
+    gf pack public,template data.bin
+    gf pack public,template data/data.go -n=data
+    gf pack public,template,config resource/resource.go -n=resource
+    gf pack public,template,config resource/resource.go -n=resource -p=/var/www/my-app
+    gf pack /var/www/public resource/resource.go -n=resource
 `))
 }
 
