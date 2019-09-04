@@ -64,6 +64,11 @@ func Run() {
 			return
 		}
 
+		// 非目标文件不重新编译
+		if !app.IsWatch(event.Path) {
+			return
+		}
+
 		switch {
 		case event.IsCreate():
 			mlog.Print("create file:", event.Path)
@@ -77,11 +82,6 @@ func Run() {
 			mlog.Print("chmod file:", event.Path)
 		default:
 			mlog.Print(event)
-		}
-
-		// 非目标文件不重新编译
-		if !app.IsWatch(event.Path) {
-			return
 		}
 
 		if app.Timer != nil {
@@ -134,6 +134,7 @@ func (app *App) IsWatch(filename string) bool {
 
 // Build build the app
 func (app *App) Build() {
+	mlog.Printf("Build: %s", app.Name)
 	app.Locker.Lock(app.Name)
 	defer app.Locker.Unlock(app.Name)
 
@@ -171,9 +172,17 @@ func (app *App) Kill() {
 		}
 	}()
 	if app.CMD != nil && app.CMD.Process != nil {
+		mlog.Printf("Kill: %s", app.Name)
 		err := app.CMD.Process.Kill()
 		if err != nil {
-			mlog.Fatal(err)
+			if err.Error() == "invalid argument" {
+				// the app was auto exit
+				app.CMD = nil
+			} else {
+				mlog.Fatal("Kill error:", err)
+			}
+		} else {
+			app.CMD = nil
 		}
 	}
 }
@@ -186,6 +195,7 @@ func (app *App) Restart() {
 
 // Start start the app
 func (app *App) Start() {
+	mlog.Printf("Start: %s\n", app.Name)
 	appname := app.Name
 	if !strings.Contains(appname, "./") {
 		appname = "./" + appname
