@@ -14,7 +14,7 @@ func init() {
 	logger.SetStack(false)
 	logger.SetDebug(false)
 	logger.SetHeaderPrint(false)
-	if gcmd.Option.Contains("debug") {
+	if gcmd.ContainsOpt("debug") {
 		logger.SetDebug(true)
 	}
 }
