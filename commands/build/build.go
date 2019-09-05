@@ -46,7 +46,6 @@ const platforms = `
 	openbsd   386
 	openbsd   amd64
 	openbsd   arm
-    solaris   amd64
     windows   386
     windows   amd64
 `
