@@ -2,6 +2,7 @@ package pack
 
 import (
 	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/os/gres"
 	"github.com/gogf/gf/text/gstr"
@@ -33,16 +34,23 @@ EXAMPLES
 }
 
 func Run() {
-	srcPath := gcmd.Value.Get(2)
-	dstPath := gcmd.Value.Get(3)
+	parser, err := gcmd.Parse(g.MapStrBool{
+		"n,name":   true,
+		"p,prefix": true,
+	})
+	if err != nil {
+		mlog.Fatal(err)
+	}
+	srcPath := parser.GetArg(2)
+	dstPath := parser.GetArg(3)
 	if srcPath == "" {
 		mlog.Fatal("SRC path cannot be empty")
 	}
 	if dstPath == "" {
 		mlog.Fatal("DST path cannot be empty")
 	}
-	name := gcmd.Option.Get("name", gcmd.Option.Get("n"))
-	prefix := gcmd.Option.Get("prefix", gcmd.Option.Get("p"))
+	name := parser.GetOpt("name")
+	prefix := parser.GetOpt("prefix")
 
 	mlog.Print("packing...")
 	if name != "" {

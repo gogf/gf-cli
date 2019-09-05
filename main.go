@@ -12,6 +12,7 @@ import (
 	"github.com/gogf/gf-cli/commands/pack"
 	"github.com/gogf/gf-cli/commands/update"
 	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/text/gstr"
 )
@@ -47,15 +48,22 @@ ADDITIONAL
 )
 
 func main() {
-	command := gcmd.Value.Get(1)
+	parser, err := gcmd.Parse(g.MapStrBool{
+		"h,?": false,
+		"v,i": false,
+	})
+	if err != nil {
+		mlog.Fatal(err)
+	}
+	command := parser.GetArg(1)
 	// Help information
-	if gcmd.Option.Contains("h") && command != "" {
+	if parser.ContainsOpt("h") && command != "" {
 		help(command)
 		return
 	}
 	switch command {
 	case "help":
-		help(gcmd.Value.Get(2))
+		help(parser.GetArg(2))
 	case "version":
 		mlog.Print(verContent)
 	case "get":
@@ -75,7 +83,7 @@ func main() {
 	case "build":
 		build.Run()
 	default:
-		for k := range gcmd.Option.GetAll() {
+		for k := range parser.GetOptAll() {
 			switch k {
 			case "?", "h":
 				mlog.Print(helpContent)

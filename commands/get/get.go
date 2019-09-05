@@ -6,12 +6,12 @@ import (
 	"github.com/gogf/gf/container/gmap"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/net/ghttp"
-	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/os/genv"
 	"github.com/gogf/gf/os/gproc"
 	"github.com/gogf/gf/os/gtime"
 	"github.com/gogf/gf/text/gstr"
 	"math"
+	"os"
 	"sync"
 	"time"
 )
@@ -35,7 +35,7 @@ USAGE
 
 ARGUMENT 
     [PACKAGE]  remote golang package path, eg: github.com/gogf/gf
-               it's optional, it updates GF version in default
+               it's optional, it updates GF version for current project in default
 `))
 }
 
@@ -43,12 +43,8 @@ func Run() {
 	genv.Set("GOPROXY", getProxy())
 	mlog.Print("cleaning cache...")
 	gproc.ShellRun("go clean -modcache")
-	if value := gcmd.Value.Get(2); value != "" {
-		options := gcmd.Option.Build("-")
-		if options == "" {
-			options = "-u"
-		}
-		gproc.ShellRun(fmt.Sprintf(`go get %s %s`, options, value))
+	if len(os.Args) > 2 && os.Args[2] != "" {
+		gproc.ShellRun(fmt.Sprintf(`go get -u %s`, os.Args[2]))
 	} else {
 		mlog.Print("downloading the latest version of GF...")
 		gproc.ShellRun("go get -u github.com/gogf/gf")

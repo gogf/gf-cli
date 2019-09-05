@@ -54,15 +54,24 @@ DESCRIPTION
 }
 
 func Run() {
-	genType := gcmd.Value.Get(2)
+	parser, err := gcmd.Parse(g.MapStrBool{
+		"n,name":   true,
+		"l,link":   true,
+		"g,group":  true,
+		"c,config": true,
+	})
+	if err != nil {
+		mlog.Fatal(err)
+	}
+	genType := parser.GetArg(2)
 	if genType == "" {
 		mlog.Fatal("generating type cannot be empty")
 	}
-	genPath := gcmd.Value.Get(3, DEFAULT_GEN_MODEL_PATH)
-	linkInfo := gcmd.Option.Get("link", gcmd.Option.Get("l"))
-	configFile := gcmd.Option.Get("config", gcmd.Option.Get("c"))
-	configGroup := gcmd.Option.Get("group", gcmd.Option.Get("g", gdb.DEFAULT_GROUP_NAME))
-	packageName := gcmd.Option.Get("name", gcmd.Option.Get("n", configGroup))
+	genPath := parser.GetArg(3, DEFAULT_GEN_MODEL_PATH)
+	linkInfo := parser.GetOpt("link")
+	configFile := parser.GetOpt("config")
+	configGroup := parser.GetOpt("group", gdb.DEFAULT_GROUP_NAME)
+	packageName := parser.GetOpt("name", configGroup)
 
 	if linkInfo != "" {
 		path := gfile.TempDir() + gfile.Separator + "config.toml"

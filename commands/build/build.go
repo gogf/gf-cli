@@ -3,6 +3,7 @@ package build
 import (
 	"fmt"
 	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/os/genv"
 	"github.com/gogf/gf/os/gfile"
@@ -100,18 +101,28 @@ PLATFORMS
 }
 
 func Run() {
-	file := gcmd.Value.Get(2)
+	parser, err := gcmd.Parse(g.MapStrBool{
+		"n,name":    true,
+		"v,version": true,
+		"a,arch":    true,
+		"o,os":      true,
+		"p,path":    true,
+	})
+	if err != nil {
+		mlog.Fatal(err)
+	}
+	file := parser.GetArg(2)
 	if len(file) < 1 {
 		mlog.Fatal("file path cannot be empty")
 	}
-	path := gcmd.Option.Get("path", gcmd.Option.Get("p", "./bin"))
-	name := gcmd.Option.Get("name", gcmd.Option.Get("n", gfile.Name(file)))
+	path := parser.GetOpt("path", "./bin")
+	name := parser.GetOpt("name", gfile.Name(file))
 	if len(name) < 1 || name == "*" {
 		mlog.Fatal("name cannot be empty")
 	}
-	version := gcmd.Option.Get("version", gcmd.Option.Get("v"))
-	osOption := gcmd.Option.Get("os", gcmd.Option.Get("o", runtime.GOOS))
-	archOption := gcmd.Option.Get("arch", gcmd.Option.Get("a", runtime.GOARCH))
+	version := parser.GetOpt("version")
+	osOption := parser.GetOpt("os", runtime.GOOS)
+	archOption := parser.GetOpt("arch", runtime.GOARCH)
 	if strings.EqualFold(osOption, "all") {
 		osOption = ""
 	}

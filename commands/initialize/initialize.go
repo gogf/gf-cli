@@ -45,19 +45,22 @@ EXAMPLES
 }
 
 func Run() {
+	parser, err := gcmd.Parse(nil)
+	if err != nil {
+		mlog.Fatal(err)
+	}
 	mlog.Print("initializing...")
 	remoteMd5 := ghttp.GetContent(homeUrl + "/cli/project/md5")
 	if remoteMd5 == "" {
 		mlog.Fatal("get the project zip md5 failed")
 	}
-	name := gcmd.Value.Get(2, defaultProjectName)
+	name := parser.GetArg(2, defaultProjectName)
 	zipUrl := cdnUrl + "/cli/project/zip?" + remoteMd5
 	data := ghttp.GetBytes(zipUrl)
 	if len(data) == 0 {
 		mlog.Fatal("got empty project zip data, please tray again later")
 	}
-	err := gcompress.UnZipContent(data, ".", emptyProjectName+"-master")
-	if err != nil {
+	if err = gcompress.UnZipContent(data, ".", emptyProjectName+"-master"); err != nil {
 		mlog.Fatal("unzip project data failed,", err.Error())
 	}
 	if err = gfile.Replace(emptyProject, name, ".", "*.*", true); err != nil {
