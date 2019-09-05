@@ -20,7 +20,7 @@ import (
 
 const (
 	DEFAULT_GEN_MODEL_PATH      = "./api/model"
-	DEFAULT_GEN_MODEL_INIT_NAME = "Initialization"
+	DEFAULT_GEN_MODEL_INIT_NAME = "initialization"
 )
 
 func Help() {
@@ -34,11 +34,11 @@ ARGUMENT
 OPTION
     -n, --name    package name for generated go files, it's the configuration group name in default
     -l, --link    database configuration, please refer to: https://goframe.org/database/gdb/config
-    -c, --config  used to specify the configuration file for database, it's not necessary, 
+    -g, --group   used with "-c" option, specifying the configuration group name for database,
+                  it's not necessary and the default value is "default"
+    -c, --config  used to specify the configuration file for database, it's commonly not necessary, 
                   if "-l" is not passed, it will search "./config.toml" and "./config/config.toml" 
                   in current working directory
-    -g, --group   used with "-c" option, specifying the configuration group name for database,
-                  it's not necessary, default value is "default"
 
 EXAMPLES
     gf gen model
@@ -49,7 +49,7 @@ EXAMPLES
 
 DESCRIPTION
     The "gen" command is designed for multiple generating purposes.
-    It's currently supporting generating go files for ORM model.
+    It's currently supporting generating go files for ORM models.
 `))
 }
 
@@ -68,10 +68,20 @@ func Run() {
 		mlog.Fatal("generating type cannot be empty")
 	}
 	genPath := parser.GetArg(3, DEFAULT_GEN_MODEL_PATH)
+	if !gfile.IsEmpty(genPath) {
+		s := gcmd.Scanf("path '%s' is not empty, files might be overwrote, continue? [y/n]: ", genPath)
+		if strings.EqualFold(s, "n") {
+			return
+		}
+	}
 	linkInfo := parser.GetOpt("link")
 	configFile := parser.GetOpt("config")
 	configGroup := parser.GetOpt("group", gdb.DEFAULT_GROUP_NAME)
 	packageName := parser.GetOpt("name", configGroup)
+	if strings.EqualFold(packageName, gdb.DEFAULT_GROUP_NAME) {
+		packageName += "s"
+		mlog.Printf(`package name '%s' is a reserved word of go, so it's renamed to '%s'`, gdb.DEFAULT_GROUP_NAME, packageName)
+	}
 
 	if linkInfo != "" {
 		path := gfile.TempDir() + gfile.Separator + "config.toml"
@@ -115,6 +125,7 @@ func Run() {
 		generateModelContentFile(db, table, folderPath, packageName)
 	}
 	generateModelInitFile(folderPath, packageName)
+	mlog.Print("done!")
 }
 
 func generateModelInitFile(folderPath, packageName string) {
@@ -122,7 +133,7 @@ func generateModelInitFile(folderPath, packageName string) {
 		"{TplPackageName}": packageName,
 	})
 	path := folderPath + gfile.Separator + DEFAULT_GEN_MODEL_INIT_NAME + ".go"
-	if err := gfile.PutContents(path, modelContent); err != nil {
+	if err := gfile.PutContents(path, strings.TrimSpace(modelContent)); err != nil {
 		mlog.Fatalf("writing model content to '%s' failed: %v", path, err)
 	}
 }
@@ -148,8 +159,8 @@ func generateModelContentFile(db gdb.DB, table string, folderPath, packageName s
 		"{TplExtraImports}": extraImports,
 		"{TplStructDefine}": structDefine,
 	})
-	path := folderPath + gfile.Separator + camelName + ".go"
-	if err := gfile.PutContents(path, modelContent); err != nil {
+	path := folderPath + gfile.Separator + gstr.SnakeCase(table) + ".go"
+	if err := gfile.PutContents(path, strings.TrimSpace(modelContent)); err != nil {
 		mlog.Fatalf("writing model content to '%s' failed: %v", path, err)
 	}
 }
@@ -163,10 +174,16 @@ func generateStructDefine(table string, fields map[string]*gdb.TableField) strin
 	tw := tablewriter.NewWriter(buffer)
 	tw.SetBorder(false)
 	tw.SetRowLine(false)
+	tw.SetAutoWrapText(false)
 	tw.SetColumnSeparator("")
 	tw.AppendBulk(array)
-	buffer.WriteString("type " + gstr.CamelCase(table) + " struct {\n")
 	tw.Render()
+	stContent := buffer.String()
+	// Let's do this hack for tablewriter!
+	stContent = gstr.Replace(stContent, "  #", "")
+	buffer.Reset()
+	buffer.WriteString("type " + gstr.CamelCase(table) + " struct {\n")
+	buffer.WriteString(stContent)
 	buffer.WriteString("}")
 	return buffer.String()
 }
@@ -230,9 +247,9 @@ func generateStructField(field *gdb.TableField) []string {
 		ormTag += ",unique"
 	}
 	return []string{
-		gstr.CamelCase(field.Name),
-		typeName,
-		fmt.Sprintf("`"+`orm:"%s"`, ormTag),
-		fmt.Sprintf(`json:"%s"`+"`", jsonTag),
+		"    #" + gstr.CamelCase(field.Name),
+		" #" + typeName,
+		" #" + fmt.Sprintf("`"+`orm:"%s"`, ormTag),
+		" #" + fmt.Sprintf(`json:"%s"`+"`", jsonTag),
 	}
 }

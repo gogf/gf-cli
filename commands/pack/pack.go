@@ -4,8 +4,10 @@ import (
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gcmd"
+	"github.com/gogf/gf/os/gfile"
 	"github.com/gogf/gf/os/gres"
 	"github.com/gogf/gf/text/gstr"
+	"strings"
 )
 
 func Help() {
@@ -15,8 +17,7 @@ USAGE
 
 ARGUMENT
     SRC  source path for packing, which can be multiple source paths.
-    DST  destination file path for packed file.
-         if extension of the filename is ".go" and "-n" option is given, 
+    DST  destination file path for packed file. if extension of the filename is ".go" and "-n" option is given, 
          it enables packing SRC to go file, or else it packs SRC into a binary file.
 
 OPTION
@@ -48,6 +49,15 @@ func Run() {
 	}
 	if dstPath == "" {
 		mlog.Fatal("DST path cannot be empty")
+	}
+	if gfile.Exists(dstPath) && gfile.IsDir(dstPath) {
+		mlog.Fatalf("DST path '%s' cannot be a directory", dstPath)
+	}
+	if !gfile.IsEmpty(dstPath) {
+		s := gcmd.Scanf("path '%s' is not empty, files might be overwrote, continue? [y/n]: ", dstPath)
+		if strings.EqualFold(s, "n") {
+			return
+		}
 	}
 	name := parser.GetOpt("name")
 	prefix := parser.GetOpt("prefix")

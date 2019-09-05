@@ -8,6 +8,7 @@ import (
 	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/os/gfile"
 	"github.com/gogf/gf/text/gstr"
+	"strings"
 )
 
 const (
@@ -49,6 +50,13 @@ func Run() {
 	if err != nil {
 		mlog.Fatal(err)
 	}
+	dirPath := "."
+	if !gfile.IsEmpty(dirPath) {
+		s := gcmd.Scan("current folder is not empty, files might be overwrote, continue? [y/n]: ")
+		if strings.EqualFold(s, "n") {
+			return
+		}
+	}
 	mlog.Print("initializing...")
 	remoteMd5 := ghttp.GetContent(homeUrl + "/cli/project/md5")
 	if remoteMd5 == "" {
@@ -60,10 +68,10 @@ func Run() {
 	if len(data) == 0 {
 		mlog.Fatal("got empty project zip data, please tray again later")
 	}
-	if err = gcompress.UnZipContent(data, ".", emptyProjectName+"-master"); err != nil {
+	if err = gcompress.UnZipContent(data, dirPath, emptyProjectName+"-master"); err != nil {
 		mlog.Fatal("unzip project data failed,", err.Error())
 	}
-	if err = gfile.Replace(emptyProject, name, ".", "*.*", true); err != nil {
+	if err = gfile.Replace(emptyProject, name, dirPath, "*.*", true); err != nil {
 		mlog.Fatal("content replacing failed,", err.Error())
 	}
 	mlog.Print("initialization done! ")
