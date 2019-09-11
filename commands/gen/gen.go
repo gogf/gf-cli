@@ -43,7 +43,7 @@ OPTION
 EXAMPLES
     gf gen model
     gf gen model -n=dao
-    gf gen model -l=mysql:root:12345678@tcp(127.0.0.1:3306)/test
+    gf gen model -l="mysql:root:12345678@tcp(127.0.0.1:3306)/test"
     gf gen model ./model -l=mssql:sqlserver://sa:12345678@127.0.0.1:1433?database=test
     gf gen model ./model -c=config.yaml -g=user-center
 
@@ -78,10 +78,6 @@ func Run() {
 	configFile := parser.GetOpt("config")
 	configGroup := parser.GetOpt("group", gdb.DEFAULT_GROUP_NAME)
 	packageName := parser.GetOpt("name", configGroup)
-	if strings.EqualFold(packageName, gdb.DEFAULT_GROUP_NAME) {
-		packageName += "s"
-		mlog.Printf(`package name '%s' is a reserved word of go, so it's renamed to '%s'`, gdb.DEFAULT_GROUP_NAME, packageName)
-	}
 
 	if linkInfo != "" {
 		path := gfile.TempDir() + gfile.Separator + "config.toml"
@@ -119,7 +115,11 @@ func Run() {
 
 	tables, err := db.Tables()
 	if err != nil {
-		mlog.Fatalf("fetching tables failed: %v", err)
+		mlog.Fatalf("fetching tables failed: \n %v", err)
+	}
+	if strings.EqualFold(packageName, gdb.DEFAULT_GROUP_NAME) {
+		packageName += "s"
+		mlog.Printf(`package name '%s' is a reserved word of go, so it's renamed to '%s'`, gdb.DEFAULT_GROUP_NAME, packageName)
 	}
 	for _, table := range tables {
 		generateModelContentFile(db, table, folderPath, packageName)
