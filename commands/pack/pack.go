@@ -27,7 +27,7 @@ OPTION
 EXAMPLES
     gf pack public data.bin
     gf pack public,template data.bin
-    gf pack public,template data/data.go -n=data
+    gf pack public,template boot/data.go -n=boot
     gf pack public,template,config resource/resource.go -n=resource
     gf pack public,template,config resource/resource.go -n=resource -p=/var/www/my-app
     gf pack /var/www/public resource/resource.go -n=resource
