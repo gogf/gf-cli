@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	DEFAULT_GEN_MODEL_PATH      = "./api/model"
+	DEFAULT_GEN_MODEL_PATH      = "./app/model"
 	DEFAULT_GEN_MODEL_INIT_NAME = "initialization"
 )
 
@@ -29,11 +29,12 @@ USAGE
     gf gen model [PATH] [OPTION]
 
 ARGUMENT
-    PATH  the destination for storing generated files, not necessary, default is "./api/model"
+    PATH  the destination for storing generated files, not necessary, default is "./app/model"
 
 OPTION
     -n, --name    package name for generated go files, it's the configuration group name in default
     -l, --link    database configuration, please refer to: https://goframe.org/database/gdb/config
+    -t, --table   generate models only for given tables, multiple table names separated with ',' 
     -g, --group   used with "-c" option, specifying the configuration group name for database,
                   it's not necessary and the default value is "default"
     -c, --config  used to specify the configuration file for database, it's commonly not necessary, 
@@ -45,7 +46,7 @@ EXAMPLES
     gf gen model -n dao
     gf gen model -l "mysql:root:12345678@tcp(127.0.0.1:3306)/test"
     gf gen model ./model -l "mssql:sqlserver://sa:12345678@127.0.0.1:1433?database=test"
-    gf gen model ./model -c config.yaml -g user-center
+    gf gen model ./model -c config.yaml -g user-center -t user,user_detail,user_login
 
 DESCRIPTION
     The "gen" command is designed for multiple generating purposes.
@@ -57,6 +58,7 @@ func Run() {
 	parser, err := gcmd.Parse(g.MapStrBool{
 		"n,name":   true,
 		"l,link":   true,
+		"t,table":  true,
 		"g,group":  true,
 		"c,config": true,
 	})
@@ -74,6 +76,7 @@ func Run() {
 			return
 		}
 	}
+	tableOpt := parser.GetOpt("table")
 	linkInfo := parser.GetOpt("link")
 	configFile := parser.GetOpt("config")
 	configGroup := parser.GetOpt("group", gdb.DEFAULT_GROUP_NAME)
@@ -113,35 +116,30 @@ func Run() {
 		mlog.Fatal("database initialization failed")
 	}
 
-	tables, err := db.Tables()
-	if err != nil {
-		mlog.Fatalf("fetching tables failed: \n %v", err)
+	tables := ([]string)(nil)
+	if tableOpt != "" {
+		tables = gstr.SplitAndTrimSpace(tableOpt, ",")
+	} else {
+		tables, err = db.Tables()
+		if err != nil {
+			mlog.Fatalf("fetching tables failed: \n %v", err)
+		}
+		if strings.EqualFold(packageName, gdb.DEFAULT_GROUP_NAME) {
+			packageName += "s"
+			mlog.Printf(`package name '%s' is a reserved word of go, so it's renamed to '%s'`, gdb.DEFAULT_GROUP_NAME, packageName)
+		}
 	}
-	if strings.EqualFold(packageName, gdb.DEFAULT_GROUP_NAME) {
-		packageName += "s"
-		mlog.Printf(`package name '%s' is a reserved word of go, so it's renamed to '%s'`, gdb.DEFAULT_GROUP_NAME, packageName)
-	}
+
 	for _, table := range tables {
-		generateModelContentFile(db, table, folderPath, packageName)
+		generateModelContentFile(db, table, folderPath, packageName, configGroup)
 	}
-	generateModelInitFile(folderPath, packageName)
 	mlog.Print("done!")
 }
 
-func generateModelInitFile(folderPath, packageName string) {
-	modelContent := gstr.ReplaceByMap(templateModelInit, g.MapStrStr{
-		"{TplPackageName}": packageName,
-	})
-	path := folderPath + gfile.Separator + DEFAULT_GEN_MODEL_INIT_NAME + ".go"
-	if err := gfile.PutContents(path, strings.TrimSpace(modelContent)); err != nil {
-		mlog.Fatalf("writing model content to '%s' failed: %v", path, err)
-	}
-}
-
-func generateModelContentFile(db gdb.DB, table string, folderPath, packageName string) {
+func generateModelContentFile(db gdb.DB, table string, folderPath, packageName, groupName string) {
 	fields, err := db.TableFields(table)
 	if err != nil {
-		mlog.Fatalf("fetching tables fields failed for table '%s': %v", table, err)
+		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", table, err)
 	}
 	camelName := gstr.CamelCase(table)
 	structDefine := generateStructDefine(table, fields)
@@ -155,11 +153,18 @@ func generateModelContentFile(db gdb.DB, table string, folderPath, packageName s
 	modelContent := gstr.ReplaceByMap(templateModelContent, g.MapStrStr{
 		"{TplTableName}":    table,
 		"{TplModelName}":    camelName,
+		"{TplGroupName}":    groupName,
 		"{TplPackageName}":  packageName,
 		"{TplExtraImports}": extraImports,
 		"{TplStructDefine}": structDefine,
 	})
-	path := folderPath + gfile.Separator + gstr.SnakeCase(table) + ".go"
+	name := gstr.Trim(gstr.SnakeCase(table), "-_.")
+	if len(name) > 5 && name[len(name)-5:] == "_test" {
+		// Add suffix to avoid the table name which contains "_test",
+		// which would make the go file a testing file.
+		name += "_table"
+	}
+	path := folderPath + gfile.Separator + name + ".go"
 	if err := gfile.PutContents(path, strings.TrimSpace(modelContent)); err != nil {
 		mlog.Fatalf("writing model content to '%s' failed: %v", path, err)
 	}

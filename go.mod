@@ -1,3 +1,3 @@
 module github.com/gogf/gf-cli
 
-require github.com/gogf/gf v1.8.1
+require github.com/gogf/gf latest

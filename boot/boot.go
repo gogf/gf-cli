@@ -17,7 +17,7 @@ var (
     urls = [
 		"https://mirrors.aliyun.com/goproxy/", 
 		"https://goproxy.io/", 
-		"https://goproxy.cn"
+		"https://goproxy.cn/"
 	]
 `
 )
