@@ -19,8 +19,7 @@ import (
 )
 
 const (
-	DEFAULT_GEN_MODEL_PATH      = "./app/model"
-	DEFAULT_GEN_MODEL_INIT_NAME = "initialization"
+	DEFAULT_GEN_MODEL_PATH = "./app/model"
 )
 
 func Help() {
@@ -106,6 +105,11 @@ func Run() {
 		}
 	}
 
+	if strings.EqualFold(packageName, gdb.DEFAULT_GROUP_NAME) {
+		packageName += "s"
+		mlog.Printf(`package name '%s' is a reserved word of go, so it's renamed to '%s'`, gdb.DEFAULT_GROUP_NAME, packageName)
+	}
+
 	folderPath := genPath + gfile.Separator + packageName
 	if err := gfile.Mkdir(folderPath); err != nil {
 		mlog.Fatalf("mkdir for generating path '%s' failed: %v", folderPath, err)
@@ -124,10 +128,6 @@ func Run() {
 		if err != nil {
 			mlog.Fatalf("fetching tables failed: \n %v", err)
 		}
-		if strings.EqualFold(packageName, gdb.DEFAULT_GROUP_NAME) {
-			packageName += "s"
-			mlog.Printf(`package name '%s' is a reserved word of go, so it's renamed to '%s'`, gdb.DEFAULT_GROUP_NAME, packageName)
-		}
 	}
 
 	for _, table := range tables {
@@ -142,10 +142,11 @@ func generateModelContentFile(db gdb.DB, table string, folderPath, packageName, 
 		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", table, err)
 	}
 	camelName := gstr.CamelCase(table)
-	structDefine := generateStructDefine(table, fields)
+	structDefine := generateStructDefinition(table, fields)
 	extraImports := ""
 	if strings.Contains(structDefine, "gtime.Time") {
-		extraImports = `import (
+		extraImports = `
+import (
 	"github.com/gogf/gf/os/gtime"
 )
 `
@@ -170,7 +171,7 @@ func generateModelContentFile(db gdb.DB, table string, folderPath, packageName, 
 	}
 }
 
-func generateStructDefine(table string, fields map[string]*gdb.TableField) string {
+func generateStructDefinition(table string, fields map[string]*gdb.TableField) string {
 	buffer := bytes.NewBuffer(nil)
 	array := make([][]string, len(fields))
 	for _, field := range fields {
@@ -243,8 +244,8 @@ func generateStructField(field *gdb.TableField) []string {
 			typeName = "string"
 		}
 	}
+	ormTag = field.Name
 	jsonTag = gstr.SnakeCase(field.Name)
-	ormTag = jsonTag
 	if gstr.ContainsI(field.Key, "pri") {
 		ormTag += ",primary"
 	}
