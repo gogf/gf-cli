@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	_ "github.com/gogf/gf-cli/boot"
 	"github.com/gogf/gf-cli/commands/build"
 	"github.com/gogf/gf-cli/commands/fix"
@@ -48,6 +49,14 @@ ADDITIONAL
 
 func main() {
 	command := gcmd.GetArg(1)
+	param := gcmd.GetArg(2)
+	/*
+		Parameter: param
+		Optional value: "-vscode"/"-sublime"/"-goland"
+		Description: This parameter is used to select whether to keep the. vscode folder to provide goframe snippets for the current folder.
+					 Usually used when developing goframe projects in vscode editors.
+					 Other parameters are temporarily unavailable.
+	*/
 	// Help information
 	if gcmd.ContainsOpt("h") && command != "" {
 		help(command)
@@ -65,7 +74,7 @@ func main() {
 	case "fix":
 		fix.Run()
 	case "init":
-		initialize.Run()
+		initialize.Run(param)
 	case "pack":
 		pack.Run()
 	case "update":

@@ -1,6 +1,8 @@
 package initialize
 
 import (
+	"strings"
+
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/encoding/gcompress"
 	"github.com/gogf/gf/frame/g"
@@ -8,7 +10,6 @@ import (
 	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/os/gfile"
 	"github.com/gogf/gf/text/gstr"
-	"strings"
 )
 
 const (
@@ -45,7 +46,7 @@ EXAMPLES
 `))
 }
 
-func Run() {
+func Run(param string) {
 	parser, err := gcmd.Parse(nil)
 	if err != nil {
 		mlog.Fatal(err)
@@ -73,6 +74,9 @@ func Run() {
 	}
 	if err = gfile.Replace(emptyProject, name, dirPath, "*.*", true); err != nil {
 		mlog.Fatal("content replacing failed,", err.Error())
+	}
+	if param != "-vs" {
+		gfile.Remove(".vscode")
 	}
 	mlog.Print("initialization done! ")
 	mlog.Print("you can now run 'go run main.go' to start your journey, enjoy!")
