@@ -202,14 +202,14 @@ func generateStructField(field *gdb.TableField) []string {
 	case "binary", "varbinary", "blob", "tinyblob", "mediumblob", "longblob":
 		typeName = "[]byte"
 
-	case "bit", "int", "tinyint", "small_int", "medium_int":
+	case "bit", "int", "tinyint", "small_int", "smallint", "medium_int", "mediumint":
 		if gstr.ContainsI(field.Type, "unsigned") {
 			typeName = "uint"
 		} else {
 			typeName = "int"
 		}
 
-	case "big_int":
+	case "big_int", "bigint":
 		if gstr.ContainsI(field.Type, "unsigned") {
 			typeName = "uint64"
 		} else {
