@@ -15,18 +15,16 @@ import (
 )
 
 // https://golang.google.cn/doc/install/source
-// Here're the most common used platforms and arches,
-// Removed:
+// Here're the most common used platforms and arches.
+// Here're the removed:
 //    android    arm
-//    darwin    arm
-//    darwin    arm64
+//    dragonfly amd64
 //    plan9     386
 //    plan9     amd64
 //    solaris   amd64
 const platforms = `
     darwin    386
     darwin    amd64
-    dragonfly amd64
     freebsd   386
     freebsd   amd64
     freebsd   arm
@@ -74,7 +72,6 @@ EXAMPLES
 PLATFORMS
     darwin    386
     darwin    amd64
-    dragonfly amd64
     freebsd   386
     freebsd   amd64
     freebsd   arm
@@ -137,7 +134,8 @@ func Run() {
 	}
 	reg := regexp.MustCompile(`\s+`)
 	lines := strings.Split(strings.TrimSpace(platforms), "\n")
-	mlog.Print("building...")
+
+	mlog.Print("start building...")
 	genv.Set("CGO_ENABLED", "0")
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
