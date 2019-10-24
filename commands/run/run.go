@@ -33,8 +33,12 @@ type App struct {
 // Help how to use
 func Help() {
 	mlog.Print(gstr.TrimLeft(`
-USAGE 
+USAGE
     gf run
+
+DESCRIPTION
+    到main函数所在目录下执行"gf run"即可，当前版本暂不支持参数输入。
+
 EXAMPLES
     gf run
 `))
