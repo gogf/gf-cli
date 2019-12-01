@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	cdnUrl  = g.Config().GetString("cdn.url")
-	homeUrl = g.Config().GetString("home.url")
+	cdnUrl  = g.Config("url").GetString("cdn.url")
+	homeUrl = g.Config("url").GetString("home.url")
 )
 
 func init() {
@@ -40,10 +40,18 @@ func Run() {
 	}
 	if localMd5 != latestMd5 {
 		mlog.Print("downloading...")
-		downloadUrl := fmt.Sprintf(`%s/cli/binary/%s_%s/gf`, cdnUrl, runtime.GOOS, runtime.GOARCH)
+		ext := ""
 		if runtime.GOOS == "windows" {
-			downloadUrl += ".exe"
+			ext = ".exe"
 		}
+		downloadUrl := fmt.Sprintf(
+			`%s/cli/binary/%s_%s/gf%s?%s`,
+			cdnUrl,
+			runtime.GOOS,
+			runtime.GOARCH,
+			ext,
+			latestMd5,
+		)
 		data := ghttp.GetBytes(downloadUrl)
 		if len(data) == 0 {
 			mlog.Fatal("downloading failed for", runtime.GOOS, runtime.GOARCH)

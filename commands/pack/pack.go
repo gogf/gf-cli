@@ -2,9 +2,12 @@ package pack
 
 import (
 	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gcmd"
+	"github.com/gogf/gf/os/gfile"
 	"github.com/gogf/gf/os/gres"
 	"github.com/gogf/gf/text/gstr"
+	"strings"
 )
 
 func Help() {
@@ -13,33 +16,51 @@ USAGE
     gf pack SRC DST
 
 ARGUMENT
-    SRC  source path for packing
-    DST  destination file path for packed file,
-         if extension of the filename is '.go', it then outputs to a go file
+    SRC  source path for packing, which can be multiple source paths.
+    DST  destination file path for packed file. if extension of the filename is ".go" and "-n" option is given, 
+         it enables packing SRC to go file, or else it packs SRC into a binary file.
 
 OPTION
     -n, --name      package name for output go file
     -p, --prefix    prefix for each file packed into the resource file
 
 EXAMPLES
-    gf pack ./public ./data.bin
-    gf pack ./public ./data/data.go -n=data
-    gf pack ./public ./resource/resource.go -n=resource -p=/var/www/public
-    gf pack /var/www/public ./resource/resource.go -n=resource
+    gf pack public data.bin
+    gf pack public,template data.bin
+    gf pack public,template boot/data.go -n=boot
+    gf pack public,template,config resource/resource.go -n=resource
+    gf pack public,template,config resource/resource.go -n=resource -p=/var/www/my-app
+    gf pack /var/www/public resource/resource.go -n=resource
 `))
 }
 
 func Run() {
-	srcPath := gcmd.Value.Get(2)
-	dstPath := gcmd.Value.Get(3)
+	parser, err := gcmd.Parse(g.MapStrBool{
+		"n,name":   true,
+		"p,prefix": true,
+	})
+	if err != nil {
+		mlog.Fatal(err)
+	}
+	srcPath := parser.GetArg(2)
+	dstPath := parser.GetArg(3)
 	if srcPath == "" {
 		mlog.Fatal("SRC path cannot be empty")
 	}
 	if dstPath == "" {
 		mlog.Fatal("DST path cannot be empty")
 	}
-	name := gcmd.Option.Get("name", gcmd.Option.Get("n"))
-	prefix := gcmd.Option.Get("prefix", gcmd.Option.Get("p"))
+	if gfile.Exists(dstPath) && gfile.IsDir(dstPath) {
+		mlog.Fatalf("DST path '%s' cannot be a directory", dstPath)
+	}
+	if !gfile.IsEmpty(dstPath) {
+		s := gcmd.Scanf("path '%s' is not empty, files might be overwrote, continue? [y/n]: ", dstPath)
+		if strings.EqualFold(s, "n") {
+			return
+		}
+	}
+	name := parser.GetOpt("name")
+	prefix := parser.GetOpt("prefix")
 
 	mlog.Print("packing...")
 	if name != "" {

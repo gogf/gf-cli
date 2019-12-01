@@ -3,6 +3,7 @@ package build
 import (
 	"fmt"
 	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/os/genv"
 	"github.com/gogf/gf/os/gfile"
@@ -14,37 +15,35 @@ import (
 )
 
 // https://golang.google.cn/doc/install/source
-// Here're the most common used platforms and arches,
-// Removed:
-//    android	arm
-//    darwin	arm
-//    darwin	arm64
+// Here're the most common used platforms and arches.
+// Here're the removed:
+//    android    arm
+//    dragonfly amd64
 //    plan9     386
 //    plan9     amd64
+//    solaris   amd64
 const platforms = `
-	darwin    386
-	darwin    amd64
-	dragonfly amd64
-	freebsd   386
-	freebsd   amd64
-	freebsd   arm
-	linux     386
-	linux     amd64
-	linux     arm
-	linux     arm64
-	linux     ppc64
-	linux     ppc64le
-	linux     mips
-	linux     mipsle
-	linux     mips64
-	linux     mips64le
-	netbsd    386
-	netbsd    amd64
-	netbsd    arm
-	openbsd   386
-	openbsd   amd64
-	openbsd   arm
-    solaris   amd64
+    darwin    386
+    darwin    amd64
+    freebsd   386
+    freebsd   amd64
+    freebsd   arm
+    linux     386
+    linux     amd64
+    linux     arm
+    linux     arm64
+    linux     ppc64
+    linux     ppc64le
+    linux     mips
+    linux     mipsle
+    linux     mips64
+    linux     mips64le
+    netbsd    386
+    netbsd    amd64
+    netbsd    arm
+    openbsd   386
+    openbsd   amd64
+    openbsd   arm
     windows   386
     windows   amd64
 `
@@ -52,7 +51,7 @@ const platforms = `
 func Help() {
 	mlog.Print(gstr.TrimLeft(`
 USAGE 
-    gf build [OPTION] FILE
+    gf build FILE [OPTION]
 
 ARGUMENT
     FILE  building file path.
@@ -71,47 +70,55 @@ EXAMPLES
     gf build main.go -n=my-app -v=1.0 -a=amd64,386 -o=linux,windows,darwin -p=./bin
 
 PLATFORMS
-	darwin    386
-	darwin    amd64
-	dragonfly amd64
-	freebsd   386
-	freebsd   amd64
-	freebsd   arm
-	linux     386
-	linux     amd64
-	linux     arm
-	linux     arm64
-	linux     ppc64
-	linux     ppc64le
-	linux     mips
-	linux     mipsle
-	linux     mips64
-	linux     mips64le
-	netbsd    386
-	netbsd    amd64
-	netbsd    arm
-	openbsd   386
-	openbsd   amd64
-	openbsd   arm
-    solaris   amd64
+    darwin    386
+    darwin    amd64
+    freebsd   386
+    freebsd   amd64
+    freebsd   arm
+    linux     386
+    linux     amd64
+    linux     arm
+    linux     arm64
+    linux     ppc64
+    linux     ppc64le
+    linux     mips
+    linux     mipsle
+    linux     mips64
+    linux     mips64le
+    netbsd    386
+    netbsd    amd64
+    netbsd    arm
+    openbsd   386
+    openbsd   amd64
+    openbsd   arm
     windows   386
     windows   amd64
 `))
 }
 
 func Run() {
-	file := gcmd.Value.Get(2)
+	parser, err := gcmd.Parse(g.MapStrBool{
+		"n,name":    true,
+		"v,version": true,
+		"a,arch":    true,
+		"o,os":      true,
+		"p,path":    true,
+	})
+	if err != nil {
+		mlog.Fatal(err)
+	}
+	file := parser.GetArg(2)
 	if len(file) < 1 {
 		mlog.Fatal("file path cannot be empty")
 	}
-	path := gcmd.Option.Get("path", gcmd.Option.Get("p", "./bin"))
-	name := gcmd.Option.Get("name", gcmd.Option.Get("n", gfile.Name(file)))
+	path := parser.GetOpt("path", "./bin")
+	name := parser.GetOpt("name", gfile.Name(file))
 	if len(name) < 1 || name == "*" {
 		mlog.Fatal("name cannot be empty")
 	}
-	version := gcmd.Option.Get("version", gcmd.Option.Get("v"))
-	osOption := gcmd.Option.Get("os", gcmd.Option.Get("o", runtime.GOOS))
-	archOption := gcmd.Option.Get("arch", gcmd.Option.Get("a", runtime.GOARCH))
+	version := parser.GetOpt("version")
+	osOption := parser.GetOpt("os", runtime.GOOS)
+	archOption := parser.GetOpt("arch", runtime.GOARCH)
 	if strings.EqualFold(osOption, "all") {
 		osOption = ""
 	}
@@ -127,7 +134,8 @@ func Run() {
 	}
 	reg := regexp.MustCompile(`\s+`)
 	lines := strings.Split(strings.TrimSpace(platforms), "\n")
-	mlog.Print("building...")
+
+	mlog.Print("start building...")
 	genv.Set("CGO_ENABLED", "0")
 	for _, line := range lines {
 		line = strings.TrimSpace(line)

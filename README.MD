@@ -11,12 +11,12 @@ It's suggested using pre-compiled binaries:
 After downloads, please use `gf install` installing gf binary to system binary path.
 
 1. `Linux`
-    ```
+    ```shell
     wget https://goframe.org/cli/linux_amd64/gf && chmod +x gf && sudo ./gf install
     ```
 1. `Mac`
-    ```
-    wget https://goframe.org/cli/darwin_amd64/gf && chmod +x gf && sudo ./gf install
+    ```shell
+    wget https://goframe.org/cli/darwin_amd64/gf && chmod +x gf && ./gf install
     ```
 1. `Windows`
 
@@ -30,7 +30,8 @@ USAGE
 
 COMMAND
     get        install or update GF to system in default...
-    init       initialize an empty GF project at current working directory in default...
+    gen        automatically generate go files for ORM models...
+    init       initialize an empty GF project at current working directory...
     help       show more information about a specified command
     pack       packing any file/directory to a resource file, or a go file
     build      cross-building go project for lots of platforms...

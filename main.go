@@ -6,6 +6,7 @@ import (
 	_ "github.com/gogf/gf-cli/boot"
 	"github.com/gogf/gf-cli/commands/build"
 	"github.com/gogf/gf-cli/commands/fix"
+	"github.com/gogf/gf-cli/commands/gen"
 	"github.com/gogf/gf-cli/commands/get"
 	"github.com/gogf/gf-cli/commands/initialize"
 	"github.com/gogf/gf-cli/commands/install"
@@ -18,7 +19,7 @@ import (
 )
 
 const (
-	VERSION = "v0.2.0"
+	VERSION = "v0.3.2"
 )
 
 var (
@@ -29,7 +30,8 @@ USAGE
 
 COMMAND
     get        install or update GF to system in default...
-    init       initialize an empty GF project at current working directory in default...
+    gen        automatically generate go files for ORM models...
+    init       initialize an empty GF project at current working directory...
     help       show more information about a specified command
     pack       packing any file/directory to a resource file, or a go file
     build      cross-building go project for lots of platforms...
@@ -47,19 +49,21 @@ ADDITIONAL
 )
 
 func main() {
-	command := gcmd.Value.Get(1)
+	command := gcmd.GetArg(1)
 	// Help information
-	if gcmd.Option.Contains("h") && command != "" {
+	if gcmd.ContainsOpt("h") && command != "" {
 		help(command)
 		return
 	}
 	switch command {
 	case "help":
-		help(gcmd.Value.Get(2))
+		help(gcmd.GetArg(2))
 	case "version":
 		mlog.Print(verContent)
 	case "get":
 		get.Run()
+	case "gen":
+		gen.Run()
 	case "fix":
 		fix.Run()
 	case "init":
@@ -75,7 +79,7 @@ func main() {
 	case "run":
 		run.Run()
 	default:
-		for k := range gcmd.Option.GetAll() {
+		for k := range gcmd.GetOptAll() {
 			switch k {
 			case "?", "h":
 				mlog.Print(helpContent)
@@ -94,6 +98,8 @@ func help(command string) {
 	switch command {
 	case "get":
 		get.Help()
+	case "gen":
+		gen.Help()
 	case "init":
 		initialize.Help()
 	case "build":
