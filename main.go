@@ -12,16 +12,16 @@ import (
 	"github.com/gogf/gf-cli/commands/pack"
 	"github.com/gogf/gf-cli/commands/update"
 	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf/debug/gdebug"
 	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/text/gstr"
 )
 
 const (
-	VERSION = "v0.3.2"
+	VERSION = "v0.4.0"
 )
 
 var (
-	verContent  = fmt.Sprintf("GoFrame CLI Tool Version %s, https://goframe.org", VERSION)
 	helpContent = gstr.TrimLeft(`
 USAGE
     gf COMMAND [ARGUMENT] [OPTION]
@@ -57,7 +57,7 @@ func main() {
 	case "help":
 		help(gcmd.GetArg(2))
 	case "version":
-		mlog.Print(verContent)
+		version()
 	case "get":
 		get.Run()
 	case "gen":
@@ -81,7 +81,7 @@ func main() {
 				mlog.Print(helpContent)
 				return
 			case "i", "v":
-				mlog.Print(verContent)
+				version()
 				return
 			}
 		}
@@ -105,4 +105,18 @@ func help(command string) {
 	default:
 		mlog.Print(helpContent)
 	}
+}
+
+// version prints the version information of the cli tool.
+func version() {
+	info := gdebug.BuildInfo()
+	content := fmt.Sprintf(`
+GoFrame CLI Tool, https://goframe.org
+    Version:       %s
+    Go version:    %s
+    GF version:    %s
+    Git Commit:    %s
+    Built:         %s
+`, VERSION, info["go"], info["gf"], info["git"], info["time"])
+	mlog.Print(gstr.Trim(content))
 }

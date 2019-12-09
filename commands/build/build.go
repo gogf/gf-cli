@@ -8,6 +8,8 @@ import (
 	"github.com/gogf/gf/os/genv"
 	"github.com/gogf/gf/os/gfile"
 	"github.com/gogf/gf/os/gproc"
+	"github.com/gogf/gf/os/gtime"
+	"github.com/gogf/gf/text/gregex"
 	"github.com/gogf/gf/text/gstr"
 	"regexp"
 	"runtime"
@@ -62,6 +64,7 @@ OPTION
     -a, --arch       output binary architecture, multiple arch separated with ','
     -o, --os         output binary system, multiple os separated with ','
     -p, --path       output binary directory path, default is './bin'
+	-e, --extra      extra 'go build' options
 
 EXAMPLES
     gf build main.go
@@ -103,6 +106,7 @@ func Run() {
 		"a,arch":    true,
 		"o,os":      true,
 		"p,path":    true,
+		"e,extra":   true,
 	})
 	if err != nil {
 		mlog.Fatal(err)
@@ -116,6 +120,7 @@ func Run() {
 	if len(name) < 1 || name == "*" {
 		mlog.Fatal("name cannot be empty")
 	}
+	extra := parser.GetOpt("extra")
 	version := parser.GetOpt("version")
 	osOption := parser.GetOpt("os", runtime.GOOS)
 	archOption := parser.GetOpt("arch", runtime.GOARCH)
@@ -135,6 +140,27 @@ func Run() {
 	reg := regexp.MustCompile(`\s+`)
 	lines := strings.Split(strings.TrimSpace(platforms), "\n")
 
+	// git commit if present
+	gitCommit := ""
+	if s, _ := gproc.ShellExec("git rev-list -1 HEAD"); s != "" {
+		if !gstr.Contains(s, " ") && !gstr.Contains(s, "fatal") {
+			gitCommit = gstr.Trim(s)
+		}
+	}
+	// injected information.
+	ldFlagsMap := g.Map{
+		"github.com/gogf/gf/debug/gdebug.buildTime":      gtime.Now().String(),
+		"github.com/gogf/gf/debug/gdebug.buildGoVersion": runtime.Version(),
+		"github.com/gogf/gf/debug/gdebug.buildGitCommit": gitCommit,
+	}
+	ldFlags := ""
+	for k, v := range ldFlagsMap {
+		if len(ldFlags) > 1 {
+			ldFlags += " "
+		}
+		ldFlags += fmt.Sprintf(`-X '%s=%v'`, k, v)
+	}
+	// start building
 	mlog.Print("start building...")
 	genv.Set("CGO_ENABLED", "0")
 	for _, line := range lines {
@@ -155,10 +181,13 @@ func Run() {
 		}
 		genv.Set("GOOS", array[0])
 		genv.Set("GOARCH", array[1])
-		cmd = fmt.Sprintf("go build -o %s/%s/%s%s %s", path, array[0]+"_"+array[1], name, ext, file)
-		mlog.Print(cmd)
-		_, err := gproc.ShellExec(cmd)
-		if err != nil {
+		cmd = fmt.Sprintf(
+			`go build -o %s/%s/%s%s -ldflags "%s" %s %s`,
+			path, array[0]+"_"+array[1], name, ext, ldFlags, extra, file,
+		)
+		cmdShow, _ := gregex.ReplaceString(` (-ldflags ".+?")`, "", cmd)
+		mlog.Print(cmdShow)
+		if _, err := gproc.ShellExec(cmd); err != nil {
 			mlog.Fatal("build failed:", cmd)
 		}
 	}

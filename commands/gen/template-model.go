@@ -20,35 +20,4 @@ var (
 	// Model{TplModelName} is the model object of {TplTableName}.
 	Model{TplModelName} = g.DB("{TplGroupName}").Table(Table{TplModelName}).Safe()
 )
-
-// Inserts does "INSERT...INTO..." statement for inserting current object into table.
-func (r *{TplModelName}) Insert() (result sql.Result, err error) {
-	return Model{TplModelName}.Data(r).Insert()
-}
-
-// Replace does "REPLACE...INTO..." statement for inserting current object into table.
-// If there's already another same record in the table (it checks using primary key or unique index),
-// it deletes it and insert this one.
-func (r *{TplModelName}) Replace() (result sql.Result, err error) {
-	return Model{TplModelName}.Data(r).Replace()
-}
-
-// Save does "INSERT...INTO..." statement for inserting/updating current object into table.
-// It updates the record if there's already another same record in the table
-// (it checks using primary key or unique index).
-func (r *{TplModelName}) Save() (result sql.Result, err error) {
-	return Model{TplModelName}.Data(r).Save()
-}
-
-// Update does "UPDATE...WHERE..." statement for updating current object from table.
-// It updates the record if there's already another same record in the table
-// (it checks using primary key or unique index).
-func (r *{TplModelName}) Update() (result sql.Result, err error) {
-	return Model{TplModelName}.Data(r).Where(gdb.GetWhereConditionOfStruct(r)).Update()
-}
-
-// Delete does "DELETE FROM...WHERE..." statement for deleting current object from table.
-func (r *{TplModelName}) Delete() (result sql.Result, err error) {
-	return Model{TplModelName}.Where(gdb.GetWhereConditionOfStruct(r)).Delete()
-}
 `
