@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	_ "github.com/gogf/gf-cli/boot"
 	"github.com/gogf/gf-cli/commands/build"
 	"github.com/gogf/gf-cli/commands/fix"
@@ -10,6 +11,7 @@ import (
 	"github.com/gogf/gf-cli/commands/initialize"
 	"github.com/gogf/gf-cli/commands/install"
 	"github.com/gogf/gf-cli/commands/pack"
+	"github.com/gogf/gf-cli/commands/run"
 	"github.com/gogf/gf-cli/commands/update"
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/debug/gdebug"
@@ -74,6 +76,8 @@ func main() {
 		install.Run()
 	case "build":
 		build.Run()
+	case "run":
+		run.Run()
 	default:
 		for k := range gcmd.GetOptAll() {
 			switch k {
@@ -102,6 +106,8 @@ func help(command string) {
 		build.Help()
 	case "pack":
 		pack.Help()
+	case "run":
+		run.Help()
 	default:
 		mlog.Print(helpContent)
 	}
