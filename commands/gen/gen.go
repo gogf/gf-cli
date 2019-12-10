@@ -39,6 +39,8 @@ OPTION
     -c, --config  used to specify the configuration file for database, it's commonly not necessary, 
                   if "-l" is not passed, it will search "./config.toml" and "./config/config.toml" 
                   in current working directory
+    -p, --prefix  remove specified prefix of the table, multiple prefix separated with ',' 
+                  
 
 EXAMPLES
     gf gen model
@@ -46,6 +48,7 @@ EXAMPLES
     gf gen model -l "mysql:root:12345678@tcp(127.0.0.1:3306)/test"
     gf gen model ./model -l "mssql:sqlserver://sa:12345678@127.0.0.1:1433?database=test"
     gf gen model ./model -c config.yaml -g user-center -t user,user_detail,user_login
+    gf gen model -p user_,p_
 
 DESCRIPTION
     The "gen" command is designed for multiple generating purposes.
@@ -60,6 +63,7 @@ func Run() {
 		"t,table":  true,
 		"g,group":  true,
 		"c,config": true,
+		"p,prefix": true,
 	})
 	if err != nil {
 		mlog.Fatal(err)
@@ -80,6 +84,7 @@ func Run() {
 	configFile := parser.GetOpt("config")
 	configGroup := parser.GetOpt("group", gdb.DEFAULT_GROUP_NAME)
 	packageName := parser.GetOpt("name", configGroup)
+	prefixArray := gstr.SplitAndTrim(parser.GetOpt("prefix"), ",")
 
 	if linkInfo != "" {
 		path := gfile.TempDir() + gfile.Separator + "config.toml"
@@ -110,19 +115,19 @@ func Run() {
 		mlog.Printf(`package name '%s' is a reserved word of go, so it's renamed to '%s'`, gdb.DEFAULT_GROUP_NAME, packageName)
 	}
 
-	folderPath := genPath + gfile.Separator + packageName
-	if err := gfile.Mkdir(folderPath); err != nil {
-		mlog.Fatalf("mkdir for generating path '%s' failed: %v", folderPath, err)
-	}
-
 	db := g.DB(configGroup)
 	if db == nil {
 		mlog.Fatal("database initialization failed")
 	}
 
+	folderPath := genPath + gfile.Separator + packageName
+	if err := gfile.Mkdir(folderPath); err != nil {
+		mlog.Fatalf("mkdir for generating path '%s' failed: %v", folderPath, err)
+	}
+
 	tables := ([]string)(nil)
 	if tableOpt != "" {
-		tables = gstr.SplitAndTrimSpace(tableOpt, ",")
+		tables = gstr.SplitAndTrim(tableOpt, ",")
 	} else {
 		tables, err = db.Tables()
 		if err != nil {
@@ -131,18 +136,40 @@ func Run() {
 	}
 
 	for _, table := range tables {
-		generateModelContentFile(db, table, folderPath, packageName, configGroup)
+		variable := table
+		for _, v := range prefixArray {
+			variable = gstr.TrimLeftStr(variable, v)
+		}
+		generateModelContentFile(
+			db,
+			table,
+			variable,
+			folderPath,
+			packageName,
+			configGroup,
+		)
 	}
 	mlog.Print("done!")
 }
 
-func generateModelContentFile(db gdb.DB, table string, folderPath, packageName, groupName string) {
+// generateModelContentFile generates the model content of given table.
+// The parameter <variable> specifies the variable name for the table, which
+// is usually the prefix-stripped of the table.
+func generateModelContentFile(
+	db gdb.DB,
+	table,
+	variable,
+	folderPath,
+	packageName,
+	groupName string,
+) {
+
 	fields, err := db.TableFields(table)
 	if err != nil {
 		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", table, err)
 	}
-	camelName := gstr.CamelCase(table)
-	structDefine := generateStructDefinition(table, fields)
+	camelName := gstr.CamelCase(variable)
+	structDefine := generateStructDefinition(table, variable, fields)
 	extraImports := ""
 	if strings.Contains(structDefine, "gtime.Time") {
 		extraImports = `
@@ -171,7 +198,7 @@ import (
 	}
 }
 
-func generateStructDefinition(table string, fields map[string]*gdb.TableField) string {
+func generateStructDefinition(table, variable string, fields map[string]*gdb.TableField) string {
 	buffer := bytes.NewBuffer(nil)
 	array := make([][]string, len(fields))
 	for _, field := range fields {
@@ -188,7 +215,7 @@ func generateStructDefinition(table string, fields map[string]*gdb.TableField) s
 	// Let's do this hack for tablewriter!
 	stContent = gstr.Replace(stContent, "  #", "")
 	buffer.Reset()
-	buffer.WriteString("type " + gstr.CamelCase(table) + " struct {\n")
+	buffer.WriteString("type " + gstr.CamelCase(variable) + " struct {\n")
 	buffer.WriteString(stContent)
 	buffer.WriteString("}")
 	return buffer.String()

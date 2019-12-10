@@ -6,8 +6,6 @@ const templateModelContent = `
 package {TplPackageName}
 
 import (
-	"database/sql"
-	"github.com/gogf/gf/database/gdb"
 	"github.com/gogf/gf/frame/g"
 )
 {TplExtraImports}
