@@ -62,7 +62,8 @@ OPTION
     -n, --name       output binary name
     -v, --version    output binary version
     -a, --arch       output binary architecture, multiple arch separated with ','
-    -o, --os         output binary system, multiple os separated with ','
+    -s, --os         output binary system, multiple os separated with ','
+    -o, --output     output binary path, used when building single binary file
     -p, --path       output binary directory path, default is './bin'
 	-e, --extra      extra 'go build' options
 
@@ -104,7 +105,8 @@ func Run() {
 		"n,name":    true,
 		"v,version": true,
 		"a,arch":    true,
-		"o,os":      true,
+		"s,os":      true,
+		"o,output":  true,
 		"p,path":    true,
 		"e,extra":   true,
 	})
@@ -122,14 +124,9 @@ func Run() {
 	}
 	extra := parser.GetOpt("extra")
 	version := parser.GetOpt("version")
-	osOption := parser.GetOpt("os", runtime.GOOS)
-	archOption := parser.GetOpt("arch", runtime.GOARCH)
-	if strings.EqualFold(osOption, "all") {
-		osOption = ""
-	}
-	if strings.EqualFold(archOption, "all") {
-		archOption = ""
-	}
+	outputPath := parser.GetOpt("output")
+	osOption := parser.GetOpt("os")
+	archOption := parser.GetOpt("arch")
 	oses := strings.Split(osOption, ",")
 	arches := strings.Split(archOption, ",")
 	ext := ""
@@ -137,8 +134,6 @@ func Run() {
 	if len(version) > 0 {
 		path += "/" + version
 	}
-	reg := regexp.MustCompile(`\s+`)
-	lines := strings.Split(strings.TrimSpace(platforms), "\n")
 
 	// git commit if present
 	gitCommit := ""
@@ -163,32 +158,48 @@ func Run() {
 	// start building
 	mlog.Print("start building...")
 	genv.Set("CGO_ENABLED", "0")
+	reg := regexp.MustCompile(`\s+`)
+	lines := strings.Split(strings.TrimSpace(platforms), "\n")
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		line = reg.ReplaceAllString(line, " ")
 		array := strings.Split(line, " ")
 		array[0] = strings.TrimSpace(array[0])
 		array[1] = strings.TrimSpace(array[1])
-		if len(oses) > 0 && oses[0] != "" && !gstr.InArray(oses, array[0]) {
+		if len(oses) > 0 && oses[0] != "" && oses[0] != "all" && !gstr.InArray(oses, array[0]) {
 			continue
 		}
-		if len(arches) > 0 && arches[0] != "" && !gstr.InArray(arches, array[1]) {
+		if len(arches) > 0 && arches[0] != "" && arches[0] != "all" && !gstr.InArray(arches, array[1]) {
 			continue
 		}
-		ext = ""
-		if array[0] == "windows" {
-			ext = ".exe"
+		if len(osOption) == 0 && len(archOption) == 0 {
+			// single binary building.
+			output := ""
+			if len(outputPath) > 0 {
+				output = " -o " + outputPath
+			}
+			cmd = fmt.Sprintf(`go build%s -ldflags "%s" %s %s`, output, ldFlags, extra, file)
+		} else {
+			// cross-building.
+			ext = ""
+			if array[0] == "windows" {
+				ext = ".exe"
+			}
+			genv.Set("GOOS", array[0])
+			genv.Set("GOARCH", array[1])
+			cmd = fmt.Sprintf(
+				`go build -o %s/%s/%s%s -ldflags "%s" %s %s`,
+				path, array[0]+"_"+array[1], name, ext, ldFlags, extra, file,
+			)
 		}
-		genv.Set("GOOS", array[0])
-		genv.Set("GOARCH", array[1])
-		cmd = fmt.Sprintf(
-			`go build -o %s/%s/%s%s -ldflags "%s" %s %s`,
-			path, array[0]+"_"+array[1], name, ext, ldFlags, extra, file,
-		)
-		cmdShow, _ := gregex.ReplaceString(` (-ldflags ".+?")`, "", cmd)
+		cmdShow, _ := gregex.ReplaceString(`\s+(-ldflags ".+?")\s+`, " ", cmd)
 		mlog.Print(cmdShow)
 		if _, err := gproc.ShellExec(cmd); err != nil {
 			mlog.Fatal("build failed:", cmd)
+		}
+		// single binary building.
+		if len(osOption) == 0 && len(archOption) == 0 {
+			break
 		}
 	}
 }

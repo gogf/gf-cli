@@ -31,6 +31,7 @@ USAGE
 COMMAND
     get        install or update GF to system in default...
     gen        automatically generate go files for ORM models...
+    run        running go codes with hot-compiled-like feature...
     init       initialize an empty GF project at current working directory...
     help       show more information about a specified command
     pack       packing any file/directory to a resource file, or a go file
@@ -116,13 +117,16 @@ func help(command string) {
 // version prints the version information of the cli tool.
 func version() {
 	info := gdebug.BuildInfo()
+	if info["git"] == "" {
+		info["git"] = "none"
+	}
 	content := fmt.Sprintf(`
-GoFrame CLI Tool, https://goframe.org
-    Version:       %s
-    Go version:    %s
-    GF version:    %s
-    Git Commit:    %s
-    Built:         %s
+GoFrame CLI Tool %s, https://goframe.org
+Built Detail:
+  Go Version:  %s
+  GF Version:  %s
+  Git Commit:  %s
+  Built Time:  %s
 `, VERSION, info["go"], info["gf"], info["git"], info["time"])
 	mlog.Print(gstr.Trim(content))
 }
