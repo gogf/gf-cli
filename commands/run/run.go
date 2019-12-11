@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/container/gtype"
-	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/os/gfile"
 	"github.com/gogf/gf/os/gfsnotify"
@@ -54,17 +53,18 @@ func Run() {
 	app := New(file)
 	dirty := gtype.NewBool()
 	_, err := gfsnotify.Add(app.File, func(event *gfsnotify.Event) {
-		g.Log().Debug(event)
+		mlog.Print(event)
 		if gfile.ExtName(event.Path) != "go" {
 			return
 		}
-		dirty.Set(true)
+		// Variable <dirty> is used for running the changes only one in one second.
+		if !dirty.Cas(false, true) {
+			return
+		}
 		// With some delay in case of multiple code changes in very short interval.
 		gtimer.SetTimeout(time.Second, func() {
-			// Variable <dirty> is used for running the changes only one in one second.
-			if dirty.Cas(true, false) {
-				app.Run()
-			}
+			app.Run()
+			dirty.Set(false)
 		})
 
 	})
@@ -82,7 +82,7 @@ func (app *App) Run() {
 	}
 	// Rebuild and run the codes.
 	mlog.Printf("build: %s", app.File)
-	outputPath := gfile.Join(gfile.TempDir(), gfile.Name(app.File))
+	outputPath := gfile.Join(gfile.TempDir(), "gf-cli", gfile.Name(app.File))
 	if runtime.GOOS == "windows" {
 		outputPath += ".exe"
 	}
@@ -91,5 +91,5 @@ func (app *App) Run() {
 		mlog.Printf("build error: %s", err.Error())
 	}
 	process = gproc.NewProcess(outputPath, nil)
-	process.Run()
+	process.Start()
 }
