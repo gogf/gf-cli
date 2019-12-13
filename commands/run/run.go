@@ -35,7 +35,7 @@ EXAMPLES
 
 DESCRIPTION
     The "run" command is used for running go codes with hot-compiled-like feature,
-	which compiles and runs the go codes asynchronously when codes change.
+    which compiles and runs the go codes asynchronously when codes change.
 `))
 }
 
