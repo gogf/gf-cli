@@ -6,20 +6,33 @@ import (
 	"runtime"
 )
 
+// Run does the installation.
 func Run() {
-	binPath := "/usr/local/bin"
-	if "windows" == runtime.GOOS {
-		binPath = "C:\\Windows"
-	}
-	if gfile.Exists(binPath) {
-		dst := binPath + gfile.Separator + "gf" + gfile.Ext(gfile.SelfPath())
-		err := gfile.CopyFile(gfile.SelfPath(), dst)
-		if err != nil {
-			mlog.Fatalf("install gf binary to '%s' failed: %v", dst, err)
-		} else {
-			mlog.Printf("gf binary is successfully installed to: %s", dst)
-		}
+	path := GetInstallBinaryPath()
+	err := gfile.CopyFile(gfile.SelfPath(), path)
+	if err != nil {
+		mlog.Printf("install gf binary to '%s' failed: %v", path, err)
+		mlog.Printf("you can manually install gf by copying the binary to folder: %s", GetInstallFolderPath())
 	} else {
-		mlog.Fatal("'%s' does not exist", binPath)
+		mlog.Printf("gf binary is successfully installed to: %s", path)
 	}
+}
+
+// IsInstalled returns whether the binary installed.
+func IsInstalled() bool {
+	return gfile.Exists(GetInstallBinaryPath())
+}
+
+// getInstallFolderPath returns the installation folder path for the binary.
+func GetInstallFolderPath() string {
+	folderPath := "/usr/local/bin"
+	if "windows" == runtime.GOOS {
+		folderPath = "C:\\Windows"
+	}
+	return folderPath
+}
+
+// getInstallBinaryPath returns the installation path for the binary.
+func GetInstallBinaryPath() string {
+	return gfile.Join(GetInstallFolderPath(), "gf"+gfile.Ext(gfile.SelfPath()))
 }

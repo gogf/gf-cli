@@ -27,7 +27,7 @@ func doGenModel(parser *gcmd.Parser) {
 	var err error
 	genPath := parser.GetArg(3, DEFAULT_GEN_MODEL_PATH)
 	if !gfile.IsEmpty(genPath) {
-		s := gcmd.Scanf("path '%s' is not empty, files might be overwrote, continue? [y/n]: ", genPath)
+		s := gcmd.Scanf("Path '%s' is not empty, files might be overwrote, continue? [y/n]: ", genPath)
 		if strings.EqualFold(s, "n") {
 			return
 		}

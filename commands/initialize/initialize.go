@@ -52,7 +52,7 @@ func Run() {
 	}
 	dirPath := "."
 	if !gfile.IsEmpty(dirPath) {
-		s := gcmd.Scan("current folder is not empty, files might be overwrote, continue? [y/n]: ")
+		s := gcmd.Scan("Current folder is not empty, files might be overwrote, continue? [y/n]: ")
 		if strings.EqualFold(s, "n") {
 			return
 		}

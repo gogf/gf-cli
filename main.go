@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gogf/gf/os/gbuild"
+	"strings"
 
 	_ "github.com/gogf/gf-cli/boot"
 	"github.com/gogf/gf-cli/commands/build"
@@ -87,6 +88,15 @@ func main() {
 				return
 			case "i", "v":
 				version()
+				return
+			}
+		}
+		// No argument or option, do installation checks.
+		if !install.IsInstalled() {
+			s := gcmd.Scan("Do you want to install gf binary to your system(permission might require)? [y/n]: ")
+			if strings.EqualFold(s, "y") {
+				install.Run()
+				gcmd.Scan("Press <Enter> to exit...")
 				return
 			}
 		}
