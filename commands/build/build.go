@@ -11,6 +11,7 @@ import (
 	"github.com/gogf/gf/os/gfile"
 	"github.com/gogf/gf/os/gproc"
 	"github.com/gogf/gf/os/gtime"
+	"github.com/gogf/gf/text/gregex"
 	"github.com/gogf/gf/text/gstr"
 	"github.com/gogf/gf/util/gconv"
 	"github.com/gogf/gf/util/gutil"
@@ -189,8 +190,8 @@ func Run() {
 			)
 		}
 		// It's not necessary printing the complete command string.
-		//cmdShow, _ := gregex.ReplaceString(`\s+(-ldflags ".+?")\s+`, " ", cmd)
-		mlog.Print(cmd)
+		cmdShow, _ := gregex.ReplaceString(`\s+(-ldflags ".+?")\s+`, " ", cmd)
+		mlog.Print(cmdShow)
 		if _, err := gproc.ShellExec(cmd); err != nil {
 			mlog.Fatal("build failed:", cmd)
 		}
