@@ -206,7 +206,7 @@ func Run() {
 // It returns the default value specified by parameter <value> is no value found.
 func getOption(parser *gcmd.Parser, name string, value ...string) (result string) {
 	result = parser.GetOpt(name)
-	if result == "" {
+	if result == "" && g.Config().Available() {
 		result = g.Config().GetString(nodeNameInConfigFile + "." + name)
 	}
 	if result == "" && len(value) > 0 {
@@ -219,11 +219,13 @@ func getOption(parser *gcmd.Parser, name string, value ...string) (result string
 // file as json.
 func getBuildInVarStr() string {
 	buildInVarMap := g.Map{}
-	configMap := g.Config().GetMap(nodeNameInConfigFile)
-	if len(configMap) > 0 {
-		_, v := gutil.MapPossibleItemByKey(configMap, "VarMap")
-		if v != nil {
-			buildInVarMap = gconv.Map(v)
+	if g.Config().Available() {
+		configMap := g.Config().GetMap(nodeNameInConfigFile)
+		if len(configMap) > 0 {
+			_, v := gutil.MapPossibleItemByKey(configMap, "VarMap")
+			if v != nil {
+				buildInVarMap = gconv.Map(v)
+			}
 		}
 	}
 	buildInVarMap["builtGit"] = getGitCommit()
