@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gogf/gf/os/gbuild"
 
 	_ "github.com/gogf/gf-cli/boot"
 	"github.com/gogf/gf-cli/commands/build"
@@ -14,7 +15,6 @@ import (
 	"github.com/gogf/gf-cli/commands/run"
 	"github.com/gogf/gf-cli/commands/update"
 	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf/debug/gdebug"
 	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/text/gstr"
 )
@@ -116,7 +116,7 @@ func help(command string) {
 
 // version prints the version information of the cli tool.
 func version() {
-	info := gdebug.BuildInfo()
+	info := gbuild.Info()
 	if info["git"] == "" {
 		info["git"] = "none"
 	}

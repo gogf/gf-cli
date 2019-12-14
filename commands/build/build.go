@@ -1,18 +1,20 @@
 package build
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf/encoding/gbase64"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/os/genv"
 	"github.com/gogf/gf/os/gfile"
 	"github.com/gogf/gf/os/gproc"
 	"github.com/gogf/gf/os/gtime"
-	"github.com/gogf/gf/text/gregex"
 	"github.com/gogf/gf/text/gstr"
+	"github.com/gogf/gf/util/gconv"
+	"github.com/gogf/gf/util/gutil"
 	"regexp"
-	"runtime"
 	"strings"
 )
 
@@ -50,6 +52,9 @@ const platforms = `
     windows   amd64
 `
 
+// nodeNameInConfigFile is the node name for compiler configurations in configuration file.
+const nodeNameInConfigFile = "compiler"
+
 func Help() {
 	mlog.Print(gstr.TrimLeft(`
 USAGE 
@@ -62,16 +67,24 @@ OPTION
     -n, --name       output binary name
     -v, --version    output binary version
     -a, --arch       output binary architecture, multiple arch separated with ','
-    -s, --os         output binary system, multiple os separated with ','
+    -s, --system     output binary system, multiple os separated with ','
     -o, --output     output binary path, used when building single binary file
     -p, --path       output binary directory path, default is './bin'
 	-e, --extra      extra custom 'go build' options
 
 EXAMPLES
     gf build main.go
-    gf build main.go -n=my-app -a=all -o=all
-    gf build main.go -n=my-app -a=amd64,386 -o=linux -p=.
-    gf build main.go -n=my-app -v=1.0 -a=amd64,386 -o=linux,windows,darwin -p=./bin
+    gf build main.go -n my-app -a all -s all
+    gf build main.go -n my-app -a amd64,386 -s linux -p .
+    gf build main.go -n my-app -v 1.0 -a amd64,386 -s linux,windows,darwin -p ./dockerfiles/bin
+
+DESCRIPTION
+    The "build" command is most commonly used command, which is designed as a powerful wrapper for 
+    "go build" command for convenience cross-compiling usage. 
+    It provides much more features for building binary:
+    1. Cross-Compiling for many platforms and architectures.
+    2. Configuration file support for compiling.
+    3. Build-In Variables.
 
 PLATFORMS
     darwin    386
@@ -105,7 +118,7 @@ func Run() {
 		"n,name":    true,
 		"v,version": true,
 		"a,arch":    true,
-		"s,os":      true,
+		"s,system":  true,
 		"o,output":  true,
 		"p,path":    true,
 		"e,extra":   true,
@@ -117,46 +130,29 @@ func Run() {
 	if len(file) < 1 {
 		mlog.Fatal("file path cannot be empty")
 	}
-	path := parser.GetOpt("path", "./bin")
-	name := parser.GetOpt("name", gfile.Name(file))
+	path := getOption(parser, "path", "./bin")
+	name := getOption(parser, "name", gfile.Name(file))
 	if len(name) < 1 || name == "*" {
 		mlog.Fatal("name cannot be empty")
 	}
-	extra := parser.GetOpt("extra")
-	version := parser.GetOpt("version")
-	outputPath := parser.GetOpt("output")
-	osOption := parser.GetOpt("os")
-	archOption := parser.GetOpt("arch")
-	oses := strings.Split(osOption, ",")
+	extra := getOption(parser, "extra")
+	version := getOption(parser, "version")
+	outputPath := getOption(parser, "output")
+	archOption := getOption(parser, "arch")
+	systemOption := getOption(parser, "system")
 	arches := strings.Split(archOption, ",")
-	cmd := ""
+	systems := strings.Split(systemOption, ",")
 	if len(version) > 0 {
 		path += "/" + version
 	}
 
-	// git commit if present
-	gitCommit := ""
-	if s, _ := gproc.ShellExec("git rev-list -1 HEAD"); s != "" {
-		if !gstr.Contains(s, " ") && !gstr.Contains(s, "fatal") {
-			gitCommit = gstr.Trim(s)
-		}
-	}
 	// injected information.
-	ldFlagsMap := g.Map{
-		"github.com/gogf/gf/debug/gdebug.buildTime":      gtime.Now().String(),
-		"github.com/gogf/gf/debug/gdebug.buildGoVersion": runtime.Version(),
-		"github.com/gogf/gf/debug/gdebug.buildGitCommit": gitCommit,
-	}
-	ldFlags := ""
-	for k, v := range ldFlagsMap {
-		if len(ldFlags) > 1 {
-			ldFlags += " "
-		}
-		ldFlags += fmt.Sprintf(`-X '%s=%v'`, k, v)
-	}
+	ldFlags := fmt.Sprintf(`-X 'github.com/gogf/gf/os/gbuild.builtInVarStr=%v'`, getBuildInVarStr())
+
 	// start building
 	mlog.Print("start building...")
 	genv.Set("CGO_ENABLED", "0")
+	cmd := ""
 	reg := regexp.MustCompile(`\s+`)
 	lines := strings.Split(strings.TrimSpace(platforms), "\n")
 	for _, line := range lines {
@@ -165,19 +161,21 @@ func Run() {
 		array := strings.Split(line, " ")
 		array[0] = strings.TrimSpace(array[0])
 		array[1] = strings.TrimSpace(array[1])
-		if len(oses) > 0 && oses[0] != "" && oses[0] != "all" && !gstr.InArray(oses, array[0]) {
+		if len(systems) > 0 && systems[0] != "" && systems[0] != "all" && !gstr.InArray(systems, array[0]) {
 			continue
 		}
 		if len(arches) > 0 && arches[0] != "" && arches[0] != "all" && !gstr.InArray(arches, array[1]) {
 			continue
 		}
-		if len(osOption) == 0 && len(archOption) == 0 {
+		if len(systemOption) == 0 && len(archOption) == 0 {
 			// Single binary building, output the binary to current working folder.
 			output := ""
 			if len(outputPath) > 0 {
-				output = " -o " + outputPath
+				output = "-o " + outputPath
+			} else {
+				output = "-o " + name
 			}
-			cmd = fmt.Sprintf(`go build%s -ldflags "%s" %s %s`, output, ldFlags, extra, file)
+			cmd = fmt.Sprintf(`go build %s -ldflags "%s" %s %s`, output, ldFlags, extra, file)
 		} else {
 			// Cross-building, output the compiled binary to specified path.
 			if array[0] == "windows" {
@@ -191,14 +189,60 @@ func Run() {
 			)
 		}
 		// It's not necessary printing the complete command string.
-		cmdShow, _ := gregex.ReplaceString(`\s+(-ldflags ".+?")\s+`, " ", cmd)
-		mlog.Print(cmdShow)
+		//cmdShow, _ := gregex.ReplaceString(`\s+(-ldflags ".+?")\s+`, " ", cmd)
+		mlog.Print(cmd)
 		if _, err := gproc.ShellExec(cmd); err != nil {
 			mlog.Fatal("build failed:", cmd)
 		}
 		// single binary building.
-		if len(osOption) == 0 && len(archOption) == 0 {
+		if len(systemOption) == 0 && len(archOption) == 0 {
 			break
 		}
 	}
+}
+
+// getOption retrieves option value from parser and configuration file.
+// It returns the default value specified by parameter <value> is no value found.
+func getOption(parser *gcmd.Parser, name string, value ...string) (result string) {
+	result = parser.GetOpt(name)
+	if result == "" {
+		result = g.Config().GetString(nodeNameInConfigFile + "." + name)
+	}
+	if result == "" && len(value) > 0 {
+		result = value[0]
+	}
+	return
+}
+
+// getBuildInVarMapJson retrieves and returns the custom build-in variables in configuration
+// file as json.
+func getBuildInVarStr() string {
+	buildInVarMap := g.Map{}
+	configMap := g.Config().GetMap(nodeNameInConfigFile)
+	if len(configMap) > 0 {
+		_, v := gutil.MapPossibleItemByKey(configMap, "VarMap")
+		if v != nil {
+			buildInVarMap = gconv.Map(v)
+		}
+	}
+	buildInVarMap["builtGit"] = getGitCommit()
+	buildInVarMap["builtTime"] = gtime.Now().String()
+	b, err := json.Marshal(buildInVarMap)
+	if err != nil {
+		mlog.Fatal(err)
+	}
+	return gbase64.EncodeToString(b)
+}
+
+// getGitCommit retrieves and returns the latest git commit hash string if present.
+func getGitCommit() string {
+	if gproc.SearchBinary("git") == "" {
+		return ""
+	}
+	if s, _ := gproc.ShellExec("git rev-list -1 HEAD"); s != "" {
+		if !gstr.Contains(s, " ") && !gstr.Contains(s, "fatal") {
+			return gstr.Trim(s)
+		}
+	}
+	return ""
 }
