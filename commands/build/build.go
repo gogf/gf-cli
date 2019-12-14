@@ -16,6 +16,7 @@ import (
 	"github.com/gogf/gf/util/gconv"
 	"github.com/gogf/gf/util/gutil"
 	"regexp"
+	"runtime"
 	"strings"
 )
 
@@ -154,9 +155,12 @@ func Run() {
 	mlog.Print("start building...")
 	genv.Set("CGO_ENABLED", "0")
 	cmd := ""
+	ext := ""
 	reg := regexp.MustCompile(`\s+`)
 	lines := strings.Split(strings.TrimSpace(platforms), "\n")
 	for _, line := range lines {
+		cmd = ""
+		ext = ""
 		line = strings.TrimSpace(line)
 		line = reg.ReplaceAllString(line, " ")
 		array := strings.Split(line, " ")
@@ -169,24 +173,27 @@ func Run() {
 			continue
 		}
 		if len(systemOption) == 0 && len(archOption) == 0 {
+			if runtime.GOOS == "windows" {
+				ext = ".exe"
+			}
 			// Single binary building, output the binary to current working folder.
 			output := ""
 			if len(outputPath) > 0 {
-				output = "-o " + outputPath
+				output = "-o " + outputPath + ext
 			} else {
-				output = "-o " + name
+				output = "-o " + name + ext
 			}
 			cmd = fmt.Sprintf(`go build %s -ldflags "%s" %s %s`, output, ldFlags, extra, file)
 		} else {
 			// Cross-building, output the compiled binary to specified path.
 			if array[0] == "windows" {
-				name += ".exe"
+				ext = ".exe"
 			}
 			genv.Set("GOOS", array[0])
 			genv.Set("GOARCH", array[1])
 			cmd = fmt.Sprintf(
-				`go build -o %s/%s/%s -ldflags "%s" %s %s`,
-				path, array[0]+"_"+array[1], name, ldFlags, extra, file,
+				`go build -o %s/%s/%s%s -ldflags "%s" %s %s`,
+				path, array[0]+"_"+array[1], name, ext, ldFlags, extra, file,
 			)
 		}
 		// It's not necessary printing the complete command string.
