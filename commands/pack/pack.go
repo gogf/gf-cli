@@ -54,7 +54,7 @@ func Run() {
 		mlog.Fatalf("DST path '%s' cannot be a directory", dstPath)
 	}
 	if !gfile.IsEmpty(dstPath) {
-		s := gcmd.Scanf("Path '%s' is not empty, files might be overwrote, continue? [y/n]: ", dstPath)
+		s := gcmd.Scanf("path '%s' is not empty, files might be overwrote, continue? [y/n]: ", dstPath)
 		if strings.EqualFold(s, "n") {
 			return
 		}

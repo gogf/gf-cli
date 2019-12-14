@@ -93,10 +93,10 @@ func main() {
 		}
 		// No argument or option, do installation checks.
 		if !install.IsInstalled() {
-			s := gcmd.Scan("Do you want to install gf binary to your system(permission might require)? [y/n]: ")
+			s := gcmd.Scanf("do you want to install gf binary to your system (%s)? [y/n]: ", install.GetInstallFolderPath())
 			if strings.EqualFold(s, "y") {
 				install.Run()
-				gcmd.Scan("Press <Enter> to exit...")
+				gcmd.Scan("press <Enter> to exit...")
 				return
 			}
 		}
