@@ -17,8 +17,8 @@ import (
 )
 
 // https://golang.google.cn/doc/install/source
-// Here're the most common used platforms and arches.
-// Here're the removed:
+// Here're the most commonly used platforms and arches,
+// but some are removed:
 //    android    arm
 //    dragonfly amd64
 //    plan9     386
@@ -65,7 +65,7 @@ OPTION
     -s, --os         output binary system, multiple os separated with ','
     -o, --output     output binary path, used when building single binary file
     -p, --path       output binary directory path, default is './bin'
-	-e, --extra      extra 'go build' options
+	-e, --extra      extra custom 'go build' options
 
 EXAMPLES
     gf build main.go
@@ -129,7 +129,6 @@ func Run() {
 	archOption := parser.GetOpt("arch")
 	oses := strings.Split(osOption, ",")
 	arches := strings.Split(archOption, ",")
-	ext := ""
 	cmd := ""
 	if len(version) > 0 {
 		path += "/" + version
@@ -173,25 +172,25 @@ func Run() {
 			continue
 		}
 		if len(osOption) == 0 && len(archOption) == 0 {
-			// single binary building.
+			// Single binary building, output the binary to current working folder.
 			output := ""
 			if len(outputPath) > 0 {
 				output = " -o " + outputPath
 			}
 			cmd = fmt.Sprintf(`go build%s -ldflags "%s" %s %s`, output, ldFlags, extra, file)
 		} else {
-			// cross-building.
-			ext = ""
+			// Cross-building, output the compiled binary to specified path.
 			if array[0] == "windows" {
-				ext = ".exe"
+				name += ".exe"
 			}
 			genv.Set("GOOS", array[0])
 			genv.Set("GOARCH", array[1])
 			cmd = fmt.Sprintf(
-				`go build -o %s/%s/%s%s -ldflags "%s" %s %s`,
-				path, array[0]+"_"+array[1], name, ext, ldFlags, extra, file,
+				`go build -o %s/%s/%s -ldflags "%s" %s %s`,
+				path, array[0]+"_"+array[1], name, ldFlags, extra, file,
 			)
 		}
+		// It's not necessary printing the complete command string.
 		cmdShow, _ := gregex.ReplaceString(`\s+(-ldflags ".+?")\s+`, " ", cmd)
 		mlog.Print(cmdShow)
 		if _, err := gproc.ShellExec(cmd); err != nil {
