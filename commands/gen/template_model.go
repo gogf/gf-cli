@@ -16,7 +16,7 @@ import (
 
 // arModel is a active record design model for table {TplTableName} operations.
 type arModel struct {
-	Model *gdb.Model
+	*gdb.Model
 }
 
 var (
@@ -25,6 +25,11 @@ var (
 	// Model is the model object of {TplTableName}.
 	Model = &arModel{g.DB("{TplGroupName}").Table(Table).Safe()}
 )
+
+// TX sets the transaction for current operation.
+func (m *arModel) TX(tx *gdb.TX) *arModel {
+	return &arModel{m.Model.TX(tx)}
+}
 
 // Master marks the following operation on master node.
 func (m *arModel) Master() *arModel {
