@@ -15,11 +15,6 @@ package {TplPackageName}
 // {TplModelName} is alias of Entity, which some developers say they just want.
 type {TplModelName} = Entity
 
-// New creates and returns an *Entity.
-func New() *Entity {
-	return new(Entity)
-}
-
 // OmitEmpty sets OPTION_OMITEMPTY option for the model, which automatically filers
 // the data and where attributes for empty values.
 func (r *Entity) OmitEmpty() *arModel {
