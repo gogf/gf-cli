@@ -35,7 +35,7 @@ EXAMPLES
 
 DESCRIPTION
     The "gen" command is designed for multiple generating purposes.
-    It's currently supporting generating go files for ORM models.s
+    It's currently supporting generating go files for ORM models.
 `))
 }
 
