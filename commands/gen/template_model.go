@@ -16,7 +16,7 @@ import (
 
 // arModel is a active record design model for table {TplTableName} operations.
 type arModel struct {
-	*gdb.Model
+	Model *gdb.Model
 }
 
 var (
