@@ -12,9 +12,6 @@ package {TplPackageName}
 // Entity is the golang structure for table {TplTableName}.
 {TplStructDefine}
 
-// {TplModelName} is alias of Entity, which some developers say they just want.
-type {TplModelName} = Entity
-
 // OmitEmpty sets OPTION_OMITEMPTY option for the model, which automatically filers
 // the data and where attributes for empty values.
 func (r *Entity) OmitEmpty() *arModel {
