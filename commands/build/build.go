@@ -73,9 +73,11 @@ OPTION
     -o, --output     output binary path, used when building single binary file
     -p, --path       output binary directory path, default is './bin'
 	-e, --extra      extra custom 'go build' options
+    --pack           auto pack config,public,template folder into boot/data.go before building.
 
 EXAMPLES
     gf build main.go
+    gf build main.go --pack
     gf build main.go -n my-app -a all -s all
     gf build main.go -n my-app -a amd64,386 -s linux -p .
     gf build main.go -n my-app -v 1.0 -a amd64,386 -s linux,windows,darwin -p ./dockerfiles/bin
@@ -124,6 +126,7 @@ func Run() {
 		"o,output":  true,
 		"p,path":    true,
 		"e,extra":   true,
+		"pack":      false,
 	})
 	if err != nil {
 		mlog.Fatal(err)
@@ -146,6 +149,26 @@ func Run() {
 	systems := strings.Split(systemOption, ",")
 	if len(version) > 0 {
 		path += "/" + version
+	}
+
+	// auto packing
+	if parser.ContainsOpt("pack") {
+		packFolderStr := ""
+		if gfile.Exists("config") {
+			packFolderStr += "config,"
+		}
+		if gfile.Exists("public") {
+			packFolderStr += "public,"
+		}
+		if gfile.Exists("template") {
+			packFolderStr += "template,"
+		}
+		packFolderStr = gstr.Trim(packFolderStr, ",")
+		if len(packFolderStr) > 0 {
+			packCmd := fmt.Sprintf(`gf pack %s boot/data.go -n boot`, packFolderStr)
+			mlog.Print(packCmd)
+			gproc.ShellRun(packCmd)
+		}
 	}
 
 	// injected information.
@@ -207,6 +230,7 @@ func Run() {
 			break
 		}
 	}
+	mlog.Print("done!")
 }
 
 // getOption retrieves option value from parser and configuration file.
