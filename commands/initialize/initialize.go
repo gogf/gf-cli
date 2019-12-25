@@ -71,7 +71,7 @@ func Run() {
 	if err = gcompress.UnZipContent(data, dirPath, emptyProjectName+"-master"); err != nil {
 		mlog.Fatal("unzip project data failed,", err.Error())
 	}
-	if err = gfile.Replace(emptyProject, name, dirPath, "*.*", true); err != nil {
+	if err = gfile.ReplaceDir(emptyProject, name, dirPath, "*.*", true); err != nil {
 		mlog.Fatal("content replacing failed,", err.Error())
 	}
 	mlog.Print("initialization done! ")
