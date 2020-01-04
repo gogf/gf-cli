@@ -20,7 +20,7 @@ After downloads, please use `gf install` command to install gf binary to system 
     ```shell
     wget https://goframe.org/cli/darwin_amd64/gf && chmod +x gf && ./gf install
     ```
-   > If you're using `zsh`, you might need rename your alias by command `alias gf=gf` to resolve the conflicts between `gf` and `git fetch`.
+   > If you're using `zsh`, you might need rename your alias by command `alias gf=gf` to resolve the conflicts between `gf` and `git fetch`. Or use this command `echo alias gf=gf>>~/.zshrc && source ~/.zshrc` to achieve long-term results.
 1. `Windows`
 
     Manually download and move it to `C:\Windows` folder, and then you can enjoy it in `cmd`.
