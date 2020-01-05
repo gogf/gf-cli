@@ -205,8 +205,8 @@ func generateStructDefinition(fieldMap map[string]*gdb.TableField) string {
 func generateStructField(field *gdb.TableField) []string {
 	var typeName, ormTag, jsonTag, comment string
 	t, _ := gregex.ReplaceString(`\(.+\)`, "", field.Type)
-	t = strings.Split(t, " ")[0]
-	t = strings.ToLower(t)
+	t = gstr.Split(gstr.Trim(t), " ")[0]
+	t = gstr.ToLower(t)
 	switch t {
 	case "binary", "varbinary", "blob", "tinyblob", "mediumblob", "longblob":
 		typeName = "[]byte"
