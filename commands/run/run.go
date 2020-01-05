@@ -52,11 +52,12 @@ func Run() {
 	}
 	app := New(file)
 	dirty := gtype.NewBool()
-	_, err := gfsnotify.Add(app.File, func(event *gfsnotify.Event) {
-		mlog.Print(event)
+	_, err := gfsnotify.Add(gfile.RealPath("."), func(event *gfsnotify.Event) {
 		if gfile.ExtName(event.Path) != "go" {
 			return
 		}
+		// Print the event.
+		mlog.Print(event)
 		// Variable <dirty> is used for running the changes only one in one second.
 		if !dirty.Cas(false, true) {
 			return
@@ -86,9 +87,9 @@ func (app *App) Run() {
 	if runtime.GOOS == "windows" {
 		outputPath += ".exe"
 	}
-	_, err := gproc.ShellExec(fmt.Sprintf(`go build -o %s %s`, outputPath, app.File))
+	result, err := gproc.ShellExec(fmt.Sprintf(`go build -o %s %s`, outputPath, app.File))
 	if err != nil {
-		mlog.Printf("build error: %s", err.Error())
+		mlog.Printf("build error: %s, %s", err.Error(), result)
 	}
 	process = gproc.NewProcess(outputPath, nil)
 	process.Start()
