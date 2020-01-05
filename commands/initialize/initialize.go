@@ -75,5 +75,5 @@ func Run() {
 		mlog.Fatal("content replacing failed,", err.Error())
 	}
 	mlog.Print("initialization done! ")
-	mlog.Print("you can now run 'go run main.go' to start your journey, enjoy!")
+	mlog.Print("you can now run 'gf run main.go' to start your journey, enjoy!")
 }

@@ -3,14 +3,21 @@ package run
 import (
 	"fmt"
 	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf/container/gmap"
 	"github.com/gogf/gf/container/gtype"
+	"github.com/gogf/gf/frame/g"
+	"github.com/gogf/gf/net/ghttp"
 	"github.com/gogf/gf/os/gcmd"
+	"github.com/gogf/gf/os/genv"
 	"github.com/gogf/gf/os/gfile"
 	"github.com/gogf/gf/os/gfsnotify"
 	"github.com/gogf/gf/os/gproc"
+	"github.com/gogf/gf/os/gtime"
 	"github.com/gogf/gf/os/gtimer"
 	"github.com/gogf/gf/text/gstr"
+	"math"
 	"runtime"
+	"sync"
 	"time"
 )
 
@@ -18,9 +25,18 @@ type App struct {
 	File string
 }
 
-var (
-	process *gproc.Process
+const (
+	gPROXY_CHECK_TIMEOUT = time.Second
 )
+
+var (
+	process    *gproc.Process
+	httpClient = ghttp.NewClient()
+)
+
+func init() {
+	httpClient.SetTimeOut(gPROXY_CHECK_TIMEOUT)
+}
 
 func Help() {
 	mlog.Print(gstr.TrimLeft(`
@@ -50,6 +66,7 @@ func Run() {
 	if len(file) < 1 {
 		mlog.Fatal("file path cannot be empty")
 	}
+	genv.Set("GOPROXY", getProxy())
 	app := New(file)
 	dirty := gtype.NewBool()
 	_, err := gfsnotify.Add(gfile.RealPath("."), func(event *gfsnotify.Event) {
@@ -87,10 +104,49 @@ func (app *App) Run() {
 	if runtime.GOOS == "windows" {
 		outputPath += ".exe"
 	}
-	result, err := gproc.ShellExec(fmt.Sprintf(`go build -o %s %s`, outputPath, app.File))
+	err := gproc.ShellRun(fmt.Sprintf(`go build -o %s %s`, outputPath, app.File))
 	if err != nil {
-		mlog.Printf("build error: %s, %s", err.Error(), result)
+		mlog.Printf("build error: %s", err.Error())
 	}
 	process = gproc.NewProcess(outputPath, nil)
 	process.Start()
+}
+
+// getProxy returns the proper proxy for 'go get'.
+func getProxy() string {
+	if p := genv.Get("GOPROXY"); p != "" {
+		return p
+	}
+	wg := sync.WaitGroup{}
+	checkMap := gmap.NewIntStrMap(true)
+	for _, proxy := range g.Config("url").GetStrings("proxy.urls") {
+		wg.Add(1)
+		go func(url string) {
+			defer wg.Done()
+			checkMap.Set(checkProxyLatency(proxy), url)
+		}(proxy)
+	}
+	wg.Wait()
+
+	url := ""
+	latency := math.MaxInt32
+	checkMap.Iterator(func(k int, v string) bool {
+		if k < latency {
+			url = v
+			latency = k
+		}
+		return true
+	})
+	return url
+}
+
+// checkProxyLatency checks the latency for specified url.
+func checkProxyLatency(url string) int {
+	start := gtime.TimestampMilli()
+	r, err := httpClient.Head(url)
+	if err != nil || r.StatusCode != 200 {
+		return math.MaxInt32
+	}
+	defer r.Close()
+	return int(gtime.TimestampMilli() - start)
 }

@@ -41,8 +41,6 @@ ARGUMENT
 
 func Run() {
 	genv.Set("GOPROXY", getProxy())
-	mlog.Print("cleaning cache...")
-	gproc.ShellRun("go clean -modcache")
 	if len(os.Args) > 2 && os.Args[2] != "" {
 		gproc.ShellRun(fmt.Sprintf(`go get -u %s`, os.Args[2]))
 	} else {
@@ -81,11 +79,11 @@ func getProxy() string {
 
 // checkProxyLatency checks the latency for specified url.
 func checkProxyLatency(url string) int {
-	start := gtime.Millisecond()
+	start := gtime.TimestampMilli()
 	r, err := httpClient.Head(url)
 	if err != nil || r.StatusCode != 200 {
 		return math.MaxInt32
 	}
 	defer r.Close()
-	return int(gtime.Millisecond() - start)
+	return int(gtime.TimestampMilli() - start)
 }

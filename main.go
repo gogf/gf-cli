@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/gogf/gf/os/gbuild"
 	"strings"
 
 	_ "github.com/gogf/gf-cli/boot"
@@ -16,6 +15,7 @@ import (
 	"github.com/gogf/gf-cli/commands/run"
 	"github.com/gogf/gf-cli/commands/update"
 	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf/os/gbuild"
 	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/text/gstr"
 )
