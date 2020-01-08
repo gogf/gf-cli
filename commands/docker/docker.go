@@ -19,6 +19,13 @@ ARGUMENT
     FILE     file path for "gf build", it's "main.go" in default.
     OPTIONS  the same options as "docker build".
 
+EXAMPLES
+    gf docker 
+    gf docker -t image
+    gf docker main.go
+    gf docker main.go -t image
+    gf docker main.go -t registry.cn-hangzhou.aliyuncs.com/john/image:tag
+
 DESCRIPTION
     The "docker" command builds the GF project to a docker images. It runs "docker build" 
     command automatically, so you should have docker command first.
