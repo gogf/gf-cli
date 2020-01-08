@@ -133,7 +133,7 @@ func Run() {
 	}
 	file := parser.GetArg(2)
 	if len(file) < 1 {
-		mlog.Fatal("file path cannot be empty")
+		mlog.Fatal("build file path cannot be empty")
 	}
 	path := getOption(parser, "path", "./bin")
 	name := getOption(parser, "name", gfile.Name(file))
@@ -222,8 +222,8 @@ func Run() {
 		// It's not necessary printing the complete command string.
 		cmdShow, _ := gregex.ReplaceString(`\s+(-ldflags ".+?")\s+`, " ", cmd)
 		mlog.Print(cmdShow)
-		if _, err := gproc.ShellExec(cmd); err != nil {
-			mlog.Fatal("build failed:", cmd)
+		if result, err := gproc.ShellExec(cmd); err != nil {
+			mlog.Fatalf("build failed: %s%s", result, err.Error())
 		}
 		// single binary building.
 		if len(systemOption) == 0 && len(archOption) == 0 {

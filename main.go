@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/gogf/gf-cli/commands/docker"
+	"github.com/gogf/gf-cli/library/proxy"
 	"strings"
 
 	_ "github.com/gogf/gf-cli/boot"
@@ -21,8 +23,13 @@ import (
 )
 
 const (
-	VERSION = "v0.4.5"
+	VERSION = "v0.5.0"
 )
+
+func init() {
+	// Automatically sets the golang proxy for all commands.
+	proxy.AutoSet()
+}
 
 var (
 	helpContent = gstr.TrimLeft(`
@@ -37,16 +44,18 @@ COMMAND
     help       show more information about a specified command
     pack       packing any file/directory to a resource file, or a go file
     build      cross-building go project for lots of platforms...
-    update     update current gf binary to latest one (you may need root/admin permission)
-    install    install gf binary to system (you may need root/admin permission)
-    version    show version info
+    docker     create a docker image for current GF project...
+    update     update current gf binary to latest one (might need root/admin permission)
+    install    install gf binary to system (might need root/admin permission)
+    version    show current binary version info
 
 OPTION
     -?,-h      show this help or detail for specified command
     -v,-i      show version information
 
 ADDITIONAL
-    Use 'gf help COMMAND' or 'gf COMMAND -h' for detail about a command, which has '...' in the tail of their comments.
+    Use 'gf help COMMAND' or 'gf COMMAND -h' for detail about a command, which has '...' 
+    in the tail of their comments.
 `)
 )
 
@@ -72,6 +81,8 @@ func main() {
 		initialize.Run()
 	case "pack":
 		pack.Run()
+	case "docker":
+		docker.Run()
 	case "update":
 		update.Run()
 	case "install":
@@ -113,6 +124,8 @@ func help(command string) {
 		gen.Help()
 	case "init":
 		initialize.Help()
+	case "docker":
+		docker.Help()
 	case "build":
 		build.Help()
 	case "pack":
