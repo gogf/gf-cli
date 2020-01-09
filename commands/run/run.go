@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/container/gtype"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/net/ghttp"
@@ -54,22 +55,17 @@ DESCRIPTION
 `))
 }
 
-func New(file string) *App {
+func Run() {
+	file := gcmd.GetArg(2)
+	if len(file) < 1 {
+		g.Log().Fatal("file path cannot be empty")
+	}
 	app := &App{
 		File: file,
 	}
 	if len(os.Args) > 3 {
 		app.Options = strings.Join(os.Args[3:], " ")
 	}
-	return app
-}
-
-func Run() {
-	file := gcmd.GetArg(2)
-	if len(file) < 1 {
-		g.Log().Fatal("file path cannot be empty")
-	}
-	app := New(file)
 	dirty := gtype.NewBool()
 	_, err := gfsnotify.Add(gfile.RealPath("."), func(event *gfsnotify.Event) {
 		if gfile.ExtName(event.Path) != "go" {
@@ -97,20 +93,31 @@ func Run() {
 
 func (app *App) Run() {
 	// Rebuild and run the codes.
+	renamePath := ""
 	g.Log().Printf("build: %s", app.File)
 	outputPath := gfile.Join(gfile.TempDir(), "gf-cli", gfile.Name(app.File))
 	if runtime.GOOS == "windows" {
 		outputPath += ".exe"
+		if gfile.Exists(outputPath) {
+			renamePath = outputPath + "~"
+			if err := gfile.Rename(outputPath, renamePath); err != nil {
+				mlog.Print(err)
+			}
+		}
 	}
 	// Build the app.
-	result, err := gproc.ShellExec(fmt.Sprintf(`go build -o %s %s %s`, outputPath, app.File, app.Options))
+	command := fmt.Sprintf(`go build -o %s %s %s`, outputPath, app.Options, app.File)
+	result, err := gproc.ShellExec(command)
 	if err != nil {
 		g.Log().Printf("build error: \n%s%s", result, err.Error())
 		return
 	}
 	// Kill the old process if build successfully.
 	if process != nil {
-		process.Kill()
+		if err := process.Kill(); err != nil {
+			g.Log().Printf("kill process error: %s", err.Error())
+			return
+		}
 	}
 	process = gproc.NewProcess(outputPath, nil)
 	if pid, err := process.Start(); err != nil {

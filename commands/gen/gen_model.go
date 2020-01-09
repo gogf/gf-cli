@@ -54,7 +54,7 @@ func doGenModel(parser *gcmd.Parser) {
 		if err != nil {
 			mlog.Fatalf("search configuration file '%s' failed: %v", configFile, err)
 		}
-		if err := g.Cfg().SetPath(path); err != nil {
+		if err := g.Cfg().SetPath(gfile.Dir(path)); err != nil {
 			mlog.Fatalf("set configuration path '%s' failed: %v", path, err)
 		}
 		if err := g.Cfg().SetFileName(gfile.Basename(path)); err != nil {

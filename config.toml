@@ -1,0 +1,8 @@
+# =============================================
+# THIS FILE SHOULD NOT BE PACKED INTO BINARY!!
+# =============================================
+# Compile cli itself.
+[compiler]
+    name     = "gf"
+    arch     = "all"
+    system   = "all"

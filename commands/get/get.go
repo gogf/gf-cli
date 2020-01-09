@@ -11,11 +11,11 @@ import (
 func Help() {
 	mlog.Print(gstr.TrimLeft(`
 USAGE    
-    gf get [PACKAGE]
+    gf get PACKAGE
 
 ARGUMENT 
-    [PACKAGE]  remote golang package path, eg: github.com/gogf/gf
-               it's optional, it updates GF version for current project in default
+    PACKAGE  remote golang package path, eg: github.com/gogf/gf
+
 EXAMPLES
     gf get github.com/gogf/gf
     gf get github.com/gogf/gf@latest
@@ -26,10 +26,9 @@ EXAMPLES
 }
 
 func Run() {
-	if len(os.Args) > 2 && os.Args[2] != "" {
-		gproc.ShellRun(fmt.Sprintf(`go get -u %s`, os.Args[2]))
+	if len(os.Args) > 2 {
+		gproc.ShellRun(fmt.Sprintf(`go get -u %s`, gstr.Join(os.Args[2:], " ")))
 	} else {
-		mlog.Print("downloading the latest version of GF...")
-		gproc.ShellRun("go get -u github.com/gogf/gf")
+		mlog.Fatal("please input the package path for get")
 	}
 }

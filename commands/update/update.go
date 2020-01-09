@@ -57,6 +57,11 @@ func Run() {
 			mlog.Fatal("downloading failed for", runtime.GOOS, runtime.GOARCH)
 		}
 		mlog.Print("installing...")
+		// Rename myself for windows.
+		if runtime.GOOS == "windows" {
+			gfile.Rename(gfile.SelfPath(), gfile.SelfPath()+"~")
+		}
+		// Updates the binary content.
 		if err := gfile.PutBytes(gfile.SelfPath(), data); err != nil {
 			mlog.Fatal("installing binary failed,", err.Error())
 		}
