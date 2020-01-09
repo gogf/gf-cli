@@ -4,12 +4,18 @@ import (
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/os/genv"
 	"github.com/gogf/gf/os/gfile"
+	"github.com/gogf/gf/os/gproc"
 	"github.com/gogf/gf/text/gstr"
 	"runtime"
 )
 
 // Run does the installation.
 func Run() {
+	// Uninstall the old binary.
+	if path := gproc.SearchBinary("gf"); path != "" {
+		gfile.Remove(path)
+	}
+	// Install the new binary.
 	path := GetInstallBinaryPath()
 	err := gfile.CopyFile(gfile.SelfPath(), path)
 	if err != nil {
@@ -27,8 +33,11 @@ func IsInstalled() bool {
 
 // getInstallFolderPath returns the installation folder path for the binary.
 func GetInstallFolderPath() string {
-	folderPath := "/usr/local/bin"
-	if "windows" == runtime.GOOS {
+	folderPath := ""
+	switch runtime.GOOS {
+	case "darwin":
+		folderPath = "/usr/local/bin"
+	default:
 		// Search and find the writable directory path.
 		envPath := genv.Get("PATH", genv.Get("Path"))
 		if gstr.Contains(envPath, ";") {
@@ -44,7 +53,7 @@ func GetInstallFolderPath() string {
 				}
 			}
 		}
-		folderPath = "C:\\Windows"
+		folderPath = "/usr/local/bin"
 	}
 	return folderPath
 }
