@@ -23,7 +23,7 @@ After downloads, please use `gf install` command to install gf binary to system 
    > If you're using `zsh`, you might need rename your alias by command `alias gf=gf` to resolve the conflicts between `gf` and `git fetch`.
 1. `Windows`
 
-    Manually download and move it to `C:\Windows` folder, and then you can enjoy it in `cmd`.
+    Manually download, double click it and then follow the instruction.
 
 ## 2. Commands
 ```html

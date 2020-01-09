@@ -2,7 +2,9 @@ package install
 
 import (
 	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf/os/genv"
 	"github.com/gogf/gf/os/gfile"
+	"github.com/gogf/gf/text/gstr"
 	"runtime"
 )
 
@@ -27,6 +29,21 @@ func IsInstalled() bool {
 func GetInstallFolderPath() string {
 	folderPath := "/usr/local/bin"
 	if "windows" == runtime.GOOS {
+		// Search and find the writable directory path.
+		envPath := genv.Get("PATH", genv.Get("Path"))
+		if gstr.Contains(envPath, ";") {
+			for _, v := range gstr.SplitAndTrim(envPath, ";") {
+				if gfile.IsWritable(v) {
+					return v
+				}
+			}
+		} else if gstr.Contains(envPath, ":") {
+			for _, v := range gstr.SplitAndTrim(envPath, ":") {
+				if gfile.IsWritable(v) {
+					return v
+				}
+			}
+		}
 		folderPath = "C:\\Windows"
 	}
 	return folderPath
