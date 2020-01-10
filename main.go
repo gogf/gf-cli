@@ -23,6 +23,7 @@ import (
 )
 
 const (
+	// VERSION of gf-cli
 	VERSION = "v0.5.1"
 )
 
