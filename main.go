@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/gogf/gf-cli/commands/docker"
+	"github.com/gogf/gf-cli/library/proxy"
+	"strings"
 
 	_ "github.com/gogf/gf-cli/boot"
 	"github.com/gogf/gf-cli/commands/build"
@@ -14,14 +17,19 @@ import (
 	"github.com/gogf/gf-cli/commands/run"
 	"github.com/gogf/gf-cli/commands/update"
 	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf/debug/gdebug"
+	"github.com/gogf/gf/os/gbuild"
 	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/text/gstr"
 )
 
 const (
-	VERSION = "v0.4.0"
+	VERSION = "v0.5.1"
 )
+
+func init() {
+	// Automatically sets the golang proxy for all commands.
+	proxy.AutoSet()
+}
 
 var (
 	helpContent = gstr.TrimLeft(`
@@ -31,20 +39,23 @@ USAGE
 COMMAND
     get        install or update GF to system in default...
     gen        automatically generate go files for ORM models...
+    run        running go codes with hot-compiled-like feature...
     init       initialize an empty GF project at current working directory...
     help       show more information about a specified command
     pack       packing any file/directory to a resource file, or a go file
     build      cross-building go project for lots of platforms...
-    update     update current gf binary to latest one (you may need root/admin permission)
-    install    install gf binary to system (you may need root/admin permission)
-    version    show version info
+    docker     create a docker image for current GF project...
+    update     update current gf binary to latest one (might need root/admin permission)
+    install    install gf binary to system (might need root/admin permission)
+    version    show current binary version info
 
 OPTION
     -?,-h      show this help or detail for specified command
     -v,-i      show version information
 
 ADDITIONAL
-    Use 'gf help COMMAND' or 'gf COMMAND -h' for detail about a command, which has '...' in the tail of their comments.
+    Use 'gf help COMMAND' or 'gf COMMAND -h' for detail about a command, which has '...' 
+    in the tail of their comments.
 `)
 )
 
@@ -70,6 +81,8 @@ func main() {
 		initialize.Run()
 	case "pack":
 		pack.Run()
+	case "docker":
+		docker.Run()
 	case "update":
 		update.Run()
 	case "install":
@@ -89,6 +102,15 @@ func main() {
 				return
 			}
 		}
+		// No argument or option, do installation checks.
+		if !install.IsInstalled() {
+			s := gcmd.Scanf("do you want to install gf binary to your system (%s)? [y/n]: ", install.GetInstallFolderPath())
+			if strings.EqualFold(s, "y") {
+				install.Run()
+				gcmd.Scan("press <Enter> to exit...")
+				return
+			}
+		}
 		mlog.Print(helpContent)
 	}
 }
@@ -102,6 +124,8 @@ func help(command string) {
 		gen.Help()
 	case "init":
 		initialize.Help()
+	case "docker":
+		docker.Help()
 	case "build":
 		build.Help()
 	case "pack":
@@ -115,14 +139,17 @@ func help(command string) {
 
 // version prints the version information of the cli tool.
 func version() {
-	info := gdebug.BuildInfo()
+	info := gbuild.Info()
+	if info["git"] == "" {
+		info["git"] = "none"
+	}
 	content := fmt.Sprintf(`
-GoFrame CLI Tool, https://goframe.org
-    Version:       %s
-    Go version:    %s
-    GF version:    %s
-    Git Commit:    %s
-    Built:         %s
+GoFrame CLI Tool %s, https://goframe.org
+Built Detail:
+  Go Version:  %s
+  GF Version:  %s
+  Git Commit:  %s
+  Built Time:  %s
 `, VERSION, info["go"], info["gf"], info["git"], info["time"])
 	mlog.Print(gstr.Trim(content))
 }

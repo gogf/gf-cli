@@ -71,9 +71,12 @@ func Run() {
 	if err = gcompress.UnZipContent(data, dirPath, emptyProjectName+"-master"); err != nil {
 		mlog.Fatal("unzip project data failed,", err.Error())
 	}
-	if err = gfile.Replace(emptyProject, name, dirPath, "*.*", true); err != nil {
+	if err = gfile.ReplaceDir(emptyProject, name, dirPath, "Dockerfile,*.go,*.MD,*.mod", true); err != nil {
+		mlog.Fatal("content replacing failed,", err.Error())
+	}
+	if err = gfile.ReplaceDir(emptyProjectName, name, dirPath, "Dockerfile,*.go,*.MD,*.mod", true); err != nil {
 		mlog.Fatal("content replacing failed,", err.Error())
 	}
 	mlog.Print("initialization done! ")
-	mlog.Print("you can now run 'go run main.go' to start your journey, enjoy!")
+	mlog.Print("you can now run 'gf run main.go' to start your journey, enjoy!")
 }

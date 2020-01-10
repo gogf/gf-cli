@@ -1,215 +1,128 @@
 package run
 
 import (
-	"bytes"
+	"fmt"
+	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf/container/gtype"
+	"github.com/gogf/gf/frame/g"
+	"github.com/gogf/gf/net/ghttp"
+	"github.com/gogf/gf/os/gcmd"
+	"github.com/gogf/gf/os/gfile"
+	"github.com/gogf/gf/os/gfsnotify"
+	"github.com/gogf/gf/os/gproc"
+	"github.com/gogf/gf/os/gtimer"
+	"github.com/gogf/gf/text/gstr"
 	"os"
-	"os/exec"
-	"path/filepath"
-	"regexp"
 	"runtime"
 	"strings"
 	"time"
-
-	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf/os/gfsnotify"
-	"github.com/gogf/gf/os/gmlock"
-	"github.com/gogf/gf/os/gtimer"
-	"github.com/gogf/gf/text/gstr"
 )
 
-// App app
 type App struct {
-	Name        string
-	Path        string
-	FullPath    string
-	BuildTags   string
-	CMD         *exec.Cmd
-	Locker      *gmlock.Locker
-	Timer       *gtimer.Entry
-	WatchList   []string
-	UnWatchList []string
+	File    string // Go run file name/path.
+	Options string // Extra "go run" options.
 }
 
-// Help how to use
-func Help() {
-	mlog.Print(gstr.TrimLeft(`
-USAGE
-    gf run
+const (
+	gPROXY_CHECK_TIMEOUT = time.Second
+)
 
-DESCRIPTION
-    到main函数所在目录下执行"gf run"即可，当前版本暂不支持参数输入。
+var (
+	process    *gproc.Process
+	httpClient = ghttp.NewClient()
+)
+
+func init() {
+	httpClient.SetTimeOut(gPROXY_CHECK_TIMEOUT)
+}
+
+func Help() {
+	g.Log().Print(gstr.TrimLeft(`
+USAGE
+    gf run FILE [OPTIONS]
+
+ARGUMENT
+    FILE     building file path.
+    OPTIONS  the same options as "go run" or "go build"
 
 EXAMPLES
-    gf run
+    gf run main.go
+    gf run main.go -mod=vendor
+
+DESCRIPTION
+    The "run" command is used for running go codes with hot-compiled-like feature,
+    which compiles and runs the go codes asynchronously when codes change.
 `))
 }
 
-// New new app
-func New() *App {
-	return &App{
-		Locker:      gmlock.New(),
-		WatchList:   []string{"(.go)$"},
-		UnWatchList: []string{"(.js|.html|.bat|.txt|.md|.exe|.exe~)$"},
-	}
-}
-
-// Run run
 func Run() {
-	app := New()
-
-	// 获取当前目录
-	app.Path, _ = os.Getwd()
-
-	app.Name = filepath.Base(app.Path)
-	// 监控目录
-	_, err := gfsnotify.Add(app.Path, func(event *gfsnotify.Event) {
-		// 排除文件
-		if app.IsUnwatch(event.Path) {
+	file := gcmd.GetArg(2)
+	if len(file) < 1 {
+		g.Log().Fatal("file path cannot be empty")
+	}
+	app := &App{
+		File: file,
+	}
+	if len(os.Args) > 3 {
+		app.Options = strings.Join(os.Args[3:], " ")
+	}
+	dirty := gtype.NewBool()
+	_, err := gfsnotify.Add(gfile.RealPath("."), func(event *gfsnotify.Event) {
+		if gfile.ExtName(event.Path) != "go" {
 			return
 		}
-
-		// 非目标文件不重新编译
-		if !app.IsWatch(event.Path) {
+		// Print the event.
+		g.Log().Print(event)
+		// Variable <dirty> is used for running the changes only one in one second.
+		if !dirty.Cas(false, true) {
 			return
 		}
-
-		switch {
-		case event.IsCreate():
-			mlog.Print("create file:", event.Path)
-		case event.IsWrite():
-			mlog.Print("write file:", event.Path)
-		case event.IsRemove():
-			mlog.Print("remove file:", event.Path)
-		case event.IsRename():
-			mlog.Print("rename file:", event.Path)
-		case event.IsChmod():
-			mlog.Print("chmod file:", event.Path)
-		default:
-			mlog.Print(event)
-		}
-
-		if app.Timer != nil {
-			app.Timer.Close()
-			app.Timer = nil
-		}
-		// 使用延时执行，避免短时间内多次文件变动导致异常
-		app.Timer = gtimer.AddOnce(time.Second, func() {
-			app.Build()
+		// With some delay in case of multiple code changes in very short interval.
+		gtimer.SetTimeout(time.Second, func() {
+			app.Run()
+			dirty.Set(false)
 		})
-	}, true)
 
+	})
 	if err != nil {
-		mlog.Fatal("%v", err)
-	} else {
-		app.Build()
-		select {}
+		g.Log().Fatal(err)
 	}
+	go app.Run()
+	select {}
 }
 
-// IsUnwatch is file unwatch or not
-func (app *App) IsUnwatch(filename string) bool {
-	for _, regex := range app.UnWatchList {
-		r, err := regexp.Compile(regex)
-		if err != nil {
-			return false
-		}
-		if r.MatchString(filename) {
-			return true
-		}
-		continue
-	}
-	return false
-}
-
-// IsWatch is file watch or not
-func (app *App) IsWatch(filename string) bool {
-	for _, regex := range app.WatchList {
-		r, err := regexp.Compile(regex)
-		if err != nil {
-			return false
-		}
-		if r.MatchString(filename) {
-			return true
-		}
-		continue
-	}
-	return false
-}
-
-// Build build the app
-func (app *App) Build() {
-	mlog.Printf("Build: %s", app.Name)
-	app.Locker.Lock(app.Name)
-	defer app.Locker.Unlock(app.Name)
-
-	var (
-		err     error
-		stderr  bytes.Buffer
-		appname string
-	)
-	appname = app.Name
+func (app *App) Run() {
+	// Rebuild and run the codes.
+	renamePath := ""
+	g.Log().Printf("build: %s", app.File)
+	outputPath := gfile.Join(gfile.TempDir(), "gf-cli", gfile.Name(app.File))
 	if runtime.GOOS == "windows" {
-		appname += ".exe"
+		outputPath += ".exe"
+		if gfile.Exists(outputPath) {
+			renamePath = outputPath + "~"
+			if err := gfile.Rename(outputPath, renamePath); err != nil {
+				mlog.Print(err)
+			}
+		}
 	}
-	cmdName := "go"
-	args := []string{"build"}
-	args = append(args, "-o", appname)
-	if app.BuildTags != "" {
-		args = append(args, "-tags", app.BuildTags)
-	}
-	buildCmd := exec.Command(cmdName, args...)
-	buildCmd.Env = append(os.Environ(), "GOGC=off")
-	//buildCmd.Env = append(os.Environ(), "GO111MODULE=auto")
-	buildCmd.Stderr = &stderr
-	err = buildCmd.Run()
+	// Build the app.
+	command := fmt.Sprintf(`go build -o %s %s %s`, outputPath, app.Options, app.File)
+	result, err := gproc.ShellExec(command)
 	if err != nil {
-		mlog.Print("Build Failed:", stderr.String())
+		g.Log().Printf("build error: \n%s%s", result, err.Error())
 		return
 	}
-	app.Restart()
-}
-
-// Kill kill the app
-func (app *App) Kill() {
-	defer func() {
-		if e := recover(); e != nil {
-		}
-	}()
-	if app.CMD != nil && app.CMD.Process != nil {
-		mlog.Printf("Kill: %s", app.Name)
-		err := app.CMD.Process.Kill()
-		if err != nil {
-			if err.Error() == "invalid argument" {
-				// the app was auto exit
-				app.CMD = nil
-			} else {
-				mlog.Fatal("Kill error:", err)
-			}
-		} else {
-			app.CMD = nil
+	// Kill the old process if build successfully.
+	if process != nil {
+		if err := process.Kill(); err != nil {
+			g.Log().Printf("kill process error: %s", err.Error())
+			return
 		}
 	}
-}
-
-// Restart restart the app
-func (app *App) Restart() {
-	app.Kill()
-	go app.Start()
-}
-
-// Start start the app
-func (app *App) Start() {
-	mlog.Printf("Start: %s\n", app.Name)
-	appname := app.Name
-	if !strings.Contains(appname, "./") {
-		appname = "./" + appname
+	process = gproc.NewProcess(outputPath, nil)
+	if pid, err := process.Start(); err != nil {
+		g.Log().Printf("build running error: %s", err.Error())
+	} else {
+		g.Log().Printf("build running pid: %d", pid)
 	}
-
-	app.CMD = exec.Command(appname)
-	app.CMD.Stdout = os.Stdout
-	app.CMD.Stderr = os.Stderr
-	//cmd.Args = append([]string{appname}, config.Conf.CmdArgs...)
-	//cmd.Env = append(os.Environ(), config.Conf.Envs...)
-
-	go app.CMD.Run()
 }
