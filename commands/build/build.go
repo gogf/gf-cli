@@ -72,12 +72,14 @@ OPTION
     -s, --system     output binary system, multiple os separated with ','
     -o, --output     output binary path, used when building single binary file
     -p, --path       output binary directory path, default is './bin'
-	-e, --extra      extra custom 'go build' options
+	-e, --extra      extra custom "go build" options
+    -m, --mod        like "-mod" option of "go build", use "-m none" to disable go module
     --pack           auto pack config,public,template folder into boot/data.go before building.
 
 EXAMPLES
     gf build main.go
     gf build main.go --pack
+    gf build main.go -m none --pack
     gf build main.go -n my-app -a all -s all
     gf build main.go -n my-app -a amd64,386 -s linux -p .
     gf build main.go -n my-app -v 1.0 -a amd64,386 -s linux,windows,darwin -p ./dockerfiles/bin
@@ -126,6 +128,7 @@ func Run() {
 		"o,output":  true,
 		"p,path":    true,
 		"e,extra":   true,
+		"m,mod":     true,
 		"pack":      false,
 	})
 	if err != nil {
@@ -140,7 +143,19 @@ func Run() {
 	if len(name) < 1 || name == "*" {
 		mlog.Fatal("name cannot be empty")
 	}
+	mod := getOption(parser, "mod")
 	extra := getOption(parser, "extra")
+	if mod != "" {
+		if mod == "none" {
+			genv.Set("GO111MODULE", "off")
+		} else {
+			if extra == "" {
+				extra = fmt.Sprintf(`-mod=%s`, mod)
+			} else {
+				extra = fmt.Sprintf(`-mod=%s %s`, mod, extra)
+			}
+		}
+	}
 	version := getOption(parser, "version")
 	outputPath := getOption(parser, "output")
 	archOption := getOption(parser, "arch")
@@ -152,7 +167,7 @@ func Run() {
 	}
 
 	// auto packing
-	if parser.ContainsOpt("pack") {
+	if containsOption(parser, "pack") {
 		packFolderStr := ""
 		if gfile.Exists("config") {
 			packFolderStr += "config,"
@@ -244,6 +259,16 @@ func getOption(parser *gcmd.Parser, name string, value ...string) (result string
 		result = value[0]
 	}
 	return
+}
+
+// containsOption checks whether the command option or the configuration file containing
+// given option name.
+func containsOption(parser *gcmd.Parser, name string) bool {
+	result := parser.ContainsOpt(name)
+	if !result && g.Config().Available() {
+		result = g.Config().Contains(nodeNameInConfigFile + "." + name)
+	}
+	return result
 }
 
 // getBuildInVarMapJson retrieves and returns the custom build-in variables in configuration
