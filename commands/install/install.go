@@ -12,7 +12,7 @@ import (
 // Run does the installation.
 func Run() {
 	// Uninstall the old binary.
-	if path := gproc.SearchBinary("gf"); path != "" {
+	if path := gproc.SearchBinaryPath("gf"); path != "" {
 		// Do not delete myself.
 		if gfile.SelfPath() != path {
 			gfile.Remove(path)
