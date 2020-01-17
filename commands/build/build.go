@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf-cli/library/proxy"
 	"github.com/gogf/gf/encoding/gbase64"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gcmd"
@@ -74,15 +75,17 @@ OPTION
     -p, --path       output binary directory path, default is './bin'
 	-e, --extra      extra custom "go build" options
     -m, --mod        like "-mod" option of "go build", use "-m none" to disable go module
-    --pack           auto pack config,public,template folder into boot/data.go before building.
+    --swagger        auto parse and pack swagger into boot/data-swagger.go before building. 
+    --pack           auto pack config,public,template folder into boot/data-packed.go before building.
 
 EXAMPLES
     gf build main.go
+    gf build main.go --swagger
     gf build main.go --pack
     gf build main.go -m none --pack
     gf build main.go -n my-app -a all -s all
     gf build main.go -n my-app -a amd64,386 -s linux -p .
-    gf build main.go -n my-app -v 1.0 -a amd64,386 -s linux,windows,darwin -p ./dockerfiles/bin
+    gf build main.go -n my-app -v 1.0 -a amd64,386 -s linux,windows,darwin -p ./docker/bin
 
 DESCRIPTION
     The "build" command is most commonly used command, which is designed as a powerful wrapper for 
@@ -120,6 +123,7 @@ PLATFORMS
 }
 
 func Run() {
+	mlog.SetHeaderPrint(true)
 	parser, err := gcmd.Parse(g.MapStrBool{
 		"n,name":    true,
 		"v,version": true,
@@ -129,6 +133,7 @@ func Run() {
 		"p,path":    true,
 		"e,extra":   true,
 		"m,mod":     true,
+		"swagger":   false,
 		"pack":      false,
 	})
 	if err != nil {
@@ -147,7 +152,7 @@ func Run() {
 	extra := getOption(parser, "extra")
 	if mod != "" {
 		if mod == "none" {
-			genv.Set("GO111MODULE", "off")
+			proxy.SetGoModuleEnabled(false)
 		} else {
 			if extra == "" {
 				extra = fmt.Sprintf(`-mod=%s`, mod)
@@ -166,7 +171,21 @@ func Run() {
 		path += "/" + version
 	}
 
-	// auto packing
+	// Auto swagger.
+	if containsOption(parser, "swagger") {
+		if err := gproc.ShellRun(`gf swagger`); err != nil {
+			return
+		}
+		if gfile.Exists("swagger") {
+			packCmd := fmt.Sprintf(`gf pack %s boot/data-swagger.go -n boot`, "swagger")
+			mlog.Print(packCmd)
+			if err := gproc.ShellRun(packCmd); err != nil {
+				return
+			}
+		}
+	}
+
+	// Auto packing
 	if containsOption(parser, "pack") {
 		packFolderStr := ""
 		if gfile.Exists("config") {
@@ -180,7 +199,7 @@ func Run() {
 		}
 		packFolderStr = gstr.Trim(packFolderStr, ",")
 		if len(packFolderStr) > 0 {
-			packCmd := fmt.Sprintf(`gf pack %s boot/data.go -n boot`, packFolderStr)
+			packCmd := fmt.Sprintf(`gf pack %s boot/data-packed.go -n boot`, packFolderStr)
 			mlog.Print(packCmd)
 			gproc.ShellRun(packCmd)
 		}

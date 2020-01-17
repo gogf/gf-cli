@@ -1,6 +1,7 @@
 package pack
 
 import (
+	"github.com/gogf/gf-cli/library/allyes"
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gcmd"
@@ -53,7 +54,7 @@ func Run() {
 	if gfile.Exists(dstPath) && gfile.IsDir(dstPath) {
 		mlog.Fatalf("DST path '%s' cannot be a directory", dstPath)
 	}
-	if !gfile.IsEmpty(dstPath) {
+	if !gfile.IsEmpty(dstPath) && !allyes.Check() {
 		s := gcmd.Scanf("path '%s' is not empty, files might be overwrote, continue? [y/n]: ", dstPath)
 		if strings.EqualFold(s, "n") {
 			return
@@ -61,8 +62,6 @@ func Run() {
 	}
 	name := parser.GetOpt("name")
 	prefix := parser.GetOpt("prefix")
-
-	mlog.Print("packing...")
 	if name != "" {
 		if err := gres.PackToGoFile(srcPath, dstPath, name, prefix); err != nil {
 			mlog.Fatalf("pack failed: %v", err)

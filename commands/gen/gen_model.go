@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	_ "github.com/denisenkom/go-mssqldb"
+	"github.com/gogf/gf-cli/library/allyes"
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/database/gdb"
 	"github.com/gogf/gf/frame/g"
@@ -26,7 +27,7 @@ const (
 func doGenModel(parser *gcmd.Parser) {
 	var err error
 	genPath := parser.GetArg(3, DEFAULT_GEN_MODEL_PATH)
-	if !gfile.IsEmpty(genPath) {
+	if !gfile.IsEmpty(genPath) && !allyes.Check() {
 		s := gcmd.Scanf("path '%s' is not empty, files might be overwrote, continue? [y/n]: ", genPath)
 		if strings.EqualFold(s, "n") {
 			return

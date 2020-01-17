@@ -21,8 +21,17 @@ func init() {
 
 // AutoSet automatically checks and sets the golang proxy.
 func AutoSet() {
-	genv.Set("GO111MODULE", "on")
+	SetGoModuleEnabled(true)
 	genv.Set("GOPROXY", "https://goproxy.cn")
+}
+
+// SetGoModuleEnabled enables/disables the go module feature.
+func SetGoModuleEnabled(enabled bool) {
+	if enabled {
+		genv.Set("GO111MODULE", "on")
+	} else {
+		genv.Set("GO111MODULE", "off")
+	}
 }
 
 // getProxy returns the proper proxy for 'go get'.
