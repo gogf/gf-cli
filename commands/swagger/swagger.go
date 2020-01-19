@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf-swagger/swagger"
 	"github.com/gogf/gf/container/gtype"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gcmd"
@@ -99,8 +100,7 @@ func Run() {
 			server = ":" + server
 		}
 		s := g.Server()
-		s.SetServerRoot("public")
-		s.AddSearchPath("swagger")
+		s.Plugin(&swagger.Swagger{})
 		s.SetAddr(server)
 		s.Run()
 	}

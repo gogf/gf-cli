@@ -5,6 +5,7 @@ import (
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/container/garray"
 	"github.com/gogf/gf/container/gtype"
+	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/net/ghttp"
 	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/os/gfile"
@@ -22,6 +23,7 @@ import (
 type App struct {
 	File    string // Go run file name/path.
 	Options string // Extra "go run" options.
+	Args    string // Auto parse and pack swagger files.
 	Swagger bool   // Auto parse and pack swagger files.
 }
 
@@ -48,11 +50,13 @@ ARGUMENT
     OPTION  the same options as "go run"/"go build" except some options as follows defined
 
 OPTION
-    --swagger  auto parse and pack swagger into boot/data-swagger.go before running. 
+    -/--args     custom process arguments.
+    -/--swagger  auto parse and pack swagger into boot/data-swagger.go before running. 
 
 EXAMPLES
     gf run main.go
     gf run main.go --swagger
+    gf run main.go --args "server -p 8080"
     gf run main.go -mod=vendor
     gf run main.go -ldflags "-w -s"
 
@@ -63,6 +67,12 @@ DESCRIPTION
 }
 
 func Run() {
+	parser, err := gcmd.Parse(g.MapStrBool{
+		"args": true,
+	})
+	if err != nil {
+		mlog.Fatal(err)
+	}
 	mlog.SetHeaderPrint(true)
 	file := gcmd.GetArg(2)
 	if len(file) < 1 {
@@ -86,14 +96,36 @@ func Run() {
 		app.Swagger = true
 		array.Remove(index)
 	}
+	// args checks.
+	args := parser.GetOpt("args")
+	if args != "" {
+		app.Args = args
+		index := -1
+		array.Iterator(func(k int, v string) bool {
+			if gstr.Contains(v, "-args") {
+				index = k
+				return false
+			}
+			return true
+		})
+		if index != -1 {
+			if gstr.Contains(array.Get(index), "=") {
+				array.Remove(index)
+			} else {
+				array.Remove(index)
+				array.Remove(index)
+			}
+		}
+	}
 	// -y checks
 	array.RemoveValue("-y")
 	array.RemoveValue("--y")
 	if array.Len() > 3 {
 		app.Options = strings.Join(array.SubSlice(3), " ")
 	}
+
 	dirty := gtype.NewBool()
-	_, err := gfsnotify.Add(gfile.RealPath("."), func(event *gfsnotify.Event) {
+	_, err = gfsnotify.Add(gfile.RealPath("."), func(event *gfsnotify.Event) {
 		if gfile.ExtName(event.Path) != "go" {
 			return
 		}
@@ -148,6 +180,7 @@ func (app *App) Run() {
 	}
 	// Build the app.
 	command := fmt.Sprintf(`go build -o %s %s %s`, outputPath, app.Options, app.File)
+	mlog.Print(command)
 	result, err := gproc.ShellExec(command)
 	if err != nil {
 		mlog.Printf("build error: \n%s%s", result, err.Error())
@@ -160,7 +193,9 @@ func (app *App) Run() {
 			return
 		}
 	}
-	process = gproc.NewProcess(outputPath, nil)
+	command = fmt.Sprintf(`%s %s`, outputPath, app.Args)
+	mlog.Print(command)
+	process = gproc.NewProcessCmd(command, nil)
 	if pid, err := process.Start(); err != nil {
 		mlog.Printf("build running error: %s", err.Error())
 	} else {
