@@ -3,6 +3,7 @@ package run
 import (
 	"fmt"
 	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf/container/garray"
 	"github.com/gogf/gf/container/gtype"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/net/ghttp"
@@ -10,6 +11,7 @@ import (
 	"github.com/gogf/gf/os/gfile"
 	"github.com/gogf/gf/os/gfsnotify"
 	"github.com/gogf/gf/os/gproc"
+	"github.com/gogf/gf/os/gtime"
 	"github.com/gogf/gf/os/gtimer"
 	"github.com/gogf/gf/text/gstr"
 	"os"
@@ -21,6 +23,8 @@ import (
 type App struct {
 	File    string // Go run file name/path.
 	Options string // Extra "go run" options.
+	Args    string // Auto parse and pack swagger files.
+	Swagger bool   // Auto parse and pack swagger files.
 }
 
 const (
@@ -37,17 +41,24 @@ func init() {
 }
 
 func Help() {
-	g.Log().Print(gstr.TrimLeft(`
+	mlog.Print(gstr.TrimLeft(`
 USAGE
-    gf run FILE [OPTIONS]
+    gf run FILE [OPTION]
 
 ARGUMENT
-    FILE     building file path.
-    OPTIONS  the same options as "go run" or "go build"
+    FILE    building file path.
+    OPTION  the same options as "go run"/"go build" except some options as follows defined
+
+OPTION
+    -/--args     custom process arguments.
+    -/--swagger  auto parse and pack swagger into boot/data-swagger.go before running. 
 
 EXAMPLES
     gf run main.go
+    gf run main.go --swagger
+    gf run main.go --args "server -p 8080"
     gf run main.go -mod=vendor
+    gf run main.go -ldflags "-w -s"
 
 DESCRIPTION
     The "run" command is used for running go codes with hot-compiled-like feature,
@@ -56,36 +67,85 @@ DESCRIPTION
 }
 
 func Run() {
+	parser, err := gcmd.Parse(g.MapStrBool{
+		"args": true,
+	})
+	if err != nil {
+		mlog.Fatal(err)
+	}
+	mlog.SetHeaderPrint(true)
 	file := gcmd.GetArg(2)
 	if len(file) < 1 {
-		g.Log().Fatal("file path cannot be empty")
+		mlog.Fatal("file path cannot be empty")
 	}
 	app := &App{
 		File: file,
 	}
-	if len(os.Args) > 3 {
-		app.Options = strings.Join(os.Args[3:], " ")
+	// ================================================================================
+	// This command is very special that it supports options of "go run" and "go build"
+	// from the third parameter of os.Args. That means, we should filter any parameter
+	// that "go run" and "go build" do not allow.
+	// ================================================================================
+	// Swagger checks.
+	array := garray.NewStrArrayFrom(os.Args)
+	index := array.Search("--swagger")
+	if index < 0 {
+		index = array.Search("-swagger")
 	}
+	if index != -1 {
+		app.Swagger = true
+		array.Remove(index)
+	}
+	// args checks.
+	args := parser.GetOpt("args")
+	if args != "" {
+		app.Args = args
+		index := -1
+		array.Iterator(func(k int, v string) bool {
+			if gstr.Contains(v, "-args") {
+				index = k
+				return false
+			}
+			return true
+		})
+		if index != -1 {
+			if gstr.Contains(array.Get(index), "=") {
+				array.Remove(index)
+			} else {
+				array.Remove(index)
+				array.Remove(index)
+			}
+		}
+	}
+	// -y checks
+	array.RemoveValue("-y")
+	array.RemoveValue("--y")
+	if array.Len() > 3 {
+		app.Options = strings.Join(array.SubSlice(3), " ")
+	}
+
 	dirty := gtype.NewBool()
-	_, err := gfsnotify.Add(gfile.RealPath("."), func(event *gfsnotify.Event) {
+	_, err = gfsnotify.Add(gfile.RealPath("."), func(event *gfsnotify.Event) {
 		if gfile.ExtName(event.Path) != "go" {
 			return
 		}
-		// Print the event.
-		g.Log().Print(event)
+		// Ignore swagger file.
+		if gfile.Basename(event.Path) == "data-swagger.go" {
+			return
+		}
 		// Variable <dirty> is used for running the changes only one in one second.
 		if !dirty.Cas(false, true) {
 			return
 		}
 		// With some delay in case of multiple code changes in very short interval.
-		gtimer.SetTimeout(time.Second, func() {
+		gtimer.SetTimeout(1500*gtime.MS, func() {
+			mlog.Printf(`go file changes: %s`, event.String())
 			app.Run()
 			dirty.Set(false)
 		})
-
 	})
 	if err != nil {
-		g.Log().Fatal(err)
+		mlog.Fatal(err)
 	}
 	go app.Run()
 	select {}
@@ -94,7 +154,7 @@ func Run() {
 func (app *App) Run() {
 	// Rebuild and run the codes.
 	renamePath := ""
-	g.Log().Printf("build: %s", app.File)
+	mlog.Printf("build: %s", app.File)
 	outputPath := gfile.Join(gfile.TempDir(), "gf-cli", gfile.Name(app.File))
 	if runtime.GOOS == "windows" {
 		outputPath += ".exe"
@@ -105,24 +165,40 @@ func (app *App) Run() {
 			}
 		}
 	}
+	// Auto swagger.
+	if app.Swagger {
+		if err := gproc.ShellRun(`gf swagger`); err != nil {
+			return
+		}
+		if gfile.Exists("swagger") {
+			packCmd := fmt.Sprintf(`gf pack %s boot/data-swagger.go -n boot`, "swagger")
+			mlog.Print(packCmd)
+			if err := gproc.ShellRun(packCmd); err != nil {
+				return
+			}
+		}
+	}
 	// Build the app.
 	command := fmt.Sprintf(`go build -o %s %s %s`, outputPath, app.Options, app.File)
+	mlog.Print(command)
 	result, err := gproc.ShellExec(command)
 	if err != nil {
-		g.Log().Printf("build error: \n%s%s", result, err.Error())
+		mlog.Printf("build error: \n%s%s", result, err.Error())
 		return
 	}
 	// Kill the old process if build successfully.
 	if process != nil {
 		if err := process.Kill(); err != nil {
-			g.Log().Printf("kill process error: %s", err.Error())
+			mlog.Printf("kill process error: %s", err.Error())
 			return
 		}
 	}
-	process = gproc.NewProcess(outputPath, nil)
+	command = fmt.Sprintf(`%s %s`, outputPath, app.Args)
+	mlog.Print(command)
+	process = gproc.NewProcessCmd(command, nil)
 	if pid, err := process.Start(); err != nil {
-		g.Log().Printf("build running error: %s", err.Error())
+		mlog.Printf("build running error: %s", err.Error())
 	} else {
-		g.Log().Printf("build running pid: %d", pid)
+		mlog.Printf("build running pid: %d", pid)
 	}
 }

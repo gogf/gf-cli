@@ -1,6 +1,7 @@
 package initialize
 
 import (
+	"github.com/gogf/gf-cli/library/allyes"
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/encoding/gcompress"
 	"github.com/gogf/gf/frame/g"
@@ -51,7 +52,7 @@ func Run() {
 		mlog.Fatal(err)
 	}
 	dirPath := "."
-	if !gfile.IsEmpty(dirPath) {
+	if !gfile.IsEmpty(dirPath) && !allyes.Check() {
 		s := gcmd.Scan("current folder is not empty, files might be overwrote, continue? [y/n]: ")
 		if strings.EqualFold(s, "n") {
 			return

@@ -3,7 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/gogf/gf-cli/commands/docker"
+	"github.com/gogf/gf-cli/commands/swagger"
+	"github.com/gogf/gf-cli/library/allyes"
 	"github.com/gogf/gf-cli/library/proxy"
+	"github.com/gogf/gf/os/gfile"
 	"strings"
 
 	_ "github.com/gogf/gf-cli/boot"
@@ -23,7 +26,7 @@ import (
 )
 
 const (
-	VERSION = "v0.5.1"
+	VERSION = "v0.6.0"
 )
 
 func init() {
@@ -45,11 +48,13 @@ COMMAND
     pack       packing any file/directory to a resource file, or a go file
     build      cross-building go project for lots of platforms...
     docker     create a docker image for current GF project...
+    swagger    parse and start a swagger feature server for current project...
     update     update current gf binary to latest one (might need root/admin permission)
     install    install gf binary to system (might need root/admin permission)
     version    show current binary version info
 
 OPTION
+    -y         all yes for all command without prompt ask 
     -?,-h      show this help or detail for specified command
     -v,-i      show version information
 
@@ -60,6 +65,8 @@ ADDITIONAL
 )
 
 func main() {
+	allyes.Init()
+
 	command := gcmd.GetArg(1)
 	// Help information
 	if gcmd.ContainsOpt("h") && command != "" {
@@ -83,6 +90,8 @@ func main() {
 		pack.Run()
 	case "docker":
 		docker.Run()
+	case "swagger":
+		swagger.Run()
 	case "update":
 		update.Run()
 	case "install":
@@ -126,6 +135,8 @@ func help(command string) {
 		initialize.Help()
 	case "docker":
 		docker.Help()
+	case "swagger":
+		swagger.Help()
 	case "build":
 		build.Help()
 	case "pack":
@@ -145,11 +156,12 @@ func version() {
 	}
 	content := fmt.Sprintf(`
 GoFrame CLI Tool %s, https://goframe.org
-Built Detail:
+Install Path: %s
+Build Detail:
   Go Version:  %s
   GF Version:  %s
   Git Commit:  %s
-  Built Time:  %s
-`, VERSION, info["go"], info["gf"], info["git"], info["time"])
+  Build Time:  %s
+`, VERSION, gfile.SelfPath(), info["go"], info["gf"], info["git"], info["time"])
 	mlog.Print(gstr.Trim(content))
 }
