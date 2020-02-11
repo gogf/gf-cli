@@ -35,9 +35,11 @@ OPTION
                   produced
     -o, --output  the output directory for storage parsed swagger files,
                   the default output directory is "./swagger"
+    -/--pack      auto parses and packs swagger into boot/data-swagger.go. 
 
 EXAMPLES
     gf swagger
+    gf swagger --pack
     gf swagger -s 8080
     gf swagger -s 127.0.0.1:8080
     gf swagger -o ./document/swagger
@@ -56,6 +58,7 @@ func Run() {
 	parser, err := gcmd.Parse(g.MapStrBool{
 		"s,server": true,
 		"o,output": true,
+		"pack":     false,
 	})
 	if err != nil {
 		mlog.Fatal(err)
@@ -63,11 +66,8 @@ func Run() {
 	server := parser.GetOpt("server")
 	output := parser.GetOpt("output", defaultOutput)
 	// Generate swagger files.
-	mlog.Print(`producing swagger files...`)
-	if err := generateSwaggerFiles(output); err != nil {
+	if err := generateSwaggerFiles(output, parser.ContainsOpt("pack")); err != nil {
 		mlog.Print(err)
-	} else {
-		mlog.Print(`done!`)
 	}
 	// Watch the go file changes and regenerate the swagger files.
 	dirty := gtype.NewBool()
@@ -83,7 +83,7 @@ func Run() {
 		gtimer.SetTimeout(1500*gtime.MS, func() {
 			mlog.Printf(`go file changes: %s`, event.String())
 			mlog.Print(`reproducing swagger files...`)
-			if err := generateSwaggerFiles(output); err != nil {
+			if err := generateSwaggerFiles(output, parser.ContainsOpt("pack")); err != nil {
 				mlog.Print(err)
 			} else {
 				mlog.Print(`done!`)
@@ -107,7 +107,8 @@ func Run() {
 }
 
 // generateSwaggerFiles generates necessary swagger files.
-func generateSwaggerFiles(output string) error {
+func generateSwaggerFiles(output string, pack bool) error {
+	mlog.Print(`producing swagger files...`)
 	// Temporary storing swagger files directory.
 	tempOutputPath := gfile.Join(gfile.TempDir(), "swagger")
 	if gfile.Exists(tempOutputPath) {
@@ -138,6 +139,15 @@ func generateSwaggerFiles(output string) error {
 		gfile.Join(output, "swagger.json"),
 	); err != nil {
 		return err
+	}
+	mlog.Print(`done!`)
+	// Auto pack.
+	if pack && gfile.Exists("swagger") {
+		packCmd := fmt.Sprintf(`gf pack %s boot/data-swagger.go -n boot`, "swagger")
+		mlog.Print(packCmd)
+		if err := gproc.ShellRun(packCmd); err != nil {
+			return err
+		}
 	}
 	return nil
 }

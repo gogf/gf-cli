@@ -3,6 +3,9 @@ package docker
 import (
 	"fmt"
 	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf/container/garray"
+	"github.com/gogf/gf/frame/g"
+	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/os/gfile"
 	"github.com/gogf/gf/os/gproc"
 	"github.com/gogf/gf/text/gstr"
@@ -13,18 +16,23 @@ import (
 func Help() {
 	mlog.Print(gstr.TrimLeft(`
 USAGE    
-    gf docker [FILE] [OPTIONS]
+    gf docker [FILE] [OPTION]
 
 ARGUMENT
-    FILE     file path for "gf build", it's "main.go" in default.
-    OPTIONS  the same options as "docker build".
+    FILE      file path for "gf build", it's "main.go" in default.
+    OPTION    the same options as "docker build" except some options as follows defined
+
+OPTION
+    -p, --push  auto push the docker image to docker registry if "-t" option passed
 
 EXAMPLES
     gf docker 
-    gf docker -t image
+    gf docker -t hub.docker.com/john/image:tag
+    gf docker -p -t hub.docker.com/john/image:tag
     gf docker main.go
-    gf docker main.go -t image
-    gf docker main.go -t registry.cn-hangzhou.aliyuncs.com/john/image:tag
+    gf docker main.go -t hub.docker.com/john/image:tag
+    gf docker main.go -t hub.docker.com/john/image:tag
+    gf docker main.go -p -t hub.docker.com/john/image:tag
 
 DESCRIPTION
     The "docker" command builds the GF project to a docker images. It runs "docker build" 
@@ -35,21 +43,55 @@ DESCRIPTION
 }
 
 func Run() {
+	var err error
+	autoPush := false
+	array := garray.NewStrArrayFromCopy(os.Args)
+	index := array.Search("--push")
+	if index < 0 {
+		index = array.Search("-p")
+	}
+	if index != -1 {
+		array.Remove(index)
+		autoPush = true
+	}
 	file := "main.go"
 	extraOptions := ""
-	if len(os.Args) > 2 {
-		if gfile.ExtName(os.Args[2]) == "go" {
-			file = os.Args[2]
-			if len(os.Args) > 3 {
-				extraOptions = strings.Join(os.Args[3:], " ")
+	if array.Len() > 2 {
+		if gfile.ExtName(array.Get(2)) == "go" {
+			file = array.Get(2)
+			if array.Len() > 3 {
+				extraOptions = strings.Join(array.SubSlice(3), " ")
 			}
 		} else {
-			extraOptions = strings.Join(os.Args[2:], " ")
+			extraOptions = strings.Join(array.SubSlice(2), " ")
 		}
 	}
-	err := gproc.ShellRun(fmt.Sprintf(`gf build %s -a amd64 -s linux`, file))
+	// Binary build.
+	err = gproc.ShellRun(fmt.Sprintf(`gf build %s -a amd64 -s linux`, file))
 	if err != nil {
 		return
 	}
-	gproc.ShellRun(fmt.Sprintf(`docker build . %s`, extraOptions))
+	// Docker build.
+	err = gproc.ShellRun(fmt.Sprintf(`docker build . %s`, extraOptions))
+	if err != nil {
+		return
+	}
+	// Docker push.
+	if !autoPush {
+		return
+	}
+	parser, err := gcmd.Parse(g.MapStrBool{
+		"t,tag": true,
+	})
+	if err != nil {
+		mlog.Fatal(err)
+	}
+	tag := parser.GetOpt("t")
+	if tag == "" {
+		return
+	}
+	err = gproc.ShellRun(fmt.Sprintf(`docker push %s`, tag))
+	if err != nil {
+		return
+	}
 }
