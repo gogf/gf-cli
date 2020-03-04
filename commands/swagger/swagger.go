@@ -18,7 +18,7 @@ import (
 
 const (
 	defaultOutput  = "./swagger"
-	swaggoRepoPath = "go get -u github.com/swaggo/swag/cmd/swag"
+	swaggoRepoPath = "github.com/swaggo/swag/cmd/swag"
 )
 
 var (
