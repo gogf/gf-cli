@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"strings"
+
 	_ "github.com/gogf/gf-cli/boot"
 	"github.com/gogf/gf-cli/commands/build"
 	"github.com/gogf/gf-cli/commands/docker"
@@ -21,7 +23,6 @@ import (
 	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/os/gfile"
 	"github.com/gogf/gf/text/gstr"
-	"strings"
 )
 
 const (
@@ -112,7 +113,7 @@ func main() {
 		}
 		// No argument or option, do installation checks.
 		if !install.IsInstalled() {
-			s := gcmd.Scanf("do you want to install gf binary to your system (%s)? [y/n]: ", install.GetInstallFolderPath())
+			s := gcmd.Scanf("Do you want to install gf binary to your system? [y/n]: ")
 			if strings.EqualFold(s, "y") {
 				install.Run()
 				gcmd.Scan("press <Enter> to exit...")
