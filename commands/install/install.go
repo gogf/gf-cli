@@ -33,8 +33,13 @@ func Run() {
 			"%2d|%8t|%9t|%s",
 			id, aPath.writable, aPath.installed, aPath.path)
 	}
-	s := gcmd.Scanf("Please select install destination [0]: ")
-	id := gconv.Int(s)
+	id := gconv.Int(gcmd.Scanf("Please select install destination [0]: "))
+
+	// Check if out of range.
+	if id >= len(paths) || id < 0 {
+		mlog.Printf("Invaid install destination Id: %d", id)
+		return
+	}
 	dstPath := paths[id]
 
 	// Install the new binary.
