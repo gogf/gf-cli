@@ -30,14 +30,19 @@ func Run() {
 	mlog.Printf("%2s|%8s|%9s|%s", "Id", "Writable", "Installed", "Path")
 
 	// Print all paths status and determine the default selectedID value.
-	var selectedID int = 0
+	var selectedID int = -1
 	for id, aPath := range paths {
 		mlog.Printf(
 			"%2d|%8t|%9t|%s",
 			id, aPath.writable, aPath.installed, aPath.path)
-		if aPath.writable && selectedID == 0 {
+		if aPath.writable && selectedID == -1 {
 			selectedID = id
 		}
+	}
+
+	// No writable dir detected, use 0 for default.
+	if selectedID == -1 {
+		selectedID = 0
 	}
 
 	// Get input and update selectedID.
