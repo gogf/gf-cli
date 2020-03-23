@@ -21,7 +21,7 @@ type installFolderPath struct {
 // Run does the installation.
 func Run() {
 	// Ask where to install.
-	paths := getInstallBinaryPaths()
+	paths := getInstallPathsData()
 	if len(paths) <= 0 {
 		mlog.Printf("No path detected, you can manually install gf by copying the binary to path folder.")
 		return
@@ -82,7 +82,7 @@ func Run() {
 
 // IsInstalled returns whether the binary is installed.
 func IsInstalled() bool {
-	paths := getInstallBinaryPaths()
+	paths := getInstallPathsData()
 	for _, aPath := range paths {
 		if aPath.installed {
 			return true
@@ -91,8 +91,8 @@ func IsInstalled() bool {
 	return false
 }
 
-// GetInstallFolderPaths returns the installation folder paths for the binary.
-func getInstallFolderPaths() []installFolderPath {
+// GetInstallPathsData returns the installation paths data for the binary.
+func getInstallPathsData() []installFolderPath {
 
 	var folderPaths []installFolderPath
 
@@ -126,11 +126,6 @@ func getInstallFolderPaths() []installFolderPath {
 	}
 
 	return folderPaths
-}
-
-// GetInstallBinaryPaths returns the installation path for the binary.
-func getInstallBinaryPaths() []installFolderPath {
-	return getInstallFolderPaths()
 }
 
 // Check if path is writable and adds related data to [folderPaths].
