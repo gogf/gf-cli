@@ -11,7 +11,7 @@ import (
 	"github.com/gogf/gf/util/gconv"
 )
 
-type InstallFolderPath struct {
+type installFolderPath struct {
 	path           string
 	writable       bool
 	binaryFilePath string
@@ -21,26 +21,39 @@ type InstallFolderPath struct {
 // Run does the installation.
 func Run() {
 	// Ask where to install.
-	paths := GetInstallBinaryPaths()
+	paths := getInstallBinaryPaths()
 	if len(paths) <= 0 {
 		mlog.Printf("No path detected, you can manually install gf by copying the binary to path folder.")
 		return
 	}
 	mlog.Printf("Detected paths: ")
 	mlog.Printf("%2s|%8s|%9s|%s", "Id", "Writable", "Installed", "Path")
+
+	// Print all paths status and determine the default selectedID value.
+	var selectedID int = 0
 	for id, aPath := range paths {
 		mlog.Printf(
 			"%2d|%8t|%9t|%s",
 			id, aPath.writable, aPath.installed, aPath.path)
+		if aPath.writable && selectedID == 0 {
+			selectedID = id
+		}
 	}
-	id := gconv.Int(gcmd.Scanf("Please select install destination [0]: "))
+
+	// Get input and update selectedID.
+	input := gcmd.Scanf("Please select install destination [%d]: ", selectedID)
+	if input != "" {
+		selectedID = gconv.Int(input)
+	}
 
 	// Check if out of range.
-	if id >= len(paths) || id < 0 {
-		mlog.Printf("Invaid install destination Id: %d", id)
+	if selectedID >= len(paths) || selectedID < 0 {
+		mlog.Printf("Invaid install destination Id: %d", selectedID)
 		return
 	}
-	dstPath := paths[id]
+
+	// Get selected destination path.
+	dstPath := paths[selectedID]
 
 	// Install the new binary.
 	err := gfile.CopyFile(gfile.SelfPath(), dstPath.binaryFilePath)
@@ -62,9 +75,9 @@ func Run() {
 	}
 }
 
-// IsInstalled returns whether the binary installed.
+// IsInstalled returns whether the binary is installed.
 func IsInstalled() bool {
-	paths := GetInstallBinaryPaths()
+	paths := getInstallBinaryPaths()
 	for _, aPath := range paths {
 		if aPath.installed {
 			return true
@@ -74,9 +87,9 @@ func IsInstalled() bool {
 }
 
 // GetInstallFolderPaths returns the installation folder paths for the binary.
-func GetInstallFolderPaths() []InstallFolderPath {
+func getInstallFolderPaths() []installFolderPath {
 
-	var folderPaths []InstallFolderPath
+	var folderPaths []installFolderPath
 
 	// Pre generate binaryFileName.
 	binaryFileName := "gf" + gfile.Ext(gfile.SelfPath())
@@ -111,38 +124,26 @@ func GetInstallFolderPaths() []InstallFolderPath {
 }
 
 // GetInstallBinaryPaths returns the installation path for the binary.
-func GetInstallBinaryPaths() []InstallFolderPath {
-	return GetInstallFolderPaths()
+func getInstallBinaryPaths() []installFolderPath {
+	return getInstallFolderPaths()
 }
 
 // Check if path is writable and adds related data to [folderPaths].
 func checkPathAndAppendToInstallFolderPath(
-	folderPaths *[]InstallFolderPath,
+	folderPaths *[]installFolderPath,
 	path string, binaryFileName string) {
 
 	binaryFilePath := gfile.Join(path, binaryFileName)
+	*folderPaths =
+		append(
+			*folderPaths,
+			installFolderPath{
+				path:           path,
+				writable:       gfile.IsWritable(path),
+				binaryFilePath: binaryFilePath,
+				installed:      isInstalled(binaryFilePath),
+			})
 
-	if gfile.IsWritable(path) {
-		*folderPaths =
-			append(
-				*folderPaths,
-				InstallFolderPath{
-					path:           path,
-					writable:       true,
-					binaryFilePath: binaryFilePath,
-					installed:      isInstalled(binaryFilePath),
-				})
-	} else {
-		*folderPaths =
-			append(
-				*folderPaths,
-				InstallFolderPath{
-					path:           path,
-					writable:       false,
-					binaryFilePath: binaryFilePath,
-					installed:      isInstalled(binaryFilePath),
-				})
-	}
 }
 
 // Check if this gf binary path exists.
