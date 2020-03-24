@@ -23,10 +23,10 @@ func Run() {
 	// Ask where to install.
 	paths := getInstallPathsData()
 	if len(paths) <= 0 {
-		mlog.Printf("No path detected, you can manually install gf by copying the binary to path folder.")
+		mlog.Printf("no path detected, you can manually install gf by copying the binary to path folder.")
 		return
 	}
-	mlog.Printf("Detected paths: ")
+	mlog.Printf("detected paths: ")
 	mlog.Printf("%2s|%8s|%9s|%s", "Id", "Writable", "Installed", "Path")
 
 	// Print all paths status and determine the default selectedID value.
@@ -46,14 +46,14 @@ func Run() {
 	}
 
 	// Get input and update selectedID.
-	input := gcmd.Scanf("Please select install destination [%d]: ", selectedID)
+	input := gcmd.Scanf("please select install destination [%d]: ", selectedID)
 	if input != "" {
 		selectedID = gconv.Int(input)
 	}
 
 	// Check if out of range.
 	if selectedID >= len(paths) || selectedID < 0 {
-		mlog.Printf("Invaid install destination Id: %d", selectedID)
+		mlog.Printf("invaid install destination Id: %d", selectedID)
 		return
 	}
 
@@ -63,8 +63,8 @@ func Run() {
 	// Install the new binary.
 	err := gfile.CopyFile(gfile.SelfPath(), dstPath.binaryFilePath)
 	if err != nil {
-		mlog.Printf("Install gf binary to '%s' failed: %v", dstPath.path, err)
-		mlog.Printf("You can manually install gf by copying the binary to folder: %s", dstPath.path)
+		mlog.Printf("install gf binary to '%s' failed: %v", dstPath.path, err)
+		mlog.Printf("you can manually install gf by copying the binary to folder: %s", dstPath.path)
 	} else {
 		mlog.Printf("gf binary is successfully installed to: %s", dstPath.path)
 	}
