@@ -11,6 +11,7 @@ import (
 	"github.com/gogf/gf/util/gconv"
 )
 
+// Contains installFolderPath-related data, such as path, writable, binaryFilePath, and installed.
 type installFolderPath struct {
 	path           string
 	writable       bool
