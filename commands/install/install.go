@@ -103,26 +103,26 @@ func getInstallPathsData() []installFolderPath {
 	switch runtime.GOOS {
 	case "darwin":
 		checkPathAndAppendToInstallFolderPath(
-			&folderPaths, "/usr/local/bin", binaryFileName)
+			folderPaths, "/usr/local/bin", binaryFileName)
 	default:
 		// Search and find the writable directory path.
 		envPath := genv.Get("PATH", genv.Get("Path"))
 		if gstr.Contains(envPath, ";") {
 			for _, v := range gstr.SplitAndTrim(envPath, ";") {
-				checkPathAndAppendToInstallFolderPath(
-					&folderPaths, v, binaryFileName)
+				folderPaths = checkPathAndAppendToInstallFolderPath(
+					folderPaths, v, binaryFileName)
 			}
 		} else if gstr.Contains(envPath, ":") {
 			for _, v := range gstr.SplitAndTrim(envPath, ":") {
-				checkPathAndAppendToInstallFolderPath(
-					&folderPaths, v, binaryFileName)
+				folderPaths = checkPathAndAppendToInstallFolderPath(
+					folderPaths, v, binaryFileName)
 			}
 		} else if envPath != "" {
-			checkPathAndAppendToInstallFolderPath(
-				&folderPaths, envPath, binaryFileName)
+			folderPaths = checkPathAndAppendToInstallFolderPath(
+				folderPaths, envPath, binaryFileName)
 		} else {
-			checkPathAndAppendToInstallFolderPath(
-				&folderPaths, "/usr/local/bin", binaryFileName)
+			folderPaths = checkPathAndAppendToInstallFolderPath(
+				folderPaths, "/usr/local/bin", binaryFileName)
 		}
 	}
 
@@ -131,19 +131,19 @@ func getInstallPathsData() []installFolderPath {
 
 // Check if path is writable and adds related data to [folderPaths].
 func checkPathAndAppendToInstallFolderPath(
-	folderPaths *[]installFolderPath,
-	path string, binaryFileName string) {
+	folderPaths []installFolderPath,
+	path string, binaryFileName string) []installFolderPath {
 
 	binaryFilePath := gfile.Join(path, binaryFileName)
-	*folderPaths =
-		append(
-			*folderPaths,
-			installFolderPath{
-				path:           path,
-				writable:       gfile.IsWritable(path),
-				binaryFilePath: binaryFilePath,
-				installed:      isInstalled(binaryFilePath),
-			})
+
+	return append(
+		folderPaths,
+		installFolderPath{
+			path:           path,
+			writable:       gfile.IsWritable(path),
+			binaryFilePath: binaryFilePath,
+			installed:      isInstalled(binaryFilePath),
+		})
 
 }
 
