@@ -102,7 +102,7 @@ func getInstallPathsData() []installFolderPath {
 
 	switch runtime.GOOS {
 	case "darwin":
-		checkPathAndAppendToInstallFolderPath(
+		folderPaths = checkPathAndAppendToInstallFolderPath(
 			folderPaths, "/usr/local/bin", binaryFileName)
 	default:
 		// Search and find the writable directory path.
