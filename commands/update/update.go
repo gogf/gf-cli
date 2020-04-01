@@ -32,7 +32,7 @@ func Run() {
 		"arch": runtime.GOARCH,
 	})
 	if latestMd5 == "" {
-		mlog.Fatal("get the latest binary md5 failed")
+		mlog.Fatal("get the latest binary md5 failed, may be network issue")
 	}
 	localMd5, err := gmd5.EncryptFile(gfile.SelfPath())
 	if err != nil {
@@ -54,17 +54,25 @@ func Run() {
 		)
 		data := ghttp.GetBytes(downloadUrl)
 		if len(data) == 0 {
-			mlog.Fatal("downloading failed for", runtime.GOOS, runtime.GOARCH)
+			mlog.Fatalf(
+				"downloading failed for %s %s, may be network issue",
+				runtime.GOOS, runtime.GOARCH,
+			)
 		}
 		mlog.Print("installing...")
+		var (
+			binPath    = gfile.SelfPath()
+			renamePath = binPath + "~"
+		)
 		// Rename myself for windows.
-		if runtime.GOOS == "windows" {
-			gfile.Rename(gfile.SelfPath(), gfile.SelfPath()+"~")
+		if err := gfile.Rename(binPath, renamePath); err != nil {
+			mlog.Fatal("rename binary file failed:", err.Error())
 		}
 		// Updates the binary content.
-		if err := gfile.PutBytes(gfile.SelfPath(), data); err != nil {
-			mlog.Fatal("installing binary failed,", err.Error())
+		if err := gfile.PutBytes(binPath, data); err != nil {
+			mlog.Fatal("install binary failed:", err.Error())
 		}
+		gfile.Remove(renamePath)
 		mlog.Print("gf binary is now updated to the latest version")
 	} else {
 		mlog.Print("it's the latest version, no need updates")
