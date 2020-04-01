@@ -16,7 +16,7 @@ var (
 )
 
 func init() {
-	httpClient.SetTimeOut(time.Second)
+	httpClient.SetTimeout(time.Second)
 }
 
 // AutoSet automatically checks and sets the golang proxy.

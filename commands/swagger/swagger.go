@@ -18,7 +18,7 @@ import (
 
 const (
 	defaultOutput  = "./swagger"
-	swaggoRepoPath = "go get -u github.com/swaggo/swag/cmd/swag"
+	swaggoRepoPath = "github.com/swaggo/swag/cmd/swag"
 )
 
 var (
@@ -118,7 +118,7 @@ func generateSwaggerFiles(output string, pack bool) error {
 	// Check and install swag tool.
 	swag := gproc.SearchBinary("swag")
 	if swag == "" {
-		err := gproc.ShellRun(fmt.Sprintf(`go get -u %s`, swaggoRepoPath))
+		err := gproc.ShellRun(fmt.Sprintf(`go get -u -v %s`, swaggoRepoPath))
 		if err != nil {
 			return err
 		}

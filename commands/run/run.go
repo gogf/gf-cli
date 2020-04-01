@@ -37,7 +37,7 @@ var (
 )
 
 func init() {
-	httpClient.SetTimeOut(gPROXY_CHECK_TIMEOUT)
+	httpClient.SetTimeout(gPROXY_CHECK_TIMEOUT)
 }
 
 func Help() {

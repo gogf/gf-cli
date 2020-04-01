@@ -68,6 +68,11 @@ func Insert(data ...interface{}) (result sql.Result, err error) {
 	return Model.Insert(data...)
 }
 
+// InsertIgnore is a convenience method for Model.InsertIgnore.
+func InsertIgnore(data ...interface{}) (result sql.Result, err error) {
+	return Model.InsertIgnore(data...)
+}
+
 // Replace is a convenience method for Model.Replace.
 func Replace(data ...interface{}) (result sql.Result, err error) {
 	return Model.Replace(data...)
