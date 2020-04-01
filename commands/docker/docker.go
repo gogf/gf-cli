@@ -57,8 +57,9 @@ func Run() {
 	file := "main.go"
 	extraOptions := ""
 	if array.Len() > 2 {
-		if gfile.ExtName(array.Get(2)) == "go" {
-			file = array.Get(2)
+		v, _ := array.Get(2)
+		if gfile.ExtName(v) == "go" {
+			file, _ = array.Get(2)
 			if array.Len() > 3 {
 				extraOptions = strings.Join(array.SubSlice(3), " ")
 			}

@@ -27,15 +27,13 @@ func Run() {
 		mlog.Printf("no path detected, you can manually install gf by copying the binary to path folder.")
 		return
 	}
-	mlog.Printf("detected paths: ")
+	mlog.Printf("detected path list: ")
 	mlog.Printf("%2s|%8s|%9s|%s", "Id", "Writable", "Installed", "Path")
 
 	// Print all paths status and determine the default selectedID value.
 	var selectedID int = -1
 	for id, aPath := range paths {
-		mlog.Printf(
-			"%2d|%8t|%9t|%s",
-			id, aPath.writable, aPath.installed, aPath.path)
+		mlog.Printf("%2d|%8t|%9t|%s", id, aPath.writable, aPath.installed, aPath.path)
 		if aPath.writable && selectedID == -1 {
 			selectedID = id
 		}
@@ -47,14 +45,14 @@ func Run() {
 	}
 
 	// Get input and update selectedID.
-	input := gcmd.Scanf("please select install destination [%d]: ", selectedID)
+	input := gcmd.Scanf("please select installation destination [default %d]: ", selectedID)
 	if input != "" {
 		selectedID = gconv.Int(input)
 	}
 
 	// Check if out of range.
 	if selectedID >= len(paths) || selectedID < 0 {
-		mlog.Printf("invaid install destination Id: %d", selectedID)
+		mlog.Printf("invalid install destination Id: %d", selectedID)
 		return
 	}
 
@@ -94,16 +92,14 @@ func IsInstalled() bool {
 
 // GetInstallPathsData returns the installation paths data for the binary.
 func getInstallPathsData() []installFolderPath {
-
 	var folderPaths []installFolderPath
-
 	// Pre generate binaryFileName.
 	binaryFileName := "gf" + gfile.Ext(gfile.SelfPath())
-
 	switch runtime.GOOS {
 	case "darwin":
 		folderPaths = checkPathAndAppendToInstallFolderPath(
-			folderPaths, "/usr/local/bin", binaryFileName)
+			folderPaths, "/usr/local/bin", binaryFileName,
+		)
 	default:
 		// Search and find the writable directory path.
 		envPath := genv.Get("PATH", genv.Get("Path"))
@@ -133,9 +129,7 @@ func getInstallPathsData() []installFolderPath {
 func checkPathAndAppendToInstallFolderPath(
 	folderPaths []installFolderPath,
 	path string, binaryFileName string) []installFolderPath {
-
 	binaryFilePath := gfile.Join(path, binaryFileName)
-
 	return append(
 		folderPaths,
 		installFolderPath{
@@ -144,7 +138,6 @@ func checkPathAndAppendToInstallFolderPath(
 			binaryFilePath: binaryFilePath,
 			installed:      isInstalled(binaryFilePath),
 		})
-
 }
 
 // Check if this gf binary path exists.

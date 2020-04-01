@@ -109,7 +109,8 @@ func Run() {
 			return true
 		})
 		if index != -1 {
-			if gstr.Contains(array.Get(index), "=") {
+			v, _ := array.Get(index)
+			if gstr.Contains(v, "=") {
 				array.Remove(index)
 			} else {
 				array.Remove(index)
