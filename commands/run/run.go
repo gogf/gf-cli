@@ -196,7 +196,7 @@ func (app *App) Run() {
 	}
 	command = fmt.Sprintf(`%s %s`, outputPath, app.Args)
 	mlog.Print(command)
-	process = gproc.NewProcessCmd(command, nil)
+	process = newProcess(outputPath, app.Args)
 	if pid, err := process.Start(); err != nil {
 		mlog.Printf("build running error: %s", err.Error())
 	} else {
