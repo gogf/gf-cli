@@ -2,15 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/gogf/gf-cli/commands/docker"
-	"github.com/gogf/gf-cli/commands/swagger"
-	"github.com/gogf/gf-cli/library/allyes"
-	"github.com/gogf/gf-cli/library/proxy"
-	"github.com/gogf/gf/os/gfile"
 	"strings"
 
 	_ "github.com/gogf/gf-cli/boot"
 	"github.com/gogf/gf-cli/commands/build"
+	"github.com/gogf/gf-cli/commands/docker"
 	"github.com/gogf/gf-cli/commands/fix"
 	"github.com/gogf/gf-cli/commands/gen"
 	"github.com/gogf/gf-cli/commands/get"
@@ -18,15 +14,19 @@ import (
 	"github.com/gogf/gf-cli/commands/install"
 	"github.com/gogf/gf-cli/commands/pack"
 	"github.com/gogf/gf-cli/commands/run"
+	"github.com/gogf/gf-cli/commands/swagger"
 	"github.com/gogf/gf-cli/commands/update"
+	"github.com/gogf/gf-cli/library/allyes"
 	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf-cli/library/proxy"
 	"github.com/gogf/gf/os/gbuild"
 	"github.com/gogf/gf/os/gcmd"
+	"github.com/gogf/gf/os/gfile"
 	"github.com/gogf/gf/text/gstr"
 )
 
 const (
-	VERSION = "v0.6.0"
+	VERSION = "v0.7.1"
 )
 
 func init() {
@@ -113,7 +113,7 @@ func main() {
 		}
 		// No argument or option, do installation checks.
 		if !install.IsInstalled() {
-			s := gcmd.Scanf("do you want to install gf binary to your system (%s)? [y/n]: ", install.GetInstallFolderPath())
+			s := gcmd.Scanf("do you want to install gf binary to your system? [y/n]: ")
 			if strings.EqualFold(s, "y") {
 				install.Run()
 				gcmd.Scan("press <Enter> to exit...")

@@ -37,7 +37,7 @@ var (
 )
 
 func init() {
-	httpClient.SetTimeOut(gPROXY_CHECK_TIMEOUT)
+	httpClient.SetTimeout(gPROXY_CHECK_TIMEOUT)
 }
 
 func Help() {
@@ -109,7 +109,8 @@ func Run() {
 			return true
 		})
 		if index != -1 {
-			if gstr.Contains(array.Get(index), "=") {
+			v, _ := array.Get(index)
+			if gstr.Contains(v, "=") {
 				array.Remove(index)
 			} else {
 				array.Remove(index)

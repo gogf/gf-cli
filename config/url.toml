@@ -1,7 +1,9 @@
+# gf pack config boot/data-config.go -n boot
+
 
 # gf home site cdn.
 [cdn]
-    url = "https://gf.cdn.johng.cn"
+    url = "https://gfcdn.johng.cn"
 
 # home site url.
 [home]
