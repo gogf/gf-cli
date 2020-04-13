@@ -1,6 +1,7 @@
 package install
 
 import (
+	"github.com/gogf/gf/container/gset"
 	"runtime"
 
 	"github.com/gogf/gf-cli/library/mlog"
@@ -27,13 +28,19 @@ func Run() {
 		mlog.Printf("no path detected, you can manually install gf by copying the binary to path folder.")
 		return
 	}
-	mlog.Printf("detected path list: ")
-	mlog.Printf("%2s|%8s|%9s|%s", "Id", "Writable", "Installed", "Path")
+	mlog.Printf("I found some installable paths for you: ")
+	mlog.Printf("\t%2s | %8s | %9s | %s", "Id", "Writable", "Installed", "Path")
 
 	// Print all paths status and determine the default selectedID value.
-	var selectedID int = -1
+	var (
+		selectedID = -1
+		pathSet    = gset.NewStrSet()
+	)
 	for id, aPath := range paths {
-		mlog.Printf("%2d|%8t|%9t|%s", id, aPath.writable, aPath.installed, aPath.path)
+		if !pathSet.AddIfNotExist(aPath.path) {
+			continue
+		}
+		mlog.Printf("\t%2d | %8t | %9t | %s", id, aPath.writable, aPath.installed, aPath.path)
 		if aPath.writable && selectedID == -1 {
 			selectedID = id
 		}
@@ -45,7 +52,7 @@ func Run() {
 	}
 
 	// Get input and update selectedID.
-	input := gcmd.Scanf("please select installation destination [default %d]: ", selectedID)
+	input := gcmd.Scanf("please choose one installation destination [default %d]: ", selectedID)
 	if input != "" {
 		selectedID = gconv.Int(input)
 	}
@@ -121,22 +128,27 @@ func getInstallPathsData() []installFolderPath {
 				folderPaths, "/usr/local/bin", binaryFileName)
 		}
 	}
-
 	return folderPaths
 }
 
-// Check if path is writable and adds related data to [folderPaths].
-func checkPathAndAppendToInstallFolderPath(
-	folderPaths []installFolderPath,
-	path string, binaryFileName string) []installFolderPath {
-	binaryFilePath := gfile.Join(path, binaryFileName)
+// checkPathAndAppendToInstallFolderPath checks if <path> is writable and already installed.
+// It adds the <path> to <folderPaths> if it is writable or already installed, or else it ignores the <path>.
+func checkPathAndAppendToInstallFolderPath(folderPaths []installFolderPath, path string, binaryFileName string) []installFolderPath {
+	var (
+		binaryFilePath = gfile.Join(path, binaryFileName)
+		writable       = gfile.IsWritable(path)
+		installed      = isInstalled(binaryFilePath)
+	)
+	if !writable && !installed {
+		return folderPaths
+	}
 	return append(
 		folderPaths,
 		installFolderPath{
 			path:           path,
-			writable:       gfile.IsWritable(path),
+			writable:       writable,
 			binaryFilePath: binaryFilePath,
-			installed:      isInstalled(binaryFilePath),
+			installed:      installed,
 		})
 }
 
