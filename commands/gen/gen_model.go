@@ -14,7 +14,7 @@ import (
 	"github.com/gogf/gf/text/gstr"
 	_ "github.com/lib/pq"
 	//_ "github.com/mattn/go-oci8"
-	//_ "github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/olekukonko/tablewriter"
 	"strings"
 )
