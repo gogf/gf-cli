@@ -52,6 +52,7 @@ func Run() {
 			ext,
 			latestMd5,
 		)
+		mlog.Debugf("HTTP GET %s", downloadUrl)
 		res, err := ghttp.Get(downloadUrl)
 		if err != nil || res.StatusCode != 200 {
 			mlog.Fatalf(

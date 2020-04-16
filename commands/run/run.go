@@ -190,7 +190,7 @@ func (app *App) Run() {
 	// Kill the old process if build successfully.
 	if process != nil {
 		if err := process.Kill(); err != nil {
-			//mlog.Printf("kill process error: %s", err.Error())
+			mlog.Debugf("kill process error: %s", err.Error())
 			//return
 		}
 	}

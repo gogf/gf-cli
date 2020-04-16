@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf-cli/library/proxy"
 	"github.com/gogf/gf/encoding/gbase64"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gcmd"
@@ -148,25 +147,26 @@ func Run() {
 	if len(name) < 1 || name == "*" {
 		mlog.Fatal("name cannot be empty")
 	}
-	mod := getOption(parser, "mod")
-	extra := getOption(parser, "extra")
-	if mod != "" {
-		if mod == "none" {
-			proxy.SetGoModuleEnabled(false)
+	var (
+		mod   = getOption(parser, "mod")
+		extra = getOption(parser, "extra")
+	)
+	if mod != "" && mod != "none" {
+		mlog.Debugf(`mod is %s`, mod)
+		if extra == "" {
+			extra = fmt.Sprintf(`-mod=%s`, mod)
 		} else {
-			if extra == "" {
-				extra = fmt.Sprintf(`-mod=%s`, mod)
-			} else {
-				extra = fmt.Sprintf(`-mod=%s %s`, mod, extra)
-			}
+			extra = fmt.Sprintf(`-mod=%s %s`, mod, extra)
 		}
 	}
-	version := getOption(parser, "version")
-	outputPath := getOption(parser, "output")
-	archOption := getOption(parser, "arch")
-	systemOption := getOption(parser, "system")
-	arches := strings.Split(archOption, ",")
-	systems := strings.Split(systemOption, ",")
+	var (
+		version      = getOption(parser, "version")
+		outputPath   = getOption(parser, "output")
+		archOption   = getOption(parser, "arch")
+		systemOption = getOption(parser, "system")
+		arches       = strings.Split(archOption, ",")
+		systems      = strings.Split(systemOption, ",")
+	)
 	if len(version) > 0 {
 		path += "/" + version
 	}
@@ -211,10 +211,12 @@ func Run() {
 	// start building
 	mlog.Print("start building...")
 	genv.Set("CGO_ENABLED", "0")
-	cmd := ""
-	ext := ""
-	reg := regexp.MustCompile(`\s+`)
-	lines := strings.Split(strings.TrimSpace(platforms), "\n")
+	var (
+		cmd   = ""
+		ext   = ""
+		reg   = regexp.MustCompile(`\s+`)
+		lines = strings.Split(strings.TrimSpace(platforms), "\n")
+	)
 	for _, line := range lines {
 		cmd = ""
 		ext = ""
