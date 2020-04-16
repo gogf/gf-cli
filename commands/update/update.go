@@ -52,27 +52,31 @@ func Run() {
 			ext,
 			latestMd5,
 		)
-		data := ghttp.GetBytes(downloadUrl)
-		if len(data) == 0 {
+		res, err := ghttp.Get(downloadUrl)
+		if err != nil || res.StatusCode != 200 {
 			mlog.Fatalf(
-				"downloading failed for %s %s, may be network issue",
-				runtime.GOOS, runtime.GOARCH,
+				"downloading failed for %s %s, may be network issue:\n%s",
+				runtime.GOOS, runtime.GOARCH, res.ReadAllString(),
 			)
 		}
+		defer res.Close()
+		data := res.ReadAll()
 		mlog.Print("installing...")
 		var (
 			binPath    = gfile.SelfPath()
 			renamePath = binPath + "~"
 		)
 		// Rename myself for windows.
-		if err := gfile.Rename(binPath, renamePath); err != nil {
-			mlog.Fatal("rename binary file failed:", err.Error())
+		if runtime.GOOS == "windows" {
+			if err := gfile.Rename(binPath, renamePath); err != nil {
+				mlog.Fatal("rename binary file failed:", err.Error())
+			}
+			defer gfile.Remove(renamePath)
 		}
 		// Updates the binary content.
 		if err := gfile.PutBytes(binPath, data); err != nil {
 			mlog.Fatal("install binary failed:", err.Error())
 		}
-		gfile.Remove(renamePath)
 		mlog.Print("gf binary is now updated to the latest version")
 	} else {
 		mlog.Print("it's the latest version, no need updates")

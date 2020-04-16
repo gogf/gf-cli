@@ -41,12 +41,14 @@ func Run() {
 			continue
 		}
 		mlog.Printf("\t%2d | %8t | %9t | %s", id, aPath.writable, aPath.installed, aPath.path)
-		if aPath.writable && selectedID == -1 {
-			selectedID = id
+		if selectedID == -1 {
+			// Use the previously installed path as the most priority choice.
+			if aPath.installed {
+				selectedID = id
+			}
 		}
 	}
-
-	// No writable dir detected, use 0 for default.
+	// If there's no previously installed path, use the first writable path.
 	if selectedID == -1 {
 		selectedID = 0
 	}
