@@ -64,6 +64,7 @@ func Run() {
 		mlog.Print("installing...")
 		var (
 			binPath    = gfile.SelfPath()
+			binDirPath = gfile.SelfDir()
 			renamePath = binPath + "~"
 		)
 		// Rename myself for windows.
@@ -73,9 +74,17 @@ func Run() {
 			}
 			defer gfile.Remove(renamePath)
 		}
-		// Updates the binary content.
+		// Updates the binary.
+		if gfile.IsWritable(binDirPath) {
+			if err := gfile.Remove(binPath); err != nil {
+				mlog.Fatal("remove binary failed:", err.Error())
+			}
+		}
 		if err := gfile.PutBytes(binPath, data); err != nil {
 			mlog.Fatal("install binary failed:", err.Error())
+		}
+		if err := gfile.Chmod(binPath, 0777); err != nil {
+			mlog.Fatal("chmod binary failed:", err.Error())
 		}
 		mlog.Print("gf binary is now updated to the latest version")
 	} else {
