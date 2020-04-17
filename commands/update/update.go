@@ -68,17 +68,18 @@ func Run() {
 			binDirPath = gfile.SelfDir()
 			renamePath = binPath + "~"
 		)
-		// Rename myself for windows.
 		if runtime.GOOS == "windows" {
+			// Rename myself for windows.
 			if err := gfile.Rename(binPath, renamePath); err != nil {
 				mlog.Fatal("rename binary file failed:", err.Error())
 			}
 			defer gfile.Remove(renamePath)
-		}
-		// Updates the binary.
-		if gfile.IsWritable(binDirPath) {
-			if err := gfile.Remove(binPath); err != nil {
-				mlog.Fatal("remove binary failed:", err.Error())
+		} else {
+			// Remove the binary for other platforms.
+			if gfile.IsWritable(binDirPath) {
+				if err := gfile.Remove(binPath); err != nil {
+					mlog.Fatal("remove binary failed:", err.Error())
+				}
 			}
 		}
 		if err := gfile.PutBytes(binPath, data); err != nil {
