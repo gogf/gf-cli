@@ -24,14 +24,16 @@ After downloads, please use `gf install` command to install gf binary to system 
 
 ### 2). Manually Install
 
+> You might need setting the goproxy to make through building.
+
 1. Latest version
     ```
-    git clone https://github.com/gogf/gf-cli &&
+    git clone https://github.com/gogf/gf-cli 
     cd gf-cli && go build main.go && ./main install
     ```
 1. Spcified version
     ```
-    git clone --branch v0.7.3 https://github.com/gogf/gf-cli &&
+    git clone --branch v0.7.3 https://github.com/gogf/gf-cli 
     cd gf-cli && go build main.go && ./main install
     ```
 
