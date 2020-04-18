@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	VERSION = "v0.7.2"
+	VERSION = "v0.7.3"
 )
 
 func init() {
@@ -154,14 +154,19 @@ func version() {
 	if info["git"] == "" {
 		info["git"] = "none"
 	}
-	content := fmt.Sprintf(`
-GoFrame CLI Tool %s, https://goframe.org
+	mlog.Printf(`GoFrame CLI Tool %s, https://goframe.org`, VERSION)
+
+	if info["gf"] == "" {
+		mlog.Print(`This is a custom installed version, no installation info.`)
+		return
+	}
+
+	mlog.Print(gstr.Trim(fmt.Sprintf(`
 Install Path: %s
 Build Detail:
   Go Version:  %s
   GF Version:  %s
   Git Commit:  %s
   Build Time:  %s
-`, VERSION, gfile.SelfPath(), info["go"], info["gf"], info["git"], info["time"])
-	mlog.Print(gstr.Trim(content))
+`, gfile.SelfPath(), info["go"], info["gf"], info["git"], info["time"])))
 }
