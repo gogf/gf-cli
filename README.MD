@@ -4,7 +4,7 @@
 
 ## 1. Install
 
-### 1). PreCompiled Binary
+### 1). Binary
 It's recommended using pre-compiled binaries:
 - `Linux   (amd64)`: https://goframe.org/cli/linux_amd64/gf
 - `Mac     (amd64)`: https://goframe.org/cli/darwin_amd64/gf
@@ -22,16 +22,16 @@ After downloads, please use `gf install` command to install gf binary to system 
 
     Manually download, double click it and then follow the instruction.
 
-### 2). Manually Installation
+### 2). Manually Install
 
 1. Latest version
     ```
-    git clone https://github.com/gogf/gf-cli
+    git clone https://github.com/gogf/gf-cli &&
     cd gf-cli && go build main.go && ./main install
     ```
 1. Spcified version
     ```
-    git clone --branch v0.7.2 https://github.com/gogf/gf-cli
+    git clone --branch v0.7.3 https://github.com/gogf/gf-cli &&
     cd gf-cli && go build main.go && ./main install
     ```
 

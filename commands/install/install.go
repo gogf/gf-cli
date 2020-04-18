@@ -1,15 +1,16 @@
 package install
 
 import (
+	"github.com/gogf/gf-cli/library/allyes"
 	"github.com/gogf/gf/container/gset"
+	"github.com/gogf/gf/os/gcmd"
+	"github.com/gogf/gf/util/gconv"
 	"runtime"
 
 	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/os/genv"
 	"github.com/gogf/gf/os/gfile"
 	"github.com/gogf/gf/text/gstr"
-	"github.com/gogf/gf/util/gconv"
 )
 
 // Contains installFolderPath-related data, such as path, writable, binaryFilePath, and installed.
@@ -53,10 +54,15 @@ func Run() {
 		selectedID = 0
 	}
 
-	// Get input and update selectedID.
-	input := gcmd.Scanf("please choose one installation destination [default %d]: ", selectedID)
-	if input != "" {
-		selectedID = gconv.Int(input)
+	if allyes.Check() {
+		// Use the default selectedID.
+		mlog.Printf("please choose one installation destination [default %d]: %d", selectedID, selectedID)
+	} else {
+		// Get input and update selectedID.
+		input := gcmd.Scanf("please choose one installation destination [default %d]: ", selectedID)
+		if input != "" {
+			selectedID = gconv.Int(input)
+		}
 	}
 
 	// Check if out of range.
