@@ -13,7 +13,7 @@ It's recommended using pre-compiled binaries:
 
 After downloads, please use `gf install` command to install gf binary to system binary path.
 
-1. `Linux` && `Mac`
+1. `Linux` & `Mac`
     ```shell
     wget https://goframe.org/cli/linux_amd64/gf && chmod +x gf && ./gf install
     ```
