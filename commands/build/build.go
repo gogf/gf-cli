@@ -140,7 +140,12 @@ func Run() {
 	}
 	file := parser.GetArg(2)
 	if len(file) < 1 {
-		mlog.Fatal("build file path cannot be empty")
+		// Check and use the main.go file.
+		if gfile.Exists("main.go") {
+			file = "main.go"
+		} else {
+			mlog.Fatal("build file path cannot be empty")
+		}
 	}
 	path := getOption(parser, "path", "./bin")
 	name := getOption(parser, "name", gfile.Name(file))
