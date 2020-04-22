@@ -59,23 +59,38 @@ func Run() {
 		}
 	}
 	mlog.Print("initializing...")
-	remoteMd5 := ghttp.GetContent(homeUrl + "/cli/project/md5")
-	if remoteMd5 == "" {
-		mlog.Fatal("get the project zip md5 failed")
+	// MD5 retrieving.
+	respMd5, err := ghttp.Get(homeUrl + "/cli/project/md5")
+	if err != nil {
+		mlog.Fatalf("get the project zip md5 failed: %s", err.Error())
 	}
-	name := parser.GetArg(2, defaultProjectName)
-	zipUrl := cdnUrl + "/cli/project/zip?" + remoteMd5
-	data := ghttp.GetBytes(zipUrl)
-	if len(data) == 0 {
-		mlog.Fatal("got empty project zip data, please tray again later")
+	defer respMd5.Close()
+	md5DataStr := respMd5.ReadAllString()
+	if md5DataStr == "" {
+		mlog.Fatal("get the project zip md5 failed: empty md5 value. maybe network issue, try again?")
 	}
-	if err = gcompress.UnZipContent(data, dirPath, emptyProjectName+"-master"); err != nil {
+
+	// Zip data retrieving.
+	respData, err := ghttp.Get(cdnUrl + "/cli/project/zip?" + md5DataStr)
+	if err != nil {
+		mlog.Fatal("got the project zip data failed: %s", err.Error())
+	}
+	defer respData.Close()
+	zipData := respData.ReadAll()
+	if len(zipData) == 0 {
+		mlog.Fatal("get the project data failed: empty data value. maybe network issue, try again?")
+	}
+
+	// Unzip the zip data.
+	if err = gcompress.UnZipContent(zipData, dirPath, emptyProjectName+"-master"); err != nil {
 		mlog.Fatal("unzip project data failed,", err.Error())
 	}
-	if err = gfile.ReplaceDir(emptyProject, name, dirPath, "Dockerfile,*.go,*.MD,*.mod", true); err != nil {
+	// Replace project name.
+	projectName := parser.GetArg(2, defaultProjectName)
+	if err = gfile.ReplaceDir(emptyProject, projectName, dirPath, "Dockerfile,*.go,*.MD,*.mod", true); err != nil {
 		mlog.Fatal("content replacing failed,", err.Error())
 	}
-	if err = gfile.ReplaceDir(emptyProjectName, name, dirPath, "Dockerfile,*.go,*.MD,*.mod", true); err != nil {
+	if err = gfile.ReplaceDir(emptyProjectName, projectName, dirPath, "Dockerfile,*.go,*.MD,*.mod", true); err != nil {
 		mlog.Fatal("content replacing failed,", err.Error())
 	}
 	mlog.Print("initialization done! ")
