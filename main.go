@@ -113,6 +113,7 @@ func main() {
 		}
 		// No argument or option, do installation checks.
 		if !install.IsInstalled() {
+			mlog.Print("hi, it seams it's the first time you installing gf cli.")
 			s := gcmd.Scanf("do you want to install gf binary to your system? [y/n]: ")
 			if strings.EqualFold(s, "y") {
 				install.Run()
@@ -155,18 +156,17 @@ func version() {
 		info["git"] = "none"
 	}
 	mlog.Printf(`GoFrame CLI Tool %s, https://goframe.org`, VERSION)
-
+	mlog.Printf(`Install Path: %s`, gfile.SelfPath())
 	if info["gf"] == "" {
-		mlog.Print(`This is a custom installed version, no installation info.`)
+		mlog.Print(`Current is a custom installed version, no installation info.`)
 		return
 	}
 
 	mlog.Print(gstr.Trim(fmt.Sprintf(`
-Install Path: %s
 Build Detail:
   Go Version:  %s
   GF Version:  %s
   Git Commit:  %s
   Build Time:  %s
-`, gfile.SelfPath(), info["go"], info["gf"], info["git"], info["time"])))
+`, info["go"], info["gf"], info["git"], info["time"])))
 }

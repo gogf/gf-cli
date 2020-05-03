@@ -35,9 +35,10 @@ EXAMPLES
     gf docker main.go -p -t hub.docker.com/john/image:tag
 
 DESCRIPTION
-    The "docker" command builds the GF project to a docker images. It runs "docker build" 
-    command automatically, so you should have docker command first.
-    There must be a Dockerfile in the root of the project.
+    The "docker" command builds the GF project to a docker images.
+    It runs "gf build" firstly to compile the project to binary file.
+    It then runs "docker build" command automatically to generate the docker image.
+    You should have docker installed, and there must be a Dockerfile in the root of the project.
 
 `))
 }

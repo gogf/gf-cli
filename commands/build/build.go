@@ -72,7 +72,7 @@ OPTION
     -s, --system     output binary system, multiple os separated with ','
     -o, --output     output binary path, used when building single binary file
     -p, --path       output binary directory path, default is './bin'
-	-e, --extra      extra custom "go build" options
+    -e, --extra      extra custom "go build" options
     -m, --mod        like "-mod" option of "go build", use "-m none" to disable go module
     --swagger        auto parse and pack swagger into boot/data-swagger.go before building. 
     --pack           auto pack config,public,template folder into boot/data-packed.go before building.

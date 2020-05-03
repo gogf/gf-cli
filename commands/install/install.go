@@ -2,15 +2,17 @@ package install
 
 import (
 	"github.com/gogf/gf-cli/library/allyes"
-	"github.com/gogf/gf/container/gset"
-	"github.com/gogf/gf/os/gcmd"
-	"github.com/gogf/gf/util/gconv"
-	"runtime"
-
 	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf/container/garray"
+	"github.com/gogf/gf/container/gset"
+	"github.com/gogf/gf/frame/g"
+	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/os/genv"
 	"github.com/gogf/gf/os/gfile"
 	"github.com/gogf/gf/text/gstr"
+	"github.com/gogf/gf/util/gconv"
+	"runtime"
+	"strings"
 )
 
 // Contains installFolderPath-related data, such as path, writable, binaryFilePath, and installed.
@@ -30,18 +32,18 @@ func Run() {
 		return
 	}
 	mlog.Printf("I found some installable paths for you: ")
-	mlog.Printf("\t%2s | %8s | %9s | %s", "Id", "Writable", "Installed", "Path")
+	mlog.Printf("  %2s | %8s | %9s | %s", "Id", "Writable", "Installed", "Path")
 
 	// Print all paths status and determine the default selectedID value.
 	var (
 		selectedID = -1
-		pathSet    = gset.NewStrSet()
+		pathSet    = gset.NewStrSet() // Used for repeated items filtering.
 	)
 	for id, aPath := range paths {
 		if !pathSet.AddIfNotExist(aPath.path) {
 			continue
 		}
-		mlog.Printf("\t%2d | %8t | %9t | %s", id, aPath.writable, aPath.installed, aPath.path)
+		mlog.Printf("  %2d | %8t | %9t | %s", id, aPath.writable, aPath.installed, aPath.path)
 		if selectedID == -1 {
 			// Use the previously installed path as the most priority choice.
 			if aPath.installed {
@@ -51,7 +53,30 @@ func Run() {
 	}
 	// If there's no previously installed path, use the first writable path.
 	if selectedID == -1 {
-		selectedID = 0
+		// Order by choosing priority.
+		commonPaths := garray.NewStrArrayFrom(g.SliceStr{
+			`/usr/local/bin`,
+			`/usr/bin`,
+			`/usr/sbin`,
+			`C:\Windows`,
+			`C:\Windows\system32`,
+			`C:\Go\bin`,
+			`C:\Program Files`,
+			`C:\Program Files (x86)`,
+		})
+		// Check the common installation directories.
+		commonPaths.Iterator(func(k int, v string) bool {
+			for id, aPath := range paths {
+				if strings.EqualFold(aPath.path, v) {
+					selectedID = id
+					return false
+				}
+			}
+			return true
+		})
+		if selectedID == -1 {
+			selectedID = 0
+		}
 	}
 
 	if allyes.Check() {
