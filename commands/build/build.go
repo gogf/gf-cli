@@ -95,29 +95,12 @@ DESCRIPTION
     3. Build-In Variables.
 
 PLATFORMS
-    darwin    386
-    darwin    amd64
-    freebsd   386
-    freebsd   amd64
-    freebsd   arm
-    linux     386
-    linux     amd64
-    linux     arm
-    linux     arm64
-    linux     ppc64
-    linux     ppc64le
-    linux     mips
-    linux     mipsle
-    linux     mips64
-    linux     mips64le
-    netbsd    386
-    netbsd    amd64
-    netbsd    arm
-    openbsd   386
-    openbsd   amd64
-    openbsd   arm
-    windows   386
-    windows   amd64
+    darwin    386,amd64
+    freebsd   386,amd64,arm
+    linux     386,amd64,arm,arm64,ppc64,ppc64le,mips,mipsle,mips64,mips64le
+    netbsd    386,amd64,arm
+    openbsd   386,amd64,arm
+    windows   386,amd64
 `))
 }
 
@@ -190,7 +173,7 @@ func Run() {
 		}
 	}
 
-	// Auto packing
+	// Auto packing.
 	if containsOption(parser, "pack") {
 		packFolderStr := ""
 		if gfile.Exists("config") {
@@ -210,7 +193,7 @@ func Run() {
 		}
 	}
 
-	// injected information.
+	// Injected information.
 	ldFlags := fmt.Sprintf(`-X 'github.com/gogf/gf/os/gbuild.builtInVarStr=%v'`, getBuildInVarStr())
 
 	// start building
