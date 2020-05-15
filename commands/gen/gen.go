@@ -53,7 +53,9 @@ func Run() {
 	}
 	genType := parser.GetArg(2)
 	if genType == "" {
-		mlog.Fatal("generating type cannot be empty")
+		mlog.Print("generating type cannot be empty")
+		Help()
+		return
 	}
 	switch genType {
 	case "model":

@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/gogf/gf-cli/commands/env"
+	"github.com/gogf/gf-cli/commands/mod"
 	"strings"
 
 	_ "github.com/gogf/gf-cli/boot"
@@ -26,7 +28,7 @@ import (
 )
 
 const (
-	VERSION = "v0.7.4"
+	VERSION = "v0.7.5"
 )
 
 func init() {
@@ -40,15 +42,17 @@ USAGE
     gf COMMAND [ARGUMENT] [OPTION]
 
 COMMAND
+    env        show current Golang environment variables
     get        install or update GF to system in default...
     gen        automatically generate go files for ORM models...
+    mod        extra features for go modules...
     run        running go codes with hot-compiled-like feature...
     init       initialize an empty GF project at current working directory...
     help       show more information about a specified command
-    pack       packing any file/directory to a resource file, or a go file
+    pack       packing any file/directory to a resource file, or a go file...
     build      cross-building go project for lots of platforms...
     docker     create a docker image for current GF project...
-    swagger    parse and start a swagger feature server for current project...
+    swagger    swagger feature for current project...
     update     update current gf binary to latest one (might need root/admin permission)
     install    install gf binary to system (might need root/admin permission)
     version    show current binary version info
@@ -68,6 +72,7 @@ func main() {
 	allyes.Init()
 
 	command := gcmd.GetArg(1)
+	command = "mod"
 	// Help information
 	if gcmd.ContainsOpt("h") && command != "" {
 		help(command)
@@ -78,12 +83,16 @@ func main() {
 		help(gcmd.GetArg(2))
 	case "version":
 		version()
+	case "env":
+		env.Run()
 	case "get":
 		get.Run()
 	case "gen":
 		gen.Run()
 	case "fix":
 		fix.Run()
+	case "mod":
+		mod.Run()
 	case "init":
 		initialize.Run()
 	case "pack":
