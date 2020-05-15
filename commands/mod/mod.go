@@ -27,7 +27,6 @@ EXAMPLES
 
 func Run() {
 	argument := gcmd.GetArg(2)
-	argument = "path"
 	switch argument {
 	case "path":
 		doPath()

@@ -72,7 +72,6 @@ func main() {
 	allyes.Init()
 
 	command := gcmd.GetArg(1)
-	command = "mod"
 	// Help information
 	if gcmd.ContainsOpt("h") && command != "" {
 		help(command)

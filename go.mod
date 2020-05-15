@@ -2,10 +2,9 @@ module github.com/gogf/gf-cli
 
 require (
 	github.com/denisenkom/go-mssqldb v0.0.0-20200206145737-bbfc9a55622e
-
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
-	github.com/gogf/gf v1.12.3-0.20200503150818-13e235372926
+	github.com/gogf/gf v1.12.4-0.20200515165001-acc2a6a353f9
 	github.com/gogf/gf-swagger v1.0.3
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/grokify/html-strip-tags-go v0.0.0-20200322061010-ea0c1cf2f119 // indirect
