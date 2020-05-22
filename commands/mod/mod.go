@@ -41,65 +41,71 @@ func Run() {
 // This enables your project using GOPATH building, but you should have GOPATH
 // environment variable configured.
 func doPath() {
-	goPath := genv.Get("GOPATH")
-	if goPath == "" {
+	goPathEnv := genv.Get("GOPATH")
+	if goPathEnv == "" {
 		mlog.Fatal("GOPATH is not found in your environment")
 	}
-	goModPath := gfile.Join(goPath, "pkg", "mod")
-	if !gfile.Exists(goModPath) {
-		mlog.Fatalf("go module path does not exist: %s", goModPath)
-	}
 	mlog.Print("scanning...")
-	m := gmap.NewStrStrMap()
-	_, err := gfile.ScanDirFunc(goModPath, "*.*", true, func(path string) string {
-		// Ignore the cache folder.
-		if gstr.Contains(path, gfile.Join(goModPath, "cache")) {
-			return ""
+	var (
+		copied    = false
+		haveCount = 0
+	)
+	for _, goPath := range gstr.SplitAndTrim(goPathEnv, ";") {
+		goModPath := gfile.Join(goPath, "pkg", "mod")
+		if !gfile.Exists(goModPath) {
+			continue
 		}
-		name := gfile.Name(path)
-		if name == "" {
-			return ""
-		}
-		if !gstr.Contains(name, "@") {
-			return ""
-		}
-		if n := gstr.Count(path, "@"); n > 1 {
-			return ""
-		}
-		if !gfile.IsDir(path) {
-			return ""
-		}
-		array := gstr.Split(path, "@")
-		if v := m.Get(array[0]); v == "" {
-			m.Set(array[0], array[1])
-		} else {
-			if gstr.CompareVersionGo(v, array[1]) < 0 {
-				m.Set(array[0], array[1])
+		pathMap := gmap.NewStrStrMap()
+		_, err := gfile.ScanDirFunc(goModPath, "*.*", true, func(path string) string {
+			// Ignore the cache folder.
+			if gstr.Contains(path, gfile.Join(goModPath, "cache")) {
+				return ""
 			}
+			name := gfile.Name(path)
+			if name == "" {
+				return ""
+			}
+			if !gstr.Contains(name, "@") {
+				return ""
+			}
+			if n := gstr.Count(path, "@"); n > 1 {
+				return ""
+			}
+			if !gfile.IsDir(path) {
+				return ""
+			}
+			array := gstr.Split(path, "@")
+			if v := pathMap.Get(array[0]); v == "" {
+				pathMap.Set(array[0], array[1])
+			} else {
+				if gstr.CompareVersionGo(v, array[1]) < 0 {
+					pathMap.Set(array[0], array[1])
+				}
+			}
+			return path
+		})
+		if err != nil {
+			mlog.Fatal(err)
 		}
-		return path
-	})
-	if err != nil {
-		mlog.Fatal(err)
+		haveCount += pathMap.Size()
+		pathMap.Iterator(func(k string, v string) bool {
+			src := fmt.Sprintf(`%s@%s`, k, v)
+			dst := gfile.Join(goPath, "src", gstr.Trim(gstr.Replace(k, goModPath, ""), "\\/"))
+			if !gfile.Exists(dst) {
+				mlog.Printf(`copying %s to %s`, src, dst)
+				if err := gfile.Copy(src, dst); err != nil {
+					mlog.Fatal(err)
+				}
+				copied = true
+			}
+			return true
+		})
 	}
-	copied := false
-	m.Iterator(func(k string, v string) bool {
-		src := fmt.Sprintf(`%s@%s`, k, v)
-		dst := gfile.Join(goPath, "src", gstr.Trim(gstr.Replace(k, goModPath, ""), "\\/"))
-		if !gfile.Exists(dst) {
-			mlog.Printf(`copying %s to %s`, src, dst)
-			if err := gfile.Copy(src, dst); err != nil {
-				mlog.Fatal(err)
-			}
-			copied = true
-		}
-		return true
-	})
 	if !copied {
-		if m.Size() > 0 {
+		if haveCount > 0 {
 			mlog.Print(`all packages of go modules already exist in GOPATH`)
 		} else {
-			mlog.Printf(`no packages found in go module path: %s`, goModPath)
+			mlog.Printf(`no packages found in go module path: %s`, goPathEnv)
 		}
 		return
 	}

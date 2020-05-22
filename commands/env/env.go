@@ -27,13 +27,17 @@ func Run() {
 		if line == "" {
 			continue
 		}
-		match, _ := gregex.MatchString(`(.+?)=(.+)`, line)
+		if gstr.Pos(line, "set ") == 0 {
+			line = line[4:]
+		}
+		match, _ := gregex.MatchString(`(.+?)=(.*)`, line)
 		if len(match) < 3 {
 			mlog.Fatalf(`invalid Golang environment variable: "%s"`, line)
 		}
-		array = append(array, []string{match[1], match[2]})
+		array = append(array, []string{gstr.Trim(match[1]), gstr.Trim(match[2])})
 	}
 	tw := tablewriter.NewWriter(buffer)
+	tw.SetColumnAlignment([]int{tablewriter.ALIGN_LEFT, tablewriter.ALIGN_LEFT})
 	tw.AppendBulk(array)
 	tw.Render()
 	mlog.Print(buffer.String())
