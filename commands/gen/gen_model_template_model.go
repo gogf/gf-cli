@@ -186,8 +186,8 @@ func (m *arModel) Group(groupBy string) *arModel {
 }
 
 // Order sets the "ORDER BY" statement for the model.
-func (m *arModel) Order(orderBy ...string) *arModel {
-	return &arModel{m.M.Order(orderBy...)}
+func (m *arModel) Order(orderBy string) *arModel {
+	return &arModel{m.M.Order(orderBy)}
 }
 
 // Limit sets the "LIMIT" statement for the model.
