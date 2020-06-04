@@ -115,18 +115,30 @@ func (m *arModel) Slave() *arModel {
 }
 
 // LeftJoin does "LEFT JOIN ... ON ..." statement on the model.
-func (m *arModel) LeftJoin(joinTable string, on string) *arModel {
-	return &arModel{m.M.LeftJoin(joinTable, on)}
+// The parameter <table> can be joined table and its joined condition,
+// and also with its alias name, like:
+// Table("user").LeftJoin("user_detail", "user_detail.uid=user.uid")
+// Table("user", "u").LeftJoin("user_detail", "ud", "ud.uid=u.uid")
+func (m *arModel) LeftJoin(table ...string) *arModel {
+	return &arModel{m.M.LeftJoin(table ...)}
 }
 
 // RightJoin does "RIGHT JOIN ... ON ..." statement on the model.
-func (m *arModel) RightJoin(joinTable string, on string) *arModel {
-	return &arModel{m.M.RightJoin(joinTable, on)}
+// The parameter <table> can be joined table and its joined condition,
+// and also with its alias name, like:
+// Table("user").RightJoin("user_detail", "user_detail.uid=user.uid")
+// Table("user", "u").RightJoin("user_detail", "ud", "ud.uid=u.uid")
+func (m *arModel) RightJoin(table ...string) *arModel {
+	return &arModel{m.M.RightJoin(table ...)}
 }
 
 // InnerJoin does "INNER JOIN ... ON ..." statement on the model.
-func (m *arModel) InnerJoin(joinTable string, on string) *arModel {
-	return &arModel{m.M.InnerJoin(joinTable, on)}
+// The parameter <table> can be joined table and its joined condition,
+// and also with its alias name, like:
+// Table("user").InnerJoin("user_detail", "user_detail.uid=user.uid")
+// Table("user", "u").InnerJoin("user_detail", "ud", "ud.uid=u.uid")
+func (m *arModel) InnerJoin(table ...string) *arModel {
+	return &arModel{m.M.InnerJoin(table ...)}
 }
 
 // Fields sets the operation fields of the model, multiple fields joined using char ','.
