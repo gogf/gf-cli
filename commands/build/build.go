@@ -54,8 +54,10 @@ const platforms = `
     windows   amd64
 `
 
-// nodeNameInConfigFile is the node name for compiler configurations in configuration file.
-const nodeNameInConfigFile = "compiler"
+const (
+	nodeNameInConfigFile = "compiler"        // nodeNameInConfigFile is the node name for compiler configurations in configuration file.
+	packedGoFileName     = "_packed_data.go" // packedGoFileName specifies the file name for packing common folders into one single go file.
+)
 
 func Help() {
 	mlog.Print(gstr.TrimLeft(`
@@ -74,8 +76,8 @@ OPTION
     -p, --path       output binary directory path, default is './bin'
     -e, --extra      extra custom "go build" options
     -m, --mod        like "-mod" option of "go build", use "-m none" to disable go module
-    --swagger        auto parse and pack swagger into boot/data-swagger.go before building. 
-    --pack           auto pack config,public,template folder into boot/data-packed.go before building.
+    --swagger        auto parse and pack swagger into boot/_packed_swagger.go before building. 
+    --pack           auto pack config,public,template folder into boot/_packed_data.go before building.
 
 EXAMPLES
     gf build main.go
@@ -165,7 +167,7 @@ func Run() {
 			return
 		}
 		if gfile.Exists("swagger") {
-			packCmd := fmt.Sprintf(`gf pack %s boot/data-swagger.go -n boot`, "swagger")
+			packCmd := fmt.Sprintf(`gf pack %s boot/%s -n boot`, "swagger", packedGoFileName)
 			mlog.Print(packCmd)
 			if err := gproc.ShellRun(packCmd); err != nil {
 				return
@@ -187,13 +189,13 @@ func Run() {
 		}
 		packFolderStr = gstr.Trim(packFolderStr, ",")
 		if len(packFolderStr) > 0 {
-			packCmd := fmt.Sprintf(`gf pack %s boot/data-packed.go -n boot`, packFolderStr)
+			packCmd := fmt.Sprintf(`gf pack %s boot/%s -n boot`, packFolderStr, packedGoFileName)
 			mlog.Print(packCmd)
 			gproc.ShellRun(packCmd)
 		}
 	}
 
-	// Injected information.
+	// Injected information by building flags.
 	ldFlags := fmt.Sprintf(`-X 'github.com/gogf/gf/os/gbuild.builtInVarStr=%v'`, getBuildInVarStr())
 
 	// start building

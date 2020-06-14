@@ -17,12 +17,9 @@ import (
 )
 
 const (
-	defaultOutput  = "./swagger"
-	swaggoRepoPath = "github.com/swaggo/swag/cmd/swag"
-)
-
-var (
-	process *gproc.Process
+	defaultOutput    = "./swagger"
+	swaggoRepoPath   = "github.com/swaggo/swag/cmd/swag"
+	packedGoFileName = "_packed_swagger.go"
 )
 
 func Help() {
@@ -35,7 +32,7 @@ OPTION
                   produced
     -o, --output  the output directory for storage parsed swagger files,
                   the default output directory is "./swagger"
-    -/--pack      auto parses and packs swagger into boot/data-swagger.go. 
+    -/--pack      auto parses and packs swagger into boot/_swagger.go. 
 
 EXAMPLES
     gf swagger
@@ -143,7 +140,7 @@ func generateSwaggerFiles(output string, pack bool) error {
 	mlog.Print(`done!`)
 	// Auto pack.
 	if pack && gfile.Exists("swagger") {
-		packCmd := fmt.Sprintf(`gf pack %s boot/data-swagger.go -n boot`, "swagger")
+		packCmd := fmt.Sprintf(`gf pack %s boot/%s -n boot`, "swagger", packedGoFileName)
 		mlog.Print(packCmd)
 		if err := gproc.ShellRun(packCmd); err != nil {
 			return err
