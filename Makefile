@@ -5,5 +5,7 @@ default:
 	@echo "USAGE: make upx"
 
 upx:
-	@upx -9 ./bin/darwin*/*
-	@upx -9 ./bin/linux*/*
+	@upx -9 ./bin/darwin_386/*
+	@upx -9 ./bin/darwin_amd64/*
+	@upx -9 ./bin/linux_386/*
+	@upx -9 ./bin/linux_amd64/*

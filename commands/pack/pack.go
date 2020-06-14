@@ -65,7 +65,7 @@ func Run() {
 		prefix = parser.GetOpt("prefix")
 	)
 	if name == "" && gfile.ExtName(dstPath) == "go" {
-		name = gfile.Basename(gfile.Dir(gfile.RealPath(dstPath)))
+		name = gfile.Basename(gfile.RealPath(gfile.Dir(dstPath)))
 	}
 	if name != "" {
 		if err := gres.PackToGoFile(srcPath, dstPath, name, prefix); err != nil {
