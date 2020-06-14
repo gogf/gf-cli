@@ -19,7 +19,7 @@ import (
 const (
 	defaultOutput    = "./swagger"
 	swaggoRepoPath   = "github.com/swaggo/swag/cmd/swag"
-	packedGoFileName = "_packed_swagger.go"
+	packedGoFileName = "swagger.go"
 )
 
 func Help() {
@@ -32,7 +32,7 @@ OPTION
                   produced
     -o, --output  the output directory for storage parsed swagger files,
                   the default output directory is "./swagger"
-    -/--pack      auto parses and packs swagger into boot/_swagger.go. 
+    -/--pack      auto parses and packs swagger into packed/swagger.go. 
 
 EXAMPLES
     gf swagger
@@ -47,6 +47,9 @@ DESCRIPTION
     files, which can be used in swagger API server. If used with "-s/--server" option, it
     watches the changes of go files of current project and reproduces the swagger files,
     which is quite convenient for local API development.
+    If it fails in command "swag", please firstly check your system PATH whether containing 
+    go binary path, or you can install the "swag" tool manually referring to: 
+    https://github.com/swaggo/swag
 `))
 }
 
@@ -140,7 +143,7 @@ func generateSwaggerFiles(output string, pack bool) error {
 	mlog.Print(`done!`)
 	// Auto pack.
 	if pack && gfile.Exists("swagger") {
-		packCmd := fmt.Sprintf(`gf pack %s boot/%s -n boot`, "swagger", packedGoFileName)
+		packCmd := fmt.Sprintf(`gf pack %s packed/%s`, "swagger", packedGoFileName)
 		mlog.Print(packCmd)
 		if err := gproc.ShellRun(packCmd); err != nil {
 			return err

@@ -22,16 +22,16 @@ ARGUMENT
          it enables packing SRC to go file, or else it packs SRC into a binary file.
 
 OPTION
-    -n, --name      package name for output go file
+    -n, --name      package name for output go file, it's set as its directory name if no name passed
     -p, --prefix    prefix for each file packed into the resource file
 
 EXAMPLES
     gf pack public data.bin
     gf pack public,template data.bin
-    gf pack public,template boot/data.go -n=boot
-    gf pack public,template,config resource/resource.go -n=resource
-    gf pack public,template,config resource/resource.go -n=resource -p=/var/www/my-app
-    gf pack /var/www/public resource/resource.go -n=resource
+    gf pack public,template packed/data.go
+    gf pack public,template,config packed/data.go
+    gf pack public,template,config packed/data.go -n=packed -p=/var/www/my-app
+    gf pack /var/www/public packed/data.go -n=packed
 `))
 }
 
@@ -60,8 +60,13 @@ func Run() {
 			return
 		}
 	}
-	name := parser.GetOpt("name")
-	prefix := parser.GetOpt("prefix")
+	var (
+		name   = parser.GetOpt("name")
+		prefix = parser.GetOpt("prefix")
+	)
+	if name == "" && gfile.ExtName(dstPath) == "go" {
+		name = gfile.Basename(gfile.Dir(dstPath))
+	}
 	if name != "" {
 		if err := gres.PackToGoFile(srcPath, dstPath, name, prefix); err != nil {
 			mlog.Fatalf("pack failed: %v", err)

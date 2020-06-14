@@ -1,6 +1,8 @@
 package boot
 
 import (
+	_ "github.com/gogf/gf-cli/packed"
+
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gfile"
 	"github.com/gogf/gf/text/gstr"
