@@ -106,12 +106,12 @@ func generateModelContentFile(db gdb.DB, table, variable, folderPath, groupName 
 	camelName := gstr.CamelCase(variable)
 	structDefine := generateStructDefinition(fieldMap)
 	packageImports := ""
-	if strings.Contains(structDefine, "gtime.Time") {
+	if strings.Contains(structDefine, "time.Time") {
 		packageImports = gstr.Trim(`
 import (
 	"database/sql"
 	"github.com/gogf/gf/database/gdb"
-	"github.com/gogf/gf/os/gtime"
+	"time"
 )`)
 	} else {
 		packageImports = gstr.Trim(`
@@ -233,7 +233,7 @@ func generateStructField(field *gdb.TableField) []string {
 		typeName = "bool"
 
 	case "datetime", "timestamp", "date", "time":
-		typeName = "*gtime.Time"
+		typeName = "time.Time"
 
 	default:
 		// Auto detecting type.
@@ -249,7 +249,7 @@ func generateStructField(field *gdb.TableField) []string {
 		case strings.Contains(t, "binary") || strings.Contains(t, "blob"):
 			typeName = "[]byte"
 		case strings.Contains(t, "date") || strings.Contains(t, "time"):
-			typeName = "*gtime.Time"
+			typeName = "time.Time"
 		default:
 			typeName = "string"
 		}
