@@ -28,12 +28,12 @@ After downloads, please use `gf install` command to install gf binary to system 
 
 1. Latest version
     ```
-    git clone https://github.com/gogf/gf-cli 
+    git clone https://github.com/gogf/gf-cli
     cd gf-cli && go build main.go && ./main install
     ```
 1. Specified version
     ```
-    git clone --branch v0.7.3 https://github.com/gogf/gf-cli 
+    git clone --branch v0.7.3 https://github.com/gogf/gf-cli
     cd gf-cli && go build main.go && ./main install
     ```
 1. Database `sqlite` and `oracle` are not support in `gf gen model` command in default as it needs `cgo` and `gcc`, you can manually make some changes to the source codes and do the building.
@@ -57,6 +57,7 @@ COMMAND
     update     update current gf binary to latest one (might need root/admin permission)
     install    install gf binary to system (might need root/admin permission)
     version    show current binary version info
+    release    generate release based on semver and push remote via git
 
 OPTION
     -y         all yes for all command without prompt ask

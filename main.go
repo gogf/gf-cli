@@ -15,6 +15,7 @@ import (
 	"github.com/gogf/gf-cli/commands/initialize"
 	"github.com/gogf/gf-cli/commands/install"
 	"github.com/gogf/gf-cli/commands/pack"
+	"github.com/gogf/gf-cli/commands/release"
 	"github.com/gogf/gf-cli/commands/run"
 	"github.com/gogf/gf-cli/commands/swagger"
 	"github.com/gogf/gf-cli/commands/update"
@@ -56,14 +57,15 @@ COMMAND
     update     update current gf binary to latest one (might need root/admin permission)
     install    install gf binary to system (might need root/admin permission)
     version    show current binary version info
+    release    generate release based on semver and push remote via git
 
 OPTION
-    -y         all yes for all command without prompt ask 
+    -y         all yes for all command without prompt ask
     -?,-h      show this help or detail for specified command
     -v,-i      show version information
 
 ADDITIONAL
-    Use 'gf help COMMAND' or 'gf COMMAND -h' for detail about a command, which has '...' 
+    Use 'gf help COMMAND' or 'gf COMMAND -h' for detail about a command, which has '...'
     in the tail of their comments.
 `)
 )
@@ -108,6 +110,8 @@ func main() {
 		build.Run()
 	case "run":
 		run.Run()
+	case "release":
+		release.Run()
 	default:
 		for k := range gcmd.GetOptAll() {
 			switch k {
@@ -152,6 +156,8 @@ func help(command string) {
 		pack.Help()
 	case "run":
 		run.Help()
+	case "release":
+		release.Help()
 	default:
 		mlog.Print(helpContent)
 	}
