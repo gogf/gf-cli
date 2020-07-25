@@ -7,6 +7,7 @@ import (
 	"github.com/gogf/gf-swagger/swagger"
 	"github.com/gogf/gf/container/gtype"
 	"github.com/gogf/gf/frame/g"
+	"github.com/gogf/gf/net/ghttp"
 	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/os/gfile"
 	"github.com/gogf/gf/os/gfsnotify"
@@ -24,7 +25,7 @@ const (
 
 func Help() {
 	mlog.Print(gstr.TrimLeft(`
-USAGE    
+USAGE
     gf swagger [OPTION]
 
 OPTION
@@ -32,7 +33,7 @@ OPTION
                   produced
     -o, --output  the output directory for storage parsed swagger files,
                   the default output directory is "./swagger"
-    -/--pack      auto parses and packs swagger into packed/swagger.go. 
+    -/--pack      auto parses and packs swagger into packed/swagger.go.
 
 EXAMPLES
     gf swagger
@@ -43,12 +44,12 @@ EXAMPLES
 
 
 DESCRIPTION
-    The "swagger" command parses the current project and produces swagger API description 
+    The "swagger" command parses the current project and produces swagger API description
     files, which can be used in swagger API server. If used with "-s/--server" option, it
     watches the changes of go files of current project and reproduces the swagger files,
     which is quite convenient for local API development.
-    If it fails in command "swag", please firstly check your system PATH whether containing 
-    go binary path, or you can install the "swag" tool manually referring to: 
+    If it fails in command "swag", please firstly check your system PATH whether containing
+    go binary path, or you can install the "swag" tool manually referring to:
     https://github.com/swaggo/swag
 `))
 }
@@ -100,6 +101,9 @@ func Run() {
 			server = ":" + server
 		}
 		s := g.Server()
+		s.BindHandler("/", func(r *ghttp.Request) {
+			r.Response.Write("ok")
+		})
 		s.Plugin(&swagger.Swagger{})
 		s.SetAddr(server)
 		s.Run()
