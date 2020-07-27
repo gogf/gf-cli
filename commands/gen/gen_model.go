@@ -3,6 +3,8 @@ package gen
 import (
 	"bytes"
 	"fmt"
+	"strings"
+
 	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/gogf/gf-cli/library/allyes"
 	"github.com/gogf/gf-cli/library/mlog"
@@ -13,10 +15,7 @@ import (
 	"github.com/gogf/gf/text/gregex"
 	"github.com/gogf/gf/text/gstr"
 	_ "github.com/lib/pq"
-	//_ "github.com/mattn/go-oci8"
-	//_ "github.com/mattn/go-sqlite3"
 	"github.com/olekukonko/tablewriter"
-	"strings"
 )
 
 const (
@@ -103,7 +102,7 @@ func generateModelContentFile(db gdb.DB, table, variable, folderPath, groupName 
 	if err != nil {
 		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", table, err)
 	}
-	camelName := gstr.CamelCase(variable)
+	camelName := SnakeToCamelCase(variable)
 	structDefine := generateStructDefinition(fieldMap)
 	packageImports := ""
 	if strings.Contains(structDefine, "gtime.Time") {
@@ -138,7 +137,7 @@ import (
 			"{TplPackageImports}": packageImports,
 			"{TplStructDefine}":   structDefine,
 		})
-		if err := gfile.PutContents(path, strings.TrimSpace(indexContent)); err != nil {
+		if err := gfile.PutContents(path, TrimSpace(indexContent)); err != nil {
 			mlog.Fatalf("writing content to '%s' failed: %v", path, err)
 		} else {
 			mlog.Print("generated:", path)
@@ -154,7 +153,7 @@ import (
 		"{TplPackageImports}": packageImports,
 		"{TplStructDefine}":   structDefine,
 	})
-	if err := gfile.PutContents(path, strings.TrimSpace(entityContent)); err != nil {
+	if err := gfile.PutContents(path, TrimSpace(entityContent)); err != nil {
 		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
 	} else {
 		mlog.Print("generated:", path)
@@ -171,7 +170,7 @@ import (
 		"{TplColumnDefine}":   gstr.Trim(generateColumnDefinition(fieldMap)),
 		"{TplColumnNames}":    gstr.Trim(generateColumnNames(fieldMap)),
 	})
-	if err := gfile.PutContents(path, strings.TrimSpace(modelContent)); err != nil {
+	if err := gfile.PutContents(path, TrimSpace(modelContent)); err != nil {
 		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
 	} else {
 		mlog.Print("generated:", path)
@@ -255,7 +254,7 @@ func generateStructField(field *gdb.TableField) []string {
 		}
 	}
 	ormTag = field.Name
-	jsonTag = gstr.SnakeCase(field.Name)
+	jsonTag = SnakeToCamelCase(field.Name)
 	if gstr.ContainsI(field.Key, "pri") {
 		ormTag += ",primary"
 	}
@@ -330,4 +329,16 @@ func generateColumnNames(fieldMap map[string]*gdb.TableField) string {
 	buffer.Reset()
 	buffer.WriteString(namesContent)
 	return buffer.String()
+}
+
+// change db field from snake to camel case
+func SnakeToCamelCase(str string) string {
+	str = gstr.SnakeFirstUpperCase(str)
+	return gstr.Trim(str, "_")
+}
+
+// trim lines with long space in model files
+func TrimSpace(str string) string {
+	rep, _ := gregex.Replace("[ ]+\n", []byte("\n"), []byte(str))
+	return strings.TrimSpace(string(rep))
 }
