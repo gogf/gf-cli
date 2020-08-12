@@ -93,6 +93,66 @@ func Delete(where ...interface{}) (result sql.Result, err error) {
 	return Model.Delete(where...)
 }
 
+// FindOne is a convenience method for Model.FindOne.
+// See Model.FindOne.
+func FindOneWithTx(tx *gdb.TX, where ...interface{}) (*Entity, error) {
+	return Model.TX(tx).FindOne(where...)
+}
+
+// FindAll is a convenience method for Model.FindAll.
+// See Model.FindAll.
+func FindAllWithTx(tx *gdb.TX, where ...interface{}) ([]*Entity, error) {
+	return Model.TX(tx).FindAll(where...)
+}
+
+// FindValue is a convenience method for Model.FindValue.
+// See Model.FindValue.
+func FindValueWithTx(tx *gdb.TX, fieldsAndWhere ...interface{}) (gdb.Value, error) {
+	return Model.TX(tx).FindValue(fieldsAndWhere...)
+}
+
+// FindArray is a convenience method for Model.FindArray.
+// See Model.FindArray.
+func FindArrayWithTx(tx *gdb.TX, fieldsAndWhere ...interface{}) ([]gdb.Value, error) {
+	return Model.TX(tx).FindArray(fieldsAndWhere...)
+}
+
+// FindCount is a convenience method for Model.FindCount.
+// See Model.FindCount.
+func FindCountWithTx(tx *gdb.TX, where ...interface{}) (int, error) {
+	return Model.TX(tx).FindCount(where...)
+}
+
+// Insert is a convenience method for Model.Insert.
+func InsertWithTx(tx *gdb.TX, data ...interface{}) (result sql.Result, err error) {
+	return Model.TX(tx).Insert(data...)
+}
+
+// InsertIgnore is a convenience method for Model.InsertIgnore.
+func InsertIgnoreWithTx(tx *gdb.TX, data ...interface{}) (result sql.Result, err error) {
+	return Model.TX(tx).InsertIgnore(data...)
+}
+
+// Replace is a convenience method for Model.Replace.
+func ReplaceWithTx(tx *gdb.TX, data ...interface{}) (result sql.Result, err error) {
+	return Model.TX(tx).Replace(data...)
+}
+
+// Save is a convenience method for Model.Save.
+func SaveWithTx(tx *gdb.TX, data ...interface{}) (result sql.Result, err error) {
+	return Model.TX(tx).Save(data...)
+}
+
+// Update is a convenience method for Model.Update.
+func UpdateWithTx(tx *gdb.TX, dataAndWhere ...interface{}) (result sql.Result, err error) {
+	return Model.TX(tx).Update(dataAndWhere...)
+}
+
+// Delete is a convenience method for Model.Delete.
+func DeleteWithTx(tx *gdb.TX, where ...interface{}) (result sql.Result, err error) {
+	return Model.TX(tx).Delete(where...)
+}
+
 // As sets an alias name for current table.
 func (m *arModel) As(as string) *arModel {
 	return &arModel{m.M.As(as)}

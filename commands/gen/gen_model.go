@@ -144,6 +144,23 @@ import (
 			mlog.Print("generated:", path)
 		}
 	}
+	// self
+	path = gfile.Join(folderPath, packageName, fileName+"_self.go")
+	if !gfile.Exists(path) {
+		selfContent := gstr.ReplaceByMap(templateSelfContent, g.MapStrStr{
+			"{TplTableName}":      table,
+			"{TplModelName}":      camelName,
+			"{TplGroupName}":      groupName,
+			"{TplPackageName}":    packageName,
+			"{TplPackageImports}": packageImports,
+			"{TplStructDefine}":   structDefine,
+		})
+		if err := gfile.PutContents(path, strings.TrimSpace(selfContent)); err != nil {
+			mlog.Fatalf("writing content to '%s' failed: %v", path, err)
+		} else {
+			mlog.Print("generated:", path)
+		}
+	}
 	// entity
 	path = gfile.Join(folderPath, packageName, fileName+"_entity.go")
 	entityContent := gstr.ReplaceByMap(templateEntityContent, g.MapStrStr{
