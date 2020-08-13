@@ -14,11 +14,11 @@ package {TplPackageName}
 
 // OmitEmpty sets OPTION_OMITEMPTY option for the model, which automatically filers
 // the data and where attributes for empty values.
-func (r *Entity) OmitEmpty() *arModel {
+func (r *Entity) OmitEmpty() *ArModel {
 	return Model.Data(r).OmitEmpty()
 }
 
-// Inserts does "INSERT...INTO..." statement for inserting current object into table.
+// Insert does "INSERT...INTO..." statement for inserting current object into table.
 func (r *Entity) Insert() (result sql.Result, err error) {
 	return Model.Data(r).Insert()
 }
@@ -54,38 +54,38 @@ func (r *Entity) Delete() (result sql.Result, err error) {
 	return Model.Where(gdb.GetWhereConditionOfStruct(r)).Delete()
 }
 
-// Inserts does "INSERT...INTO..." statement for inserting current object into table.
+// InsertWithTx does "INSERT...INTO..." statement for inserting current object into table.
 func (r *Entity) InsertWithTx(tx *gdb.TX) (result sql.Result, err error) {
 	return Model.TX(tx).Data(r).Insert()
 }
 
-// InsertIgnore does "INSERT IGNORE INTO ..." statement for inserting current object into table.
+// InsertIgnoreWithTx does "INSERT IGNORE INTO ..." statement for inserting current object into table.
 func (r *Entity) InsertIgnoreWithTx(tx *gdb.TX) (result sql.Result, err error) {
 	return Model.TX(tx).Data(r).InsertIgnore()
 }
 
-// Replace does "REPLACE...INTO..." statement for inserting current object into table.
+// ReplaceWithTx does "REPLACE...INTO..." statement for inserting current object into table.
 // If there's already another same record in the table (it checks using primary key or unique index),
 // it deletes it and insert this one.
 func (r *Entity) ReplaceWithTx(tx *gdb.TX) (result sql.Result, err error) {
 	return Model.TX(tx).Data(r).Replace()
 }
 
-// Save does "INSERT...INTO..." statement for inserting/updating current object into table.
+// SaveWithTx does "INSERT...INTO..." statement for inserting/updating current object into table.
 // It updates the record if there's already another same record in the table
 // (it checks using primary key or unique index).
 func (r *Entity) SaveWithTx(tx *gdb.TX) (result sql.Result, err error) {
 	return Model.TX(tx).Data(r).Save()
 }
 
-// Update does "UPDATE...WHERE..." statement for updating current object from table.
+// UpdateWithTx does "UPDATE...WHERE..." statement for updating current object from table.
 // It updates the record if there's already another same record in the table
 // (it checks using primary key or unique index).
 func (r *Entity) UpdateWithTx(tx *gdb.TX) (result sql.Result, err error) {
 	return Model.TX(tx).Data(r).Where(gdb.GetWhereConditionOfStruct(r)).Update()
 }
 
-// Delete does "DELETE FROM...WHERE..." statement for deleting current object from table.
+// DeleteWithTx does "DELETE FROM...WHERE..." statement for deleting current object from table.
 func (r *Entity) DeleteWithTx(tx *gdb.TX) (result sql.Result, err error) {
 	return Model.TX(tx).Where(gdb.GetWhereConditionOfStruct(r)).Delete()
 }

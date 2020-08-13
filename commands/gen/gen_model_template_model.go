@@ -15,8 +15,8 @@ import (
 	"time"
 )
 
-// arModel is a active record design model for table {TplTableName} operations.
-type arModel struct {
+// ArModel is a active record design model for table {TplTableName} operations.
+type ArModel struct {
 	gmvc.M
 }
 
@@ -24,7 +24,7 @@ var (
 	// Table is the table name of {TplTableName}.
 	Table = "{TplTableName}"
 	// Model is the model object of {TplTableName}.
-	Model = &arModel{g.DB("{TplGroupName}").Table(Table).Safe()}
+	Model = &ArModel{g.DB("{TplGroupName}").Table(Table).Safe()}
 	// Columns defines and stores column names for table {TplTableName}.
 	Columns = struct {
 		{TplColumnDefine}
@@ -93,85 +93,85 @@ func Delete(where ...interface{}) (result sql.Result, err error) {
 	return Model.Delete(where...)
 }
 
-// FindOne is a convenience method for Model.FindOne.
+// FindOneWithTx is a convenience method for Model.FindOne with transaction.
 // See Model.FindOne.
 func FindOneWithTx(tx *gdb.TX, where ...interface{}) (*Entity, error) {
 	return Model.TX(tx).FindOne(where...)
 }
 
-// FindAll is a convenience method for Model.FindAll.
+// FindAllWithTx is a convenience method for Model.FindAll with transaction.
 // See Model.FindAll.
 func FindAllWithTx(tx *gdb.TX, where ...interface{}) ([]*Entity, error) {
 	return Model.TX(tx).FindAll(where...)
 }
 
-// FindValue is a convenience method for Model.FindValue.
+// FindValueWithTx is a convenience method for Model.FindValue with transaction.
 // See Model.FindValue.
 func FindValueWithTx(tx *gdb.TX, fieldsAndWhere ...interface{}) (gdb.Value, error) {
 	return Model.TX(tx).FindValue(fieldsAndWhere...)
 }
 
-// FindArray is a convenience method for Model.FindArray.
+// FindArrayWithTx is a convenience method for Model.FindArray with transaction.
 // See Model.FindArray.
 func FindArrayWithTx(tx *gdb.TX, fieldsAndWhere ...interface{}) ([]gdb.Value, error) {
 	return Model.TX(tx).FindArray(fieldsAndWhere...)
 }
 
-// FindCount is a convenience method for Model.FindCount.
+// FindCountWithTx is a convenience method for Model.FindCount with transaction.
 // See Model.FindCount.
 func FindCountWithTx(tx *gdb.TX, where ...interface{}) (int, error) {
 	return Model.TX(tx).FindCount(where...)
 }
 
-// Insert is a convenience method for Model.Insert.
+// InsertWithTx is a convenience method for Model.Insert with transaction.
 func InsertWithTx(tx *gdb.TX, data ...interface{}) (result sql.Result, err error) {
 	return Model.TX(tx).Insert(data...)
 }
 
-// InsertIgnore is a convenience method for Model.InsertIgnore.
+// InsertIgnoreWithTx is a convenience method for Model.InsertIgnore with transaction.
 func InsertIgnoreWithTx(tx *gdb.TX, data ...interface{}) (result sql.Result, err error) {
 	return Model.TX(tx).InsertIgnore(data...)
 }
 
-// Replace is a convenience method for Model.Replace.
+// ReplaceWithTx is a convenience method for Model.Replace with transaction.
 func ReplaceWithTx(tx *gdb.TX, data ...interface{}) (result sql.Result, err error) {
 	return Model.TX(tx).Replace(data...)
 }
 
-// Save is a convenience method for Model.Save.
+// SaveWithTx is a convenience method for Model.Save with transaction.
 func SaveWithTx(tx *gdb.TX, data ...interface{}) (result sql.Result, err error) {
 	return Model.TX(tx).Save(data...)
 }
 
-// Update is a convenience method for Model.Update.
+// UpdateWithTx is a convenience method for Model.Update with transaction.
 func UpdateWithTx(tx *gdb.TX, dataAndWhere ...interface{}) (result sql.Result, err error) {
 	return Model.TX(tx).Update(dataAndWhere...)
 }
 
-// Delete is a convenience method for Model.Delete.
+// DeleteWithTx is a convenience method for Model.Delete with transaction.
 func DeleteWithTx(tx *gdb.TX, where ...interface{}) (result sql.Result, err error) {
 	return Model.TX(tx).Delete(where...)
 }
 
 // As sets an alias name for current table.
-func (m *arModel) As(as string) *arModel {
-	return &arModel{m.M.As(as)}
+func (m *ArModel) As(as string) *ArModel {
+	return &ArModel{m.M.As(as)}
 }
 
 // TX sets the transaction for current operation.
-func (m *arModel) TX(tx *gdb.TX) *arModel {
-	return &arModel{m.M.TX(tx)}
+func (m *ArModel) TX(tx *gdb.TX) *ArModel {
+	return &ArModel{m.M.TX(tx)}
 }
 
 // Master marks the following operation on master node.
-func (m *arModel) Master() *arModel {
-	return &arModel{m.M.Master()}
+func (m *ArModel) Master() *ArModel {
+	return &ArModel{m.M.Master()}
 }
 
 // Slave marks the following operation on slave node.
 // Note that it makes sense only if there's any slave node configured.
-func (m *arModel) Slave() *arModel {
-	return &arModel{m.M.Slave()}
+func (m *ArModel) Slave() *ArModel {
+	return &ArModel{m.M.Slave()}
 }
 
 // LeftJoin does "LEFT JOIN ... ON ..." statement on the model.
@@ -179,8 +179,8 @@ func (m *arModel) Slave() *arModel {
 // and also with its alias name, like:
 // Table("user").LeftJoin("user_detail", "user_detail.uid=user.uid")
 // Table("user", "u").LeftJoin("user_detail", "ud", "ud.uid=u.uid")
-func (m *arModel) LeftJoin(table ...string) *arModel {
-	return &arModel{m.M.LeftJoin(table ...)}
+func (m *ArModel) LeftJoin(table ...string) *ArModel {
+	return &ArModel{m.M.LeftJoin(table ...)}
 }
 
 // RightJoin does "RIGHT JOIN ... ON ..." statement on the model.
@@ -188,8 +188,8 @@ func (m *arModel) LeftJoin(table ...string) *arModel {
 // and also with its alias name, like:
 // Table("user").RightJoin("user_detail", "user_detail.uid=user.uid")
 // Table("user", "u").RightJoin("user_detail", "ud", "ud.uid=u.uid")
-func (m *arModel) RightJoin(table ...string) *arModel {
-	return &arModel{m.M.RightJoin(table ...)}
+func (m *ArModel) RightJoin(table ...string) *ArModel {
+	return &ArModel{m.M.RightJoin(table ...)}
 }
 
 // InnerJoin does "INNER JOIN ... ON ..." statement on the model.
@@ -197,34 +197,34 @@ func (m *arModel) RightJoin(table ...string) *arModel {
 // and also with its alias name, like:
 // Table("user").InnerJoin("user_detail", "user_detail.uid=user.uid")
 // Table("user", "u").InnerJoin("user_detail", "ud", "ud.uid=u.uid")
-func (m *arModel) InnerJoin(table ...string) *arModel {
-	return &arModel{m.M.InnerJoin(table ...)}
+func (m *ArModel) InnerJoin(table ...string) *ArModel {
+	return &ArModel{m.M.InnerJoin(table ...)}
 }
 
 // Fields sets the operation fields of the model, multiple fields joined using char ','.
-func (m *arModel) Fields(fields string) *arModel {
-	return &arModel{m.M.Fields(fields)}
+func (m *ArModel) Fields(fields string) *ArModel {
+	return &ArModel{m.M.Fields(fields)}
 }
 
 // FieldsEx sets the excluded operation fields of the model, multiple fields joined using char ','.
-func (m *arModel) FieldsEx(fields string) *arModel {
-	return &arModel{m.M.FieldsEx(fields)}
+func (m *ArModel) FieldsEx(fields string) *ArModel {
+	return &ArModel{m.M.FieldsEx(fields)}
 }
 
 // Option sets the extra operation option for the model.
-func (m *arModel) Option(option int) *arModel {
-	return &arModel{m.M.Option(option)}
+func (m *ArModel) Option(option int) *ArModel {
+	return &ArModel{m.M.Option(option)}
 }
 
 // OmitEmpty sets OPTION_OMITEMPTY option for the model, which automatically filers
 // the data and where attributes for empty values.
-func (m *arModel) OmitEmpty() *arModel {
-	return &arModel{m.M.OmitEmpty()}
+func (m *ArModel) OmitEmpty() *ArModel {
+	return &ArModel{m.M.OmitEmpty()}
 }
 
 // Filter marks filtering the fields which does not exist in the fields of the operated table.
-func (m *arModel) Filter() *arModel {
-	return &arModel{m.M.Filter()}
+func (m *ArModel) Filter() *ArModel {
+	return &ArModel{m.M.Filter()}
 }
 
 // Where sets the condition statement for the model. The parameter <where> can be type of
@@ -238,54 +238,54 @@ func (m *arModel) Filter() *arModel {
 // Where("status IN (?)", g.Slice{1,2,3})
 // Where("age IN(?,?)", 18, 50)
 // Where(User{ Id : 1, UserName : "john"})
-func (m *arModel) Where(where interface{}, args ...interface{}) *arModel {
-	return &arModel{m.M.Where(where, args...)}
+func (m *ArModel) Where(where interface{}, args ...interface{}) *ArModel {
+	return &ArModel{m.M.Where(where, args...)}
 }
 
 // And adds "AND" condition to the where statement.
-func (m *arModel) And(where interface{}, args ...interface{}) *arModel {
-	return &arModel{m.M.And(where, args...)}
+func (m *ArModel) And(where interface{}, args ...interface{}) *ArModel {
+	return &ArModel{m.M.And(where, args...)}
 }
 
 // Or adds "OR" condition to the where statement.
-func (m *arModel) Or(where interface{}, args ...interface{}) *arModel {
-	return &arModel{m.M.Or(where, args...)}
+func (m *ArModel) Or(where interface{}, args ...interface{}) *ArModel {
+	return &ArModel{m.M.Or(where, args...)}
 }
 
 // Group sets the "GROUP BY" statement for the model.
-func (m *arModel) Group(groupBy string) *arModel {
-	return &arModel{m.M.Group(groupBy)}
+func (m *ArModel) Group(groupBy string) *ArModel {
+	return &ArModel{m.M.Group(groupBy)}
 }
 
 // Order sets the "ORDER BY" statement for the model.
-func (m *arModel) Order(orderBy ...string) *arModel {
-	return &arModel{m.M.Order(orderBy...)}
+func (m *ArModel) Order(orderBy ...string) *ArModel {
+	return &ArModel{m.M.Order(orderBy...)}
 }
 
 // Limit sets the "LIMIT" statement for the model.
 // The parameter <limit> can be either one or two number, if passed two number is passed,
 // it then sets "LIMIT limit[0],limit[1]" statement for the model, or else it sets "LIMIT limit[0]"
 // statement.
-func (m *arModel) Limit(limit ...int) *arModel {
-	return &arModel{m.M.Limit(limit...)}
+func (m *ArModel) Limit(limit ...int) *ArModel {
+	return &ArModel{m.M.Limit(limit...)}
 }
 
 // Offset sets the "OFFSET" statement for the model.
 // It only makes sense for some databases like SQLServer, PostgreSQL, etc.
-func (m *arModel) Offset(offset int) *arModel {
-	return &arModel{m.M.Offset(offset)}
+func (m *ArModel) Offset(offset int) *ArModel {
+	return &ArModel{m.M.Offset(offset)}
 }
 
 // Page sets the paging number for the model.
 // The parameter <page> is started from 1 for paging.
 // Note that, it differs that the Limit function start from 0 for "LIMIT" statement.
-func (m *arModel) Page(page, limit int) *arModel {
-	return &arModel{m.M.Page(page, limit)}
+func (m *ArModel) Page(page, limit int) *ArModel {
+	return &ArModel{m.M.Page(page, limit)}
 }
 
 // Batch sets the batch operation number for the model.
-func (m *arModel) Batch(batch int) *arModel {
-	return &arModel{m.M.Batch(batch)}
+func (m *ArModel) Batch(batch int) *ArModel {
+	return &ArModel{m.M.Batch(batch)}
 }
 
 // Cache sets the cache feature for the model. It caches the result of the sql, which means
@@ -300,8 +300,8 @@ func (m *arModel) Batch(batch int) *arModel {
 // control the cache like changing the <duration> or clearing the cache with specified <name>.
 //
 // Note that, the cache feature is disabled if the model is operating on a transaction.
-func (m *arModel) Cache(duration time.Duration, name ...string) *arModel {
-	return &arModel{m.M.Cache(duration, name...)}
+func (m *ArModel) Cache(duration time.Duration, name ...string) *ArModel {
+	return &ArModel{m.M.Cache(duration, name...)}
 }
 
 // Data sets the operation data for the model.
@@ -311,8 +311,8 @@ func (m *arModel) Cache(duration time.Duration, name ...string) *arModel {
 // Data("uid", 10000)
 // Data(g.Map{"uid": 10000, "name":"john"})
 // Data(g.Slice{g.Map{"uid": 10000, "name":"john"}, g.Map{"uid": 20000, "name":"smith"})
-func (m *arModel) Data(data ...interface{}) *arModel {
-	return &arModel{m.M.Data(data...)}
+func (m *ArModel) Data(data ...interface{}) *ArModel {
+	return &ArModel{m.M.Data(data...)}
 }
 
 // All does "SELECT FROM ..." statement for the model.
@@ -321,7 +321,7 @@ func (m *arModel) Data(data ...interface{}) *arModel {
 //
 // The optional parameter <where> is the same as the parameter of Model.Where function,
 // see Model.Where.
-func (m *arModel) All(where ...interface{}) ([]*Entity, error) {
+func (m *ArModel) All(where ...interface{}) ([]*Entity, error) {
 	all, err := m.M.All(where...)
 	if err != nil {
 		return nil, err
@@ -338,7 +338,7 @@ func (m *arModel) All(where ...interface{}) ([]*Entity, error) {
 //
 // The optional parameter <where> is the same as the parameter of Model.Where function,
 // see Model.Where.
-func (m *arModel) One(where ...interface{}) (*Entity, error) {
+func (m *ArModel) One(where ...interface{}) (*Entity, error) {
 	one, err := m.M.One(where...)
 	if err != nil {
 		return nil, err
@@ -352,7 +352,7 @@ func (m *arModel) One(where ...interface{}) (*Entity, error) {
 
 // FindOne retrieves and returns a single Record by Model.WherePri and Model.One.
 // Also see Model.WherePri and Model.One.
-func (m *arModel) FindOne(where ...interface{}) (*Entity, error) {
+func (m *ArModel) FindOne(where ...interface{}) (*Entity, error) {
 	one, err := m.M.FindOne(where...)
 	if err != nil {
 		return nil, err
@@ -366,7 +366,7 @@ func (m *arModel) FindOne(where ...interface{}) (*Entity, error) {
 
 // FindAll retrieves and returns Result by by Model.WherePri and Model.All.
 // Also see Model.WherePri and Model.All.
-func (m *arModel) FindAll(where ...interface{}) ([]*Entity, error) {
+func (m *ArModel) FindAll(where ...interface{}) ([]*Entity, error) {
 	all, err := m.M.FindAll(where...)
 	if err != nil {
 		return nil, err
@@ -379,7 +379,7 @@ func (m *arModel) FindAll(where ...interface{}) ([]*Entity, error) {
 }
 
 // Chunk iterates the table with given size and callback function.
-func (m *arModel) Chunk(limit int, callback func(entities []*Entity, err error) bool) {
+func (m *ArModel) Chunk(limit int, callback func(entities []*Entity, err error) bool) {
 	m.M.Chunk(limit, func(result gdb.Result, err error) bool {
 		var entities []*Entity
 		err = result.Structs(&entities)
@@ -391,17 +391,17 @@ func (m *arModel) Chunk(limit int, callback func(entities []*Entity, err error) 
 }
 
 // LockUpdate sets the lock for update for current operation.
-func (m *arModel) LockUpdate() *arModel {
-	return &arModel{m.M.LockUpdate()}
+func (m *ArModel) LockUpdate() *ArModel {
+	return &ArModel{m.M.LockUpdate()}
 }
 
 // LockShared sets the lock in share mode for current operation.
-func (m *arModel) LockShared() *arModel {
-	return &arModel{m.M.LockShared()}
+func (m *ArModel) LockShared() *ArModel {
+	return &ArModel{m.M.LockShared()}
 }
 
 // Unscoped enables/disables the soft deleting feature.
-func (m *arModel) Unscoped() *arModel {
-	return &arModel{m.M.Unscoped()}
+func (m *ArModel) Unscoped() *ArModel {
+	return &ArModel{m.M.Unscoped()}
 }
 `
