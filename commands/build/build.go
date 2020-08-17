@@ -76,6 +76,7 @@ OPTION
     -p, --path       output binary directory path, default is './bin'
     -e, --extra      extra custom "go build" options
     -m, --mod        like "-mod" option of "go build", use "-m none" to disable go module
+    -c, --cgo        enable or disable cgo feature, it's disabled in default
     --swagger        auto parse and pack swagger into packed/swagger.go before building. 
     --pack           auto pack config,public,template folder into packed/data.go before building.
 
@@ -150,6 +151,7 @@ func Run() {
 		}
 	}
 	var (
+		cgoEnabled   = gconv.Bool(getOption(parser, "cgo"))
 		version      = getOption(parser, "version")
 		outputPath   = getOption(parser, "output")
 		archOption   = getOption(parser, "arch")
@@ -200,7 +202,11 @@ func Run() {
 
 	// start building
 	mlog.Print("start building...")
-	genv.Set("CGO_ENABLED", "0")
+	if cgoEnabled {
+		genv.Set("CGO_ENABLED", "1")
+	} else {
+		genv.Set("CGO_ENABLED", "0")
+	}
 	var (
 		cmd   = ""
 		ext   = ""
