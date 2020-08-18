@@ -54,6 +54,12 @@ func (r *Entity) Delete() (result sql.Result, err error) {
 	return Model.Where(gdb.GetWhereConditionOfStruct(r)).Delete()
 }
 
+// OmitEmptyWithTx sets OPTION_OMITEMPTY option for the model, which automatically filers
+// the data and where attributes for empty values.
+func (r *Entity) OmitEmptyWithTx() *ArModel {
+	return Model.TX(tx).Data(r).OmitEmpty()
+}
+
 // InsertWithTx does "INSERT...INTO..." statement for inserting current object into table.
 func (r *Entity) InsertWithTx(tx *gdb.TX) (result sql.Result, err error) {
 	return Model.TX(tx).Data(r).Insert()

@@ -63,10 +63,8 @@ func Help() {
 	mlog.Print(gstr.TrimLeft(`
 USAGE 
     gf build FILE [OPTION]
-
 ARGUMENT
     FILE  building file path.
-
 OPTION
     -n, --name       output binary name
     -v, --version    output binary version
@@ -76,9 +74,9 @@ OPTION
     -p, --path       output binary directory path, default is './bin'
     -e, --extra      extra custom "go build" options
     -m, --mod        like "-mod" option of "go build", use "-m none" to disable go module
+    -c, --cgo        enable or disable cgo feature, it's disabled in default
     --swagger        auto parse and pack swagger into packed/swagger.go before building. 
     --pack           auto pack config,public,template folder into packed/data.go before building.
-
 EXAMPLES
     gf build main.go
     gf build main.go --swagger
@@ -87,7 +85,6 @@ EXAMPLES
     gf build main.go -n my-app -a all -s all
     gf build main.go -n my-app -a amd64,386 -s linux -p .
     gf build main.go -n my-app -v 1.0 -a amd64,386 -s linux,windows,darwin -p ./docker/bin
-
 DESCRIPTION
     The "build" command is most commonly used command, which is designed as a powerful wrapper for 
     "go build" command for convenience cross-compiling usage. 
@@ -95,7 +92,6 @@ DESCRIPTION
     1. Cross-Compiling for many platforms and architectures.
     2. Configuration file support for compiling.
     3. Build-In Variables.
-
 PLATFORMS
     darwin    386,amd64
     freebsd   386,amd64,arm
@@ -150,6 +146,7 @@ func Run() {
 		}
 	}
 	var (
+		cgoEnabled   = gconv.Bool(getOption(parser, "cgo"))
 		version      = getOption(parser, "version")
 		outputPath   = getOption(parser, "output")
 		archOption   = getOption(parser, "arch")
@@ -200,7 +197,11 @@ func Run() {
 
 	// start building
 	mlog.Print("start building...")
-	genv.Set("CGO_ENABLED", "0")
+	if cgoEnabled {
+		genv.Set("CGO_ENABLED", "1")
+	} else {
+		genv.Set("CGO_ENABLED", "0")
+	}
 	var (
 		cmd   = ""
 		ext   = ""
