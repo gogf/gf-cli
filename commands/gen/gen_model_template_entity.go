@@ -56,7 +56,7 @@ func (r *Entity) Delete() (result sql.Result, err error) {
 
 // OmitEmptyWithTx sets OPTION_OMITEMPTY option for the model, which automatically filers
 // the data and where attributes for empty values.
-func (r *Entity) OmitEmptyWithTx() *ArModel {
+func (r *Entity) OmitEmptyWithTx(tx *gdb.TX) *ArModel {
 	return Model.TX(tx).Data(r).OmitEmpty()
 }
 
