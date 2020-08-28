@@ -182,8 +182,10 @@ import (
 func generateStructDefinition(fieldMap map[string]*gdb.TableField) string {
 	buffer := bytes.NewBuffer(nil)
 	array := make([][]string, len(fieldMap))
-	for _, field := range fieldMap {
-		array[field.Index] = generateStructField(field)
+	names := sortFieldKey(fieldMap)
+	for index, name := range names {
+		field := fieldMap[name]
+		array[index] = generateStructField(field)
 	}
 	tw := tablewriter.NewWriter(buffer)
 	tw.SetBorder(false)
@@ -280,12 +282,14 @@ func generateStructField(field *gdb.TableField) []string {
 func generateColumnDefinition(fieldMap map[string]*gdb.TableField) string {
 	buffer := bytes.NewBuffer(nil)
 	array := make([][]string, len(fieldMap))
-	for _, field := range fieldMap {
+	names := sortFieldKey(fieldMap)
+	for index, name := range names {
+		field := fieldMap[name]
 		comment := gstr.Trim(gstr.ReplaceByArray(field.Comment, g.SliceStr{
 			"\n", " ",
 			"\r", " ",
 		}))
-		array[field.Index] = []string{
+		array[index] = []string{
 			"        #" + gstr.CamelCase(field.Name),
 			" # " + "string",
 			" #" + fmt.Sprintf(`// %s`, comment),
@@ -311,8 +315,10 @@ func generateColumnDefinition(fieldMap map[string]*gdb.TableField) string {
 func generateColumnNames(fieldMap map[string]*gdb.TableField) string {
 	buffer := bytes.NewBuffer(nil)
 	array := make([][]string, len(fieldMap))
-	for _, field := range fieldMap {
-		array[field.Index] = []string{
+	names := sortFieldKey(fieldMap)
+	for index, name := range names {
+		field := fieldMap[name]
+		array[index] = []string{
 			"        #" + gstr.CamelCase(field.Name) + ":",
 			fmt.Sprintf(` #"%s",`, field.Name),
 		}
@@ -330,4 +336,26 @@ func generateColumnNames(fieldMap map[string]*gdb.TableField) string {
 	buffer.Reset()
 	buffer.WriteString(namesContent)
 	return buffer.String()
+}
+
+func sortFieldKey(fieldMap map[string]*gdb.TableField) []string {
+	names := make(map[int]string)
+	for _, field := range fieldMap {
+		names[field.Index] = field.Name
+	}
+	result := make([]string, len(names))
+	i := 0
+	j := 0
+	for {
+		if len(names) == 0 {
+			break
+		}
+		if val, ok := names[i]; ok {
+			result[j] = val
+			j++
+			delete(names, i)
+		}
+		i++
+	}
+	return result
 }
