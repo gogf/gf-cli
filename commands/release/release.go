@@ -245,7 +245,6 @@ func gitPush(parser *gcmd.Parser, version string) error {
 			return nil
 		}
 	}
-	return nil
 
 	pushCmd := fmt.Sprintf("git push origin %s && git push", version)
 	mlog.Printf("execute: %s", pushCmd)
