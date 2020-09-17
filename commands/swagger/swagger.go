@@ -123,6 +123,7 @@ func generateSwaggerFiles(output string, pack bool) error {
 			return err
 		}
 	}
+	// Generate swagger files using swag.
 	command := fmt.Sprintf(`swag init -o %s`, tempOutputPath)
 	result, err := gproc.ShellExec(command)
 	if err != nil {
@@ -141,9 +142,9 @@ func generateSwaggerFiles(output string, pack bool) error {
 		return err
 	}
 	mlog.Print(`done!`)
-	// Auto pack.
+	// Auto pack into go file.
 	if pack && gfile.Exists("swagger") {
-		packCmd := fmt.Sprintf(`gf pack %s packed/%s`, "swagger", packedGoFileName)
+		packCmd := fmt.Sprintf(`gf pack %s packed/%s -n packed`, "swagger", packedGoFileName)
 		mlog.Print(packCmd)
 		if err := gproc.ShellRun(packCmd); err != nil {
 			return err
