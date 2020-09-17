@@ -51,14 +51,13 @@ ARGUMENT
 
 OPTION
     -/--args     custom process arguments.
-    -/--swagger  auto parse and pack swagger into boot/data-swagger.go before running. 
+    -/--swagger  auto parse and pack swagger into packed/data-swagger.go before running. 
 
 EXAMPLES
     gf run main.go
     gf run main.go --swagger
     gf run main.go --args "server -p 8080"
     gf run main.go -mod=vendor
-    gf run main.go -ldflags "-w -s"
 
 DESCRIPTION
     The "run" command is used for running go codes with hot-compiled-like feature,
@@ -172,7 +171,7 @@ func (app *App) Run() {
 			return
 		}
 		if gfile.Exists("swagger") {
-			packCmd := fmt.Sprintf(`gf pack %s boot/data-swagger.go -n boot`, "swagger")
+			packCmd := fmt.Sprintf(`gf pack %s packed/data-swagger.go -n packed -y`, "swagger")
 			mlog.Print(packCmd)
 			if err := gproc.ShellRun(packCmd); err != nil {
 				return
