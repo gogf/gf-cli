@@ -84,6 +84,7 @@ EXAMPLES
     gf build main.go
     gf build main.go --swagger
     gf build main.go --pack
+    gf build main.go --cgo
     gf build main.go -m none --pack
     gf build main.go -n my-app -a all -s all
     gf build main.go -n my-app -a amd64,386 -s linux -p .
@@ -118,6 +119,7 @@ func Run() {
 		"p,path":    true,
 		"e,extra":   true,
 		"m,mod":     true,
+		"c,cgo":     false,
 		"swagger":   false,
 		"pack":      false,
 	})
@@ -159,6 +161,9 @@ func Run() {
 		arches       = strings.Split(archOption, ",")
 		systems      = strings.Split(systemOption, ",")
 	)
+	if !cgoEnabled {
+		cgoEnabled = parser.ContainsOpt("cgo")
+	}
 	if len(version) > 0 {
 		path += "/" + version
 	}
