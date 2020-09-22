@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+	"github.com/gogf/gf-cli/commands/swagger"
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/container/garray"
 	"github.com/gogf/gf/container/gtype"
@@ -171,7 +172,7 @@ func (app *App) Run() {
 			return
 		}
 		if gfile.Exists("swagger") {
-			packCmd := fmt.Sprintf(`gf pack %s packed/data-swagger.go -n packed -y`, "swagger")
+			packCmd := fmt.Sprintf(`gf pack %s packed/%s -n packed -y`, "swagger", swagger.PackedGoFileName)
 			mlog.Print(packCmd)
 			if err := gproc.ShellRun(packCmd); err != nil {
 				return

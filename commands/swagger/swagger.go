@@ -19,7 +19,7 @@ import (
 const (
 	defaultOutput    = "./swagger"
 	swaggoRepoPath   = "github.com/swaggo/swag/cmd/swag"
-	packedGoFileName = "swagger.go"
+	PackedGoFileName = "swagger.go"
 )
 
 func Help() {
@@ -144,7 +144,7 @@ func generateSwaggerFiles(output string, pack bool) error {
 	mlog.Print(`done!`)
 	// Auto pack into go file.
 	if pack && gfile.Exists("swagger") {
-		packCmd := fmt.Sprintf(`gf pack %s packed/%s -n packed`, "swagger", packedGoFileName)
+		packCmd := fmt.Sprintf(`gf pack %s packed/%s -n packed`, "swagger", PackedGoFileName)
 		mlog.Print(packCmd)
 		if err := gproc.ShellRun(packCmd); err != nil {
 			return err
