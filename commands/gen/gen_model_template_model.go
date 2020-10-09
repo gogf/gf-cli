@@ -33,66 +33,6 @@ var (
 	}
 )
 
-// FindOne is a convenience method for Model.FindOne.
-// See Model.FindOne.
-func FindOne(where ...interface{}) (*Entity, error) {
-	return Model.FindOne(where...)
-}
-
-// FindAll is a convenience method for Model.FindAll.
-// See Model.FindAll.
-func FindAll(where ...interface{}) ([]*Entity, error) {
-	return Model.FindAll(where...)
-}
-
-// FindValue is a convenience method for Model.FindValue.
-// See Model.FindValue.
-func FindValue(fieldsAndWhere ...interface{}) (gdb.Value, error) {
-	return Model.FindValue(fieldsAndWhere...)
-}
-
-// FindArray is a convenience method for Model.FindArray.
-// See Model.FindArray.
-func FindArray(fieldsAndWhere ...interface{}) ([]gdb.Value, error) {
-	return Model.FindArray(fieldsAndWhere...)
-}
-
-// FindCount is a convenience method for Model.FindCount.
-// See Model.FindCount.
-func FindCount(where ...interface{}) (int, error) {
-	return Model.FindCount(where...)
-}
-
-// Insert is a convenience method for Model.Insert.
-func Insert(data ...interface{}) (result sql.Result, err error) {
-	return Model.Insert(data...)
-}
-
-// InsertIgnore is a convenience method for Model.InsertIgnore.
-func InsertIgnore(data ...interface{}) (result sql.Result, err error) {
-	return Model.InsertIgnore(data...)
-}
-
-// Replace is a convenience method for Model.Replace.
-func Replace(data ...interface{}) (result sql.Result, err error) {
-	return Model.Replace(data...)
-}
-
-// Save is a convenience method for Model.Save.
-func Save(data ...interface{}) (result sql.Result, err error) {
-	return Model.Save(data...)
-}
-
-// Update is a convenience method for Model.Update.
-func Update(dataAndWhere ...interface{}) (result sql.Result, err error) {
-	return Model.Update(dataAndWhere...)
-}
-
-// Delete is a convenience method for Model.Delete.
-func Delete(where ...interface{}) (result sql.Result, err error) {
-	return Model.Delete(where...)
-}
-
 // As sets an alias name for current table.
 func (m *arModel) As(as string) *arModel {
 	return &arModel{m.M.As(as)}
