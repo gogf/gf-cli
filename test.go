@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/gogf/gf-swagger/swagger"
 	"github.com/gogf/gf/frame/g"
+	"github.com/gogf/swagger"
 )
 
 func main() {
