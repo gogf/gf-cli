@@ -180,7 +180,13 @@ func (app *App) Run() {
 		}
 	}
 	// Build the app.
-	command := fmt.Sprintf(`go build -o %s %s %s`, outputPath, app.Options, app.File)
+	var command string
+	if app.Options == "" {
+		command = fmt.Sprintf(`go build -o %s %s`, outputPath, app.File)
+	} else {
+		command = fmt.Sprintf(`go build -o %s %s %s`, outputPath, app.Options, app.File)
+	}
+	
 	mlog.Print(command)
 	result, err := gproc.ShellExec(command)
 	if err != nil {
