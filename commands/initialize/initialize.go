@@ -13,9 +13,8 @@ import (
 )
 
 const (
-	emptyProject       = "github.com/gogf/gf-empty"
-	emptyProjectName   = "gf-empty"
-	defaultProjectName = "gf-app"
+	emptyProject     = "github.com/gogf/gf-empty"
+	emptyProjectName = "gf-empty"
 )
 
 var (
@@ -35,13 +34,14 @@ func init() {
 func Help() {
 	mlog.Print(gstr.TrimLeft(`
 USAGE    
-    gf init [NAME]
+    gf init NAME
 
 ARGUMENT 
-    NAME  name for current project, not necessary, default name is 'gf-app'
+    NAME  name for the project. It will create a folder with NAME in current directory.
+          The NAME will also be the module name for the project.
 
 EXAMPLES
-    gf init
+    gf init my-app
     gf init my-project-name
 `))
 }
@@ -51,9 +51,13 @@ func Run() {
 	if err != nil {
 		mlog.Fatal(err)
 	}
-	dirPath := "."
+	projectName := parser.GetArg(2)
+	if projectName == "" {
+		mlog.Fatal("project name should not be empty")
+	}
+	dirPath := projectName
 	if !gfile.IsEmpty(dirPath) && !allyes.Check() {
-		s := gcmd.Scan("current folder is not empty, files might be overwrote, continue? [y/n]: ")
+		s := gcmd.Scanf(`the folder "%s" is not empty, files might be overwrote, continue? [y/n]: `, projectName)
 		if strings.EqualFold(s, "n") {
 			return
 		}
@@ -86,7 +90,6 @@ func Run() {
 		mlog.Fatal("unzip project data failed,", err.Error())
 	}
 	// Replace project name.
-	projectName := parser.GetArg(2, defaultProjectName)
 	if err = gfile.ReplaceDir(emptyProject, projectName, dirPath, "Dockerfile,*.go,*.MD,*.mod", true); err != nil {
 		mlog.Fatal("content replacing failed,", err.Error())
 	}
