@@ -24,6 +24,7 @@ OPTION
                   If "-l" is not passed, it will search "./config.toml" and "./config/config.toml" 
                   in current working directory in default.
     -p, --prefix  remove specified prefix of the table, multiple prefix separated with ',' 
+	-/--camel     struct tag json toggle to camel style, default snake style
                   
 
 EXAMPLES
@@ -32,6 +33,7 @@ EXAMPLES
     gf gen model ./model -l "mssql:sqlserver://sa:12345678@127.0.0.1:1433?database=test"
     gf gen model ./model -c config.yaml -g user-center -t user,user_detail,user_login
     gf gen model -p user_,p_
+	gf gen model -p user_,p_ --camel
 
 DESCRIPTION
     The "gen" command is designed for multiple generating purposes.

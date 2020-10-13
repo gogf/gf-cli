@@ -6,6 +6,7 @@ import (
 	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/gogf/gf-cli/library/allyes"
 	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf/container/garray"
 	"github.com/gogf/gf/database/gdb"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gcmd"
@@ -13,6 +14,8 @@ import (
 	"github.com/gogf/gf/text/gregex"
 	"github.com/gogf/gf/text/gstr"
 	_ "github.com/lib/pq"
+	"os"
+
 	//_ "github.com/mattn/go-oci8"
 	//_ "github.com/mattn/go-sqlite3"
 	"github.com/olekukonko/tablewriter"
@@ -25,6 +28,18 @@ const (
 
 // doGenModel implements the "gen model" command.
 func doGenModel(parser *gcmd.Parser) {
+	array := garray.NewStrArrayFrom(os.Args)
+
+	jsonCamelFlag := false
+	index := array.Search("--camel")
+	if index < 0 {
+		index = array.Search("-camel")
+	}
+	if index != -1 {
+		jsonCamelFlag = true
+		array.Remove(index)
+	}
+
 	var err error
 	genPath := parser.GetArg(3, DEFAULT_GEN_MODEL_PATH)
 	if !gfile.IsEmpty(genPath) && !allyes.Check() {
@@ -85,7 +100,7 @@ func doGenModel(parser *gcmd.Parser) {
 		for _, v := range prefixArray {
 			variable = gstr.TrimLeftStr(variable, v)
 		}
-		generateModelContentFile(db, table, variable, genPath, configGroup)
+		generateModelContentFile(db, table, variable, genPath, configGroup, jsonCamelFlag)
 	}
 	mlog.Print("done!")
 }
@@ -98,13 +113,13 @@ func doGenModel(parser *gcmd.Parser) {
 // file.go        : the package index go file, developer can fill the file with model logic;
 // file_entity.go : the entity definition go file, it can be overwrote by gf-cli tool, don't edit it;
 // file_model.go  : the active record design model definition go file, it can be overwrote by gf-cli tool, don't edit it;
-func generateModelContentFile(db gdb.DB, table, variable, folderPath, groupName string) {
+func generateModelContentFile(db gdb.DB, table, variable, folderPath, groupName string, jsonCamelFlag bool) {
 	fieldMap, err := db.TableFields(table)
 	if err != nil {
 		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", table, err)
 	}
 	camelName := gstr.CamelCase(variable)
-	structDefine := generateStructDefinition(fieldMap)
+	structDefine := generateStructDefinition(fieldMap, jsonCamelFlag)
 	packageImports := ""
 	if strings.Contains(structDefine, "gtime.Time") {
 		packageImports = gstr.Trim(`
@@ -179,13 +194,13 @@ import (
 }
 
 // generateStructDefinition generates and returns the struct definition for specified table.
-func generateStructDefinition(fieldMap map[string]*gdb.TableField) string {
+func generateStructDefinition(fieldMap map[string]*gdb.TableField, jsonCamelFlag bool) string {
 	buffer := bytes.NewBuffer(nil)
 	array := make([][]string, len(fieldMap))
 	names := sortFieldKey(fieldMap)
 	for index, name := range names {
 		field := fieldMap[name]
-		array[index] = generateStructField(field)
+		array[index] = generateStructField(field, jsonCamelFlag)
 	}
 	tw := tablewriter.NewWriter(buffer)
 	tw.SetBorder(false)
@@ -205,7 +220,7 @@ func generateStructDefinition(fieldMap map[string]*gdb.TableField) string {
 }
 
 // generateStructField generates and returns the attribute definition for specified field.
-func generateStructField(field *gdb.TableField) []string {
+func generateStructField(field *gdb.TableField, jsonCamelFlag bool) []string {
 	var typeName, ormTag, jsonTag, comment string
 	t, _ := gregex.ReplaceString(`\(.+\)`, "", field.Type)
 	t = gstr.Split(gstr.Trim(t), " ")[0]
@@ -258,6 +273,9 @@ func generateStructField(field *gdb.TableField) []string {
 	}
 	ormTag = field.Name
 	jsonTag = gstr.SnakeCase(field.Name)
+	if jsonCamelFlag {
+		jsonTag = gstr.CamelLowerCase(field.Name)
+	}
 	if gstr.ContainsI(field.Key, "pri") {
 		ormTag += ",primary"
 	}
