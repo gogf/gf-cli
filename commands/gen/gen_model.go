@@ -269,6 +269,7 @@ func generateStructField(field *gdb.TableField) []string {
 		"\r", " ",
 	})
 	comment = gstr.Trim(comment)
+	comment = gstr.Replace(comment, `\n`, " ")
 	return []string{
 		"    #" + gstr.CamelCase(field.Name),
 		" #" + typeName,
