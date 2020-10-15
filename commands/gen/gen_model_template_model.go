@@ -122,6 +122,15 @@ func (m *arModel) Where(where interface{}, args ...interface{}) *arModel {
 	return &arModel{m.M.Where(where, args...)}
 }
 
+// WherePri does the same logic as Model.Where except that if the parameter <where>
+// is a single condition like int/string/float/slice, it treats the condition as the primary
+// key value. That is, if primary key is "id" and given <where> parameter as "123", the
+// WherePri function treats the condition as "id=123", but Model.Where treats the condition
+// as string "123".
+func (m *arModel) WherePri(where interface{}, args ...interface{}) *arModel {
+	return &arModel{m.M.WherePri(where, args...)}
+}
+
 // And adds "AND" condition to the where statement.
 func (m *arModel) And(where interface{}, args ...interface{}) *arModel {
 	return &arModel{m.M.And(where, args...)}

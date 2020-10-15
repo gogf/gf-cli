@@ -4,6 +4,10 @@
 default:
 	@echo "USAGE: make upx"
 
+build:
+	gf build main.go
+	make upx
+
 upx:
 	@upx -9 ./bin/darwin_386/*
 	@upx -9 ./bin/darwin_amd64/*
