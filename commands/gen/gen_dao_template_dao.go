@@ -14,11 +14,15 @@ import (
 // {TplTableNameCamelLowerCase}Dao is the manager for logic model data accessing
 // and custom defined data operations functions management. You can define
 // methods on it to extend its functionality as you wish.
-type {TplTableNameCamelLowerCase}Dao internal.{TplTableNameCamelCase}Dao
+type {TplTableNameCamelLowerCase}Dao struct {
+	*internal.{TplTableNameCamelCase}Dao
+}
 
 var (
 	// {TplTableNameCamelCase} is globally public accessible object for table {TplTableName} operations.
-	{TplTableNameCamelCase} = &{TplTableNameCamelCase}Dao{internal.{TplTableNameCamelCase}}
+	{TplTableNameCamelCase} = &{TplTableNameCamelLowerCase}Dao{
+		internal.{TplTableNameCamelCase},
+	}
 )
 
 // Fill with you ideas below.
