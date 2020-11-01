@@ -60,5 +60,8 @@ func Run() {
 	switch genType {
 	case "model":
 		doGenModel(parser)
+
+	case "dao":
+		doGenDao(parser)
 	}
 }

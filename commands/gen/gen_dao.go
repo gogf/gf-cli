@@ -6,6 +6,7 @@ import (
 	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/gogf/gf-cli/library/allyes"
 	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf/container/garray"
 	"github.com/gogf/gf/database/gdb"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gcmd"
@@ -20,26 +21,53 @@ import (
 )
 
 const (
-	DEFAULT_GEN_MODEL_PATH = "./app/model"
+	DaoPath   = "./app/dao"
+	ModelPath = "./app/model"
 )
 
-// doGenModel implements the "gen model" command.
-func doGenModel(parser *gcmd.Parser) {
+// doGenDao implements the "gen dao" command.
+func doGenDao(parser *gcmd.Parser) {
 	var err error
-	genPath := parser.GetArg(3, DEFAULT_GEN_MODEL_PATH)
-	if !gfile.IsEmpty(genPath) && !allyes.Check() {
-		s := gcmd.Scanf("path '%s' is not empty, files might be overwrote, continue? [y/n]: ", genPath)
-		if strings.EqualFold(s, "n") {
-			return
+	if !allyes.Check() {
+		notEmptyPaths := garray.NewStrArray()
+		if !gfile.IsEmpty(ModelPath) {
+			notEmptyPaths.Append(ModelPath)
+		}
+		if !gfile.IsEmpty(DaoPath) {
+			notEmptyPaths.Append(DaoPath)
+		}
+		if !notEmptyPaths.IsEmpty() {
+			paths := `'` + notEmptyPaths.Join(`' and '`) + `'`
+			s := gcmd.Scanf("paths %s is not empty, files might be overwrote, continue? [y/n]: ", paths)
+			if strings.EqualFold(s, "n") {
+				return
+			}
 		}
 	}
+
 	var (
+		modOpt      = parser.GetOpt("mod")
 		tableOpt    = parser.GetOpt("table")
 		linkInfo    = parser.GetOpt("link")
 		configFile  = parser.GetOpt("config")
 		configGroup = parser.GetOpt("group", gdb.DEFAULT_GROUP_NAME)
 		prefixArray = gstr.SplitAndTrim(parser.GetOpt("prefix"), ",")
 	)
+	if modOpt == "" {
+		if !gfile.Exists("go.mod") {
+			mlog.Fatal("go.mod does not exist in current working directory")
+		}
+		var (
+			goModContent = gfile.GetContents("go.mod")
+			match, _     = gregex.MatchString(`module\s+(.+)\s+`, goModContent)
+		)
+		if len(match) > 1 {
+			modOpt = match[1]
+		} else {
+			mlog.Fatal("module name does not found in go.mod")
+		}
+	}
+	// It uses user passed database configuration.
 	if linkInfo != "" {
 		path := gfile.TempDir() + gfile.Separator + "config.toml"
 		if err := gfile.PutContents(path, fmt.Sprintf("[database]\n\tlink=\"%s\"", linkInfo)); err != nil {
@@ -50,7 +78,7 @@ func doGenModel(parser *gcmd.Parser) {
 			mlog.Fatalf("set configuration path '%s' failed: %v", gfile.TempDir(), err)
 		}
 	}
-	// Custom configuration file.
+	// It reads database configuration from project confifuration file.
 	if configFile != "" {
 		path, err := gfile.Search(configFile)
 		if err != nil {
@@ -65,10 +93,6 @@ func doGenModel(parser *gcmd.Parser) {
 	db := g.DB(configGroup)
 	if db == nil {
 		mlog.Fatal("database initialization failed")
-	}
-
-	if err := gfile.Mkdir(genPath); err != nil {
-		mlog.Fatalf("mkdir for generating path '%s' failed: %v", genPath, err)
 	}
 
 	tables := ([]string)(nil)
@@ -86,12 +110,12 @@ func doGenModel(parser *gcmd.Parser) {
 		for _, v := range prefixArray {
 			variable = gstr.TrimLeftStr(variable, v)
 		}
-		generateModelContentFile(db, table, variable, genPath, configGroup)
+		generateModelContentFileV2(db, table, variable, configGroup, modOpt)
 	}
 	mlog.Print("done!")
 }
 
-// generateModelContentFile generates the model content of given table.
+// generateModelContentFileV2 generates the model content of given table.
 // The parameter <variable> specifies the variable name for the table, which
 // is the prefix-stripped name of the table.
 //
@@ -99,45 +123,39 @@ func doGenModel(parser *gcmd.Parser) {
 // file.go        : the package index go file, developer can fill the file with model logic;
 // file_entity.go : the entity definition go file, it can be overwrote by gf-cli tool, don't edit it;
 // file_model.go  : the active record design model definition go file, it can be overwrote by gf-cli tool, don't edit it;
-func generateModelContentFile(db gdb.DB, table, variable, folderPath, groupName string) {
-	fieldMap, err := db.TableFields(table)
+func generateModelContentFileV2(db gdb.DB, tableName, variable, groupName, modName string) {
+	fieldMap, err := db.TableFields(tableName)
 	if err != nil {
-		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", table, err)
+		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", tableName, err)
 	}
-	camelName := gstr.CamelCase(variable)
-	structDefine := generateStructDefinition(fieldMap)
-	packageImports := ""
+	var (
+		tableNameCamelCase      = gstr.CamelCase(variable)
+		tableNameCamelLowerCase = gstr.CamelLowerCase(variable)
+		tableNameSnakeCase      = gstr.SnakeCase(variable)
+		structDefine            = generateStructDefinitionV2(tableNameCamelCase, fieldMap)
+		packageImports          = ""
+	)
 	if strings.Contains(structDefine, "gtime.Time") {
 		packageImports = gstr.Trim(`
 import (
-	"database/sql"
-	"github.com/gogf/gf/database/gdb"
 	"github.com/gogf/gf/os/gtime"
 )`)
 	} else {
-		packageImports = gstr.Trim(`
-import (
-	"database/sql"
-	"github.com/gogf/gf/database/gdb"
-)`)
+		packageImports = ""
 	}
-	packageName := gstr.SnakeCase(variable)
-	fileName := gstr.Trim(packageName, "-_.")
+	fileName := gstr.Trim(tableNameSnakeCase, "-_.")
 	if len(fileName) > 5 && fileName[len(fileName)-5:] == "_test" {
 		// Add suffix to avoid the table name which contains "_test",
 		// which would make the go file a testing file.
 		fileName += "_table"
 	}
-	// index
-	path := gfile.Join(folderPath, packageName, fileName+".go")
+	// model - index
+	path := gfile.Join(ModelPath, fileName+".go")
 	if !gfile.Exists(path) {
-		indexContent := gstr.ReplaceByMap(templateIndexContent, g.MapStrStr{
-			"{TplTableName}":      table,
-			"{TplModelName}":      camelName,
-			"{TplGroupName}":      groupName,
-			"{TplPackageName}":    packageName,
-			"{TplPackageImports}": packageImports,
-			"{TplStructDefine}":   structDefine,
+		indexContent := gstr.ReplaceByMap(templateDaoModelIndexContent, g.MapStrStr{
+			"{TplModName}":            modName,
+			"{TplTableName}":          tableName,
+			"{TplTableNameCamelCase}": tableNameCamelCase,
 		})
 		if err := gfile.PutContents(path, strings.TrimSpace(indexContent)); err != nil {
 			mlog.Fatalf("writing content to '%s' failed: %v", path, err)
@@ -145,32 +163,44 @@ import (
 			mlog.Print("generated:", path)
 		}
 	}
-	// entity
-	path = gfile.Join(folderPath, packageName, fileName+"_entity.go")
-	entityContent := gstr.ReplaceByMap(templateEntityContent, g.MapStrStr{
-		"{TplTableName}":      table,
-		"{TplModelName}":      camelName,
-		"{TplGroupName}":      groupName,
-		"{TplPackageName}":    packageName,
-		"{TplPackageImports}": packageImports,
-		"{TplStructDefine}":   structDefine,
+	// model - generated: entity
+	path = gfile.Join(ModelPath, "internal", fileName+".go")
+	entityContent := gstr.ReplaceByMap(templateDaoModelInternalContent, g.MapStrStr{
+		"{TplTableName}":          tableName,
+		"{TplTableNameCamelCase}": tableNameCamelCase,
+		"{TplPackageImports}":     packageImports,
+		"{TplStructDefine}":       structDefine,
 	})
 	if err := gfile.PutContents(path, strings.TrimSpace(entityContent)); err != nil {
 		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
 	} else {
 		mlog.Print("generated:", path)
 	}
-	// model
-	path = gfile.Join(folderPath, packageName, fileName+"_model.go")
-	modelContent := gstr.ReplaceByMap(templateModelContent, g.MapStrStr{
-		"{TplTableName}":      table,
-		"{TplModelName}":      camelName,
-		"{TplGroupName}":      groupName,
-		"{TplPackageName}":    packageName,
-		"{TplPackageImports}": packageImports,
-		"{TplStructDefine}":   structDefine,
-		"{TplColumnDefine}":   gstr.Trim(generateColumnDefinition(fieldMap)),
-		"{TplColumnNames}":    gstr.Trim(generateColumnNames(fieldMap)),
+	// dao - index
+	path = gfile.Join(DaoPath, fileName+".go")
+	if !gfile.Exists(path) {
+		indexContent := gstr.ReplaceByMap(templateDaoDaoIndexContent, g.MapStrStr{
+			"{TplModName}":                 modName,
+			"{TplTableNameCamelCase}":      tableNameCamelCase,
+			"{TplTableNameCamelLowerCase}": tableNameCamelLowerCase,
+		})
+		if err := gfile.PutContents(path, strings.TrimSpace(indexContent)); err != nil {
+			mlog.Fatalf("writing content to '%s' failed: %v", path, err)
+		} else {
+			mlog.Print("generated:", path)
+		}
+	}
+	// dao - generated: dao
+	path = gfile.Join(DaoPath, "internal", fileName+".go")
+	modelContent := gstr.ReplaceByMap(templateDaoDaoInternalContent, g.MapStrStr{
+		"{TplModName}":                 modName,
+		"{TplTableName}":               tableName,
+		"{TplGroupName}":               groupName,
+		"{TplTableNameCamelCase}":      tableNameCamelCase,
+		"{TplTableNameCamelLowerCase}": tableNameCamelLowerCase,
+		"{TplStructDefine}":            structDefine,
+		"{TplColumnDefine}":            gstr.Trim(generateColumnDefinitionV2(fieldMap)),
+		"{TplColumnNames}":             gstr.Trim(generateColumnNamesV2(fieldMap)),
 	})
 	if err := gfile.PutContents(path, strings.TrimSpace(modelContent)); err != nil {
 		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
@@ -179,14 +209,14 @@ import (
 	}
 }
 
-// generateStructDefinition generates and returns the struct definition for specified table.
-func generateStructDefinition(fieldMap map[string]*gdb.TableField) string {
+// generateStructDefinitionV2 generates and returns the struct definition for specified table.
+func generateStructDefinitionV2(structName string, fieldMap map[string]*gdb.TableField) string {
 	buffer := bytes.NewBuffer(nil)
 	array := make([][]string, len(fieldMap))
-	names := sortFieldKey(fieldMap)
+	names := sortFieldKeyV2(fieldMap)
 	for index, name := range names {
 		field := fieldMap[name]
-		array[index] = generateStructField(field)
+		array[index] = generateStructFieldV2(field)
 	}
 	tw := tablewriter.NewWriter(buffer)
 	tw.SetBorder(false)
@@ -199,14 +229,14 @@ func generateStructDefinition(fieldMap map[string]*gdb.TableField) string {
 	// Let's do this hack of table writer for indent!
 	stContent = gstr.Replace(stContent, "  #", "")
 	buffer.Reset()
-	buffer.WriteString("type Entity struct {\n")
+	buffer.WriteString(fmt.Sprintf("type %s struct {\n", structName))
 	buffer.WriteString(stContent)
 	buffer.WriteString("}")
 	return buffer.String()
 }
 
-// generateStructField generates and returns the attribute definition for specified field.
-func generateStructField(field *gdb.TableField) []string {
+// generateStructFieldV2 generates and returns the attribute definition for specified field.
+func generateStructFieldV2(field *gdb.TableField) []string {
 	var typeName, ormTag, jsonTag, comment string
 	t, _ := gregex.ReplaceString(`\(.+\)`, "", field.Type)
 	t = gstr.Split(gstr.Trim(t), " ")[0]
@@ -280,11 +310,13 @@ func generateStructField(field *gdb.TableField) []string {
 	}
 }
 
-// generateColumnDefinition generates and returns the column names definition for specified table.
-func generateColumnDefinition(fieldMap map[string]*gdb.TableField) string {
-	buffer := bytes.NewBuffer(nil)
-	array := make([][]string, len(fieldMap))
-	names := sortFieldKey(fieldMap)
+// generateColumnDefinitionV2 generates and returns the column names definition for specified table.
+func generateColumnDefinitionV2(fieldMap map[string]*gdb.TableField) string {
+	var (
+		buffer = bytes.NewBuffer(nil)
+		array  = make([][]string, len(fieldMap))
+		names  = sortFieldKeyV2(fieldMap)
+	)
 	for index, name := range names {
 		field := fieldMap[name]
 		comment := gstr.Trim(gstr.ReplaceByArray(field.Comment, g.SliceStr{
@@ -292,7 +324,7 @@ func generateColumnDefinition(fieldMap map[string]*gdb.TableField) string {
 			"\r", " ",
 		}))
 		array[index] = []string{
-			"        #" + gstr.CamelCase(field.Name),
+			"    #" + gstr.CamelCase(field.Name),
 			" # " + "string",
 			" #" + fmt.Sprintf(`// %s`, comment),
 		}
@@ -312,16 +344,18 @@ func generateColumnDefinition(fieldMap map[string]*gdb.TableField) string {
 	return buffer.String()
 }
 
-// generateColumnNames generates and returns the column names assignment content of column struct
+// generateColumnNamesV2 generates and returns the column names assignment content of column struct
 // for specified table.
-func generateColumnNames(fieldMap map[string]*gdb.TableField) string {
-	buffer := bytes.NewBuffer(nil)
-	array := make([][]string, len(fieldMap))
-	names := sortFieldKey(fieldMap)
+func generateColumnNamesV2(fieldMap map[string]*gdb.TableField) string {
+	var (
+		buffer = bytes.NewBuffer(nil)
+		array  = make([][]string, len(fieldMap))
+		names  = sortFieldKeyV2(fieldMap)
+	)
 	for index, name := range names {
 		field := fieldMap[name]
 		array[index] = []string{
-			"        #" + gstr.CamelCase(field.Name) + ":",
+			"            #" + gstr.CamelCase(field.Name) + ":",
 			fmt.Sprintf(` #"%s",`, field.Name),
 		}
 	}
@@ -340,7 +374,7 @@ func generateColumnNames(fieldMap map[string]*gdb.TableField) string {
 	return buffer.String()
 }
 
-func sortFieldKey(fieldMap map[string]*gdb.TableField) []string {
+func sortFieldKeyV2(fieldMap map[string]*gdb.TableField) []string {
 	names := make(map[int]string)
 	for _, field := range fieldMap {
 		names[field.Index] = field.Name
