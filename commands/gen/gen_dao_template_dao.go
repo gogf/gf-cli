@@ -118,13 +118,15 @@ func (d *{TplTableNameCamelCase}Dao) InnerJoin(table ...string) *{TplTableNameCa
 }
 
 // Fields sets the operation fields of the model, multiple fields joined using char ','.
-func (d *{TplTableNameCamelCase}Dao) Fields(fields ...string) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.Fields(fields...)}
+// The parameter <fieldNamesOrMapStruct> can be type of string/map/*map/struct/*struct.
+func (d *{TplTableNameCamelCase}Dao) Fields(fieldNamesOrMapStruct ...interface{}) *{TplTableNameCamelCase}Dao {
+	return &{TplTableNameCamelCase}Dao{M:d.M.Fields(fieldNamesOrMapStruct...)}
 }
 
 // FieldsEx sets the excluded operation fields of the model, multiple fields joined using char ','.
-func (d *{TplTableNameCamelCase}Dao) FieldsEx(fields ...string) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.FieldsEx(fields...)}
+// The parameter <fieldNamesOrMapStruct> can be type of string/map/*map/struct/*struct.
+func (d *{TplTableNameCamelCase}Dao) FieldsEx(fieldNamesOrMapStruct ...interface{}) *{TplTableNameCamelCase}Dao {
+	return &{TplTableNameCamelCase}Dao{M:d.M.FieldsEx(fieldNamesOrMapStruct...)}
 }
 
 // Option sets the extra operation option for the model.
