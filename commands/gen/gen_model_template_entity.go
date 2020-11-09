@@ -14,11 +14,11 @@ package {TplPackageName}
 
 // OmitEmpty sets OPTION_OMITEMPTY option for the model, which automatically filers
 // the data and where attributes for empty values.
-func (r *Entity) OmitEmpty() *arModel {
+func (r *Entity) OmitEmpty() *ArModel {
 	return Model.Data(r).OmitEmpty()
 }
 
-// Inserts does "INSERT...INTO..." statement for inserting current object into table.
+// Insert does "INSERT...INTO..." statement for inserting current object into table.
 func (r *Entity) Insert() (result sql.Result, err error) {
 	return Model.Data(r).Insert()
 }
