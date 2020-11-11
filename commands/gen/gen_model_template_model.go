@@ -82,12 +82,12 @@ func (m *arModel) InnerJoin(table ...string) *arModel {
 }
 
 // Fields sets the operation fields of the model, multiple fields joined using char ','.
-func (m *arModel) Fields(fields ...string) *arModel {
+func (m *arModel) Fields(fields ...interface{}) *arModel {
 	return &arModel{m.M.Fields(fields...)}
 }
 
 // FieldsEx sets the excluded operation fields of the model, multiple fields joined using char ','.
-func (m *arModel) FieldsEx(fields ...string) *arModel {
+func (m *arModel) FieldsEx(fields ...interface{}) *arModel {
 	return &arModel{m.M.FieldsEx(fields...)}
 }
 
