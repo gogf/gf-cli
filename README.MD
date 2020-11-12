@@ -23,7 +23,7 @@ After downloads, please use `gf install` command to install gf binary to system 
     ```shell
     wget https://goframe.org/cli/linux_amd64/gf && chmod +x gf && ./gf install
     ```
-                                                                                                                  >
+                                                                                                                  
 1. `Windows`
 
     Manually download, execute it and then follow the instruction.
