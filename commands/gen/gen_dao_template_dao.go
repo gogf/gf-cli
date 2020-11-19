@@ -90,6 +90,11 @@ func (d *{TplTableNameCamelCase}Dao) Slave() *{TplTableNameCamelCase}Dao {
 	return &{TplTableNameCamelCase}Dao{M:d.M.Slave()}
 }
 
+// Args sets custom arguments for model operation.
+func (d *{TplTableNameCamelCase}Dao) Args(args ...interface{}) *{TplTableNameCamelCase}Dao {
+	return &{TplTableNameCamelCase}Dao{M:d.M.Args(args ...)}
+}
+
 // LeftJoin does "LEFT JOIN ... ON ..." statement on the model.
 // The parameter <table> can be joined table and its joined condition,
 // and also with its alias name, like:

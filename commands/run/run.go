@@ -15,6 +15,7 @@ import (
 	"github.com/gogf/gf/os/gtime"
 	"github.com/gogf/gf/os/gtimer"
 	"github.com/gogf/gf/text/gstr"
+	"github.com/gogf/gf/util/gconv"
 	"os"
 	"runtime"
 	"strings"
@@ -124,7 +125,6 @@ func Run() {
 	if array.Len() > 3 {
 		app.Options = strings.Join(array.SubSlice(3), " ")
 	}
-
 	dirty := gtype.NewBool()
 	_, err = gfsnotify.Add(gfile.RealPath("."), func(event *gfsnotify.Event) {
 		if gfile.ExtName(event.Path) != "go" {
@@ -179,10 +179,17 @@ func (app *App) Run() {
 			}
 		}
 	}
+	// In case of `pipe: too many open files` error.
+	ulimitCommand := ""
+	if gproc.SearchBinary("ulimit") != "" {
+		if r, _ := gproc.ShellExec("ulimit -n"); gconv.Int(r) < 65535 {
+			ulimitCommand = `ulimit -n 65535 && `
+		}
+	}
 	// Build the app.
-	command := fmt.Sprintf(`go build -o %s %s %s`, outputPath, app.Options, app.File)
-	mlog.Print(command)
-	result, err := gproc.ShellExec(command)
+	buildCommand := fmt.Sprintf(`go build -o %s %s %s`, outputPath, app.Options, app.File)
+	mlog.Print(buildCommand)
+	result, err := gproc.ShellExec(fmt.Sprintf(`%s%s`, ulimitCommand, buildCommand))
 	if err != nil {
 		mlog.Printf("build error: \n%s%s", result, err.Error())
 		return
@@ -195,14 +202,14 @@ func (app *App) Run() {
 		}
 	}
 	// Run the binary file.
-	command = fmt.Sprintf(`%s %s`, outputPath, app.Args)
-	mlog.Print(command)
+	runCommand := fmt.Sprintf(`%s %s`, outputPath, app.Args)
+	mlog.Print(runCommand)
 	if runtime.GOOS == "windows" {
 		// Special handling for windows platform.
 		// DO NOT USE "cmd /c" command.
-		process = gproc.NewProcess(command, nil)
+		process = gproc.NewProcess(runCommand, nil)
 	} else {
-		process = gproc.NewProcessCmd(command, nil)
+		process = gproc.NewProcessCmd(runCommand, nil)
 	}
 	if pid, err := process.Start(); err != nil {
 		mlog.Printf("build running error: %s", err.Error())
