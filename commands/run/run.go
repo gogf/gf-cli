@@ -182,7 +182,7 @@ func (app *App) Run() {
 	// In case of `pipe: too many open files` error.
 	ulimitCommand := ""
 	if gproc.SearchBinary("ulimit") != "" {
-		if r, _ := gproc.ShellExec("ulimit -n"); gconv.Int(strings.Trim(r, "\n")) < 65535 {
+		if r, _ := gproc.ShellExec("ulimit -n"); gconv.Int(gstr.Trim(r)) < 65535 {
 			ulimitCommand = `ulimit -n 65535 && `
 		}
 	}
