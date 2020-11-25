@@ -75,3 +75,16 @@ ADDITIONAL
     Use 'gf help COMMAND' or 'gf COMMAND -h' for detail about a command, which has '...'
     in the tail of their comments.
 ```
+
+## 3. FAQ
+
+### 1). Command `gf run` returns `pipe: too many open files`
+
+Please use `ulimit -n 65535` to enlarge your system configuration for max open files for current terminal shell session, and then `gf run`.
+
+
+
+
+
+
+
