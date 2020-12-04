@@ -163,7 +163,7 @@ import (
 			mlog.Print("generated:", path)
 		}
 	}
-	// model - generated: entity
+	// model - internal
 	path = gfile.Join(ModelPath, "internal", fileName+".go")
 	entityContent := gstr.ReplaceByMap(templateDaoModelInternalContent, g.MapStrStr{
 		"{TplTableName}":          tableName,
@@ -181,6 +181,7 @@ import (
 	if !gfile.Exists(path) {
 		indexContent := gstr.ReplaceByMap(templateDaoDaoIndexContent, g.MapStrStr{
 			"{TplModName}":                 modName,
+			"{TplTableName}":               tableName,
 			"{TplTableNameCamelCase}":      tableNameCamelCase,
 			"{TplTableNameCamelLowerCase}": tableNameCamelLowerCase,
 		})
@@ -190,7 +191,7 @@ import (
 			mlog.Print("generated:", path)
 		}
 	}
-	// dao - generated: dao
+	// dao - internal
 	path = gfile.Join(DaoPath, "internal", fileName+".go")
 	modelContent := gstr.ReplaceByMap(templateDaoDaoInternalContent, g.MapStrStr{
 		"{TplModName}":                 modName,
