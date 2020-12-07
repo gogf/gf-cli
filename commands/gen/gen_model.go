@@ -20,13 +20,14 @@ import (
 )
 
 const (
-	DEFAULT_GEN_MODEL_PATH = "./app/model"
+	genModelPath                 = "./app/model"
+	nodeNameGenModelInConfigFile = "gfcli.gen.model"
 )
 
 // doGenModel implements the "gen model" command.
 func doGenModel(parser *gcmd.Parser) {
 	var err error
-	genPath := parser.GetArg(3, DEFAULT_GEN_MODEL_PATH)
+	genPath := parser.GetArg(3, genModelPath)
 	if !gfile.IsEmpty(genPath) && !allyes.Check() {
 		s := gcmd.Scanf("path '%s' is not empty, files might be overwrote, continue? [y/n]: ", genPath)
 		if strings.EqualFold(s, "n") {
@@ -34,10 +35,10 @@ func doGenModel(parser *gcmd.Parser) {
 		}
 	}
 	var (
-		tableOpt    = parser.GetOpt("table")
-		linkInfo    = parser.GetOpt("link")
-		configFile  = parser.GetOpt("config")
-		configGroup = parser.GetOpt("group", gdb.DEFAULT_GROUP_NAME)
+		tableOpt    = getOptionForDao(parser, "table")
+		linkInfo    = getOptionForDao(parser, "link")
+		configFile  = getOptionForDao(parser, "config")
+		configGroup = getOptionForDao(parser, "group", gdb.DEFAULT_GROUP_NAME)
 		prefixArray = gstr.SplitAndTrim(parser.GetOpt("prefix"), ",")
 	)
 	if linkInfo != "" {
@@ -360,4 +361,18 @@ func sortFieldKey(fieldMap map[string]*gdb.TableField) []string {
 		i++
 	}
 	return result
+}
+
+// getOptionForModel retrieves option value from parser and configuration file.
+// It returns the default value specified by parameter <value> is no value found.
+func getOptionForModel(parser *gcmd.Parser, name string, value ...string) (result string) {
+	result = parser.GetOpt(name)
+	if result == "" && g.Config().Available() {
+		g.Config().SetViolenceCheck(true)
+		result = g.Config().GetString(nodeNameGenModelInConfigFile + "." + name)
+	}
+	if result == "" && len(value) > 0 {
+		result = value[0]
+	}
+	return
 }

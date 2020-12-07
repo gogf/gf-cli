@@ -21,8 +21,9 @@ import (
 )
 
 const (
-	DaoPath   = "./app/dao"
-	ModelPath = "./app/model"
+	genDaoDaoPath              = "./app/dao"
+	genDaoModelPath            = "./app/model"
+	nodeNameGenDaoInConfigFile = "gfcli.gen.dao"
 )
 
 // doGenDao implements the "gen dao" command.
@@ -30,11 +31,11 @@ func doGenDao(parser *gcmd.Parser) {
 	var err error
 	if !allyes.Check() {
 		notEmptyPaths := garray.NewStrArray()
-		if !gfile.IsEmpty(ModelPath) {
-			notEmptyPaths.Append(ModelPath)
+		if !gfile.IsEmpty(genDaoModelPath) {
+			notEmptyPaths.Append(genDaoModelPath)
 		}
-		if !gfile.IsEmpty(DaoPath) {
-			notEmptyPaths.Append(DaoPath)
+		if !gfile.IsEmpty(genDaoDaoPath) {
+			notEmptyPaths.Append(genDaoDaoPath)
 		}
 		if !notEmptyPaths.IsEmpty() {
 			paths := `'` + notEmptyPaths.Join(`' and '`) + `'`
@@ -46,14 +47,14 @@ func doGenDao(parser *gcmd.Parser) {
 	}
 
 	var (
-		modOpt      = parser.GetOpt("mod")
-		tableOpt    = parser.GetOpt("table")
-		linkInfo    = parser.GetOpt("link")
-		configFile  = parser.GetOpt("config")
-		configGroup = parser.GetOpt("group", gdb.DEFAULT_GROUP_NAME)
+		modName     = getOptionForDao(parser, "mod")
+		tableOpt    = getOptionForDao(parser, "table")
+		linkInfo    = getOptionForDao(parser, "link")
+		configFile  = getOptionForDao(parser, "config")
+		configGroup = getOptionForDao(parser, "group", gdb.DEFAULT_GROUP_NAME)
 		prefixArray = gstr.SplitAndTrim(parser.GetOpt("prefix"), ",")
 	)
-	if modOpt == "" {
+	if modName == "" {
 		if !gfile.Exists("go.mod") {
 			mlog.Fatal("go.mod does not exist in current working directory")
 		}
@@ -62,7 +63,7 @@ func doGenDao(parser *gcmd.Parser) {
 			match, _     = gregex.MatchString(`module\s+(.+)\s+`, goModContent)
 		)
 		if len(match) > 1 {
-			modOpt = match[1]
+			modName = match[1]
 		} else {
 			mlog.Fatal("module name does not found in go.mod")
 		}
@@ -110,7 +111,7 @@ func doGenDao(parser *gcmd.Parser) {
 		for _, v := range prefixArray {
 			variable = gstr.TrimLeftStr(variable, v)
 		}
-		generateDaoAndModelContentFile(db, table, variable, configGroup, modOpt)
+		generateDaoAndModelContentFile(db, table, variable, configGroup, modName)
 	}
 	mlog.Print("done!")
 }
@@ -145,7 +146,7 @@ import (
 		fileName += "_table"
 	}
 	// model - index
-	path := gfile.Join(ModelPath, fileName+".go")
+	path := gfile.Join(genDaoModelPath, fileName+".go")
 	if !gfile.Exists(path) {
 		indexContent := gstr.ReplaceByMap(templateDaoModelIndexContent, g.MapStrStr{
 			"{TplModName}":            modName,
@@ -159,7 +160,7 @@ import (
 		}
 	}
 	// model - internal
-	path = gfile.Join(ModelPath, "internal", fileName+".go")
+	path = gfile.Join(genDaoModelPath, "internal", fileName+".go")
 	entityContent := gstr.ReplaceByMap(templateDaoModelInternalContent, g.MapStrStr{
 		"{TplTableName}":          tableName,
 		"{TplTableNameCamelCase}": tableNameCamelCase,
@@ -172,7 +173,7 @@ import (
 		mlog.Print("generated:", path)
 	}
 	// dao - index
-	path = gfile.Join(DaoPath, fileName+".go")
+	path = gfile.Join(genDaoDaoPath, fileName+".go")
 	if !gfile.Exists(path) {
 		indexContent := gstr.ReplaceByMap(templateDaoDaoIndexContent, g.MapStrStr{
 			"{TplModName}":                 modName,
@@ -187,7 +188,7 @@ import (
 		}
 	}
 	// dao - internal
-	path = gfile.Join(DaoPath, "internal", fileName+".go")
+	path = gfile.Join(genDaoDaoPath, "internal", fileName+".go")
 	modelContent := gstr.ReplaceByMap(templateDaoDaoInternalContent, g.MapStrStr{
 		"{TplModName}":                 modName,
 		"{TplTableName}":               tableName,
@@ -390,4 +391,18 @@ func sortFieldKeyV2(fieldMap map[string]*gdb.TableField) []string {
 		i++
 	}
 	return result
+}
+
+// getOptionForDao retrieves option value from parser and configuration file.
+// It returns the default value specified by parameter <value> is no value found.
+func getOptionForDao(parser *gcmd.Parser, name string, value ...string) (result string) {
+	result = parser.GetOpt(name)
+	if result == "" && g.Config().Available() {
+		g.Config().SetViolenceCheck(true)
+		result = g.Config().GetString(nodeNameGenDaoInConfigFile + "." + name)
+	}
+	if result == "" && len(value) > 0 {
+		result = value[0]
+	}
+	return
 }

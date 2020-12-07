@@ -5,13 +5,14 @@
 # gf pack config packed/config.go -n=packed
 #
 # Compile cli itself.
-[compiler]
-    name     = "gf"
-    arch     = "all"
-    system   = "all"
-    mod      = "none"
-    cgo      = 0
-    # mod     = "none"
-    # version = "v1.0.0"
-    # output  = "./bin"
-    # extra   = ""
+[gfcli]
+    [gfcli.build]
+        name     = "gf"
+        arch     = "all"
+        system   = "all"
+        mod      = "none"
+        cgo      = 0
+        # mod     = "none"
+        # version = "v1.0.0"
+        # output  = "./bin"
+        # extra   = ""
