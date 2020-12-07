@@ -110,20 +110,15 @@ func doGenDao(parser *gcmd.Parser) {
 		for _, v := range prefixArray {
 			variable = gstr.TrimLeftStr(variable, v)
 		}
-		generateModelContentFileV2(db, table, variable, configGroup, modOpt)
+		generateDaoAndModelContentFile(db, table, variable, configGroup, modOpt)
 	}
 	mlog.Print("done!")
 }
 
-// generateModelContentFileV2 generates the model content of given table.
+// generateDaoAndModelContentFile generates the dao and model content of given table.
 // The parameter <variable> specifies the variable name for the table, which
 // is the prefix-stripped name of the table.
-//
-// Note that, this function will generate 3 files under <folderPath>/<packageName>/:
-// file.go        : the package index go file, developer can fill the file with model logic;
-// file_entity.go : the entity definition go file, it can be overwrote by gf-cli tool, don't edit it;
-// file_model.go  : the active record design model definition go file, it can be overwrote by gf-cli tool, don't edit it;
-func generateModelContentFileV2(db gdb.DB, tableName, variable, groupName, modName string) {
+func generateDaoAndModelContentFile(db gdb.DB, tableName, variable, groupName, modName string) {
 	fieldMap, err := db.TableFields(tableName)
 	if err != nil {
 		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", tableName, err)
