@@ -8,6 +8,7 @@ const templateModelContent = `
 package {TplPackageName}
 
 import (
+	"context"
 	"database/sql"
 	"github.com/gogf/gf/database/gdb"
 	"github.com/gogf/gf/frame/g"
@@ -32,6 +33,14 @@ var (
 		{TplColumnNames}
 	}
 )
+
+// Ctx is a chaining function, which creates and returns a new DB that is a shallow copy
+// of current DB object and with given context in it.
+// Note that this returned DB object can be used only once, so do not assign it to
+// a global or package variable for long using.
+func (m *arModel) Ctx(ctx context.Context) *arModel {
+	return &arModel{m.M.Ctx(ctx)}
+}
 
 // As sets an alias name for current table.
 func (m *arModel) As(as string) *arModel {
