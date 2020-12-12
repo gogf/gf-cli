@@ -3,9 +3,12 @@ package gen
 import (
 	"bytes"
 	"fmt"
+
+	//_ "github.com/mattn/go-oci8"
+	//_ "github.com/mattn/go-sqlite3"
+	"strings"
+
 	_ "github.com/denisenkom/go-mssqldb"
-	"github.com/gogf/gf-cli/library/allyes"
-	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/container/garray"
 	"github.com/gogf/gf/database/gdb"
 	"github.com/gogf/gf/frame/g"
@@ -14,10 +17,11 @@ import (
 	"github.com/gogf/gf/text/gregex"
 	"github.com/gogf/gf/text/gstr"
 	_ "github.com/lib/pq"
-	//_ "github.com/mattn/go-oci8"
-	//_ "github.com/mattn/go-sqlite3"
+
+	"github.com/gogf/gf-cli/library/allyes"
+	"github.com/gogf/gf-cli/library/mlog"
+
 	"github.com/olekukonko/tablewriter"
-	"strings"
 )
 
 const (
@@ -256,8 +260,11 @@ func generateStructFieldV2(field *gdb.TableField) []string {
 			typeName = "int64"
 		}
 
-	case "float", "double", "decimal":
+	case "float", "double":
 		typeName = "float64"
+
+	case "decimal":
+		typeName = "decimal"
 
 	case "bool":
 		typeName = "bool"
