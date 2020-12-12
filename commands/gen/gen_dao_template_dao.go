@@ -37,6 +37,7 @@ const templateDaoDaoInternalContent = `
 package internal
 
 import (
+	"context"
 	"database/sql"
 	"{TplModName}/app/model"
 	"github.com/gogf/gf/database/gdb"
@@ -69,6 +70,14 @@ var (
 	}
 )
 
+// Ctx is a chaining function, which creates and returns a new DB that is a shallow copy
+// of current DB object and with given context in it.
+// Note that this returned DB object can be used only once, so do not assign it to
+// a global or package variable for long using.
+func (d *{TplTableNameCamelCase}Dao) Ctx(ctx context.Context) *{TplTableNameCamelCase}Dao {
+	return &{TplTableNameCamelCase}Dao{M:d.M.Ctx(ctx)}
+}
+
 // As sets an alias name for current table.
 func (d *{TplTableNameCamelCase}Dao) As(as string) *{TplTableNameCamelCase}Dao {
 	return &{TplTableNameCamelCase}Dao{M:d.M.As(as)}
@@ -88,6 +97,11 @@ func (d *{TplTableNameCamelCase}Dao) Master() *{TplTableNameCamelCase}Dao {
 // Note that it makes sense only if there's any slave node configured.
 func (d *{TplTableNameCamelCase}Dao) Slave() *{TplTableNameCamelCase}Dao {
 	return &{TplTableNameCamelCase}Dao{M:d.M.Slave()}
+}
+
+// Args sets custom arguments for model operation.
+func (d *{TplTableNameCamelCase}Dao) Args(args ...interface{}) *{TplTableNameCamelCase}Dao {
+	return &{TplTableNameCamelCase}Dao{M:d.M.Args(args ...)}
 }
 
 // LeftJoin does "LEFT JOIN ... ON ..." statement on the model.
