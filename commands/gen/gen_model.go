@@ -35,10 +35,10 @@ func doGenModel(parser *gcmd.Parser) {
 		}
 	}
 	var (
-		tableOpt    = getOptionForDao(parser, "table")
-		linkInfo    = getOptionForDao(parser, "link")
-		configFile  = getOptionForDao(parser, "config")
-		configGroup = getOptionForDao(parser, "group", gdb.DEFAULT_GROUP_NAME)
+		tableOpt    = getOptionOrConfigForDao(-1, parser, "tables")
+		linkInfo    = getOptionOrConfigForDao(-1, parser, "link")
+		configFile  = getOptionOrConfigForDao(-1, parser, "config")
+		configGroup = getOptionOrConfigForDao(-1, parser, "group", gdb.DEFAULT_GROUP_NAME)
 		prefixArray = gstr.SplitAndTrim(parser.GetOpt("prefix"), ",")
 	)
 	if linkInfo != "" {
