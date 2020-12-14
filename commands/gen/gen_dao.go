@@ -21,39 +21,40 @@ import (
 )
 
 const (
-	genDaoDaoPath              = "./app/dao"
-	genDaoModelPath            = "./app/model"
+	genDaoDefaultPath          = "./app"
 	nodeNameGenDaoInConfigFile = "gfcli.gen.dao"
 )
 
 // doGenDao implements the "gen dao" command.
 func doGenDao(parser *gcmd.Parser) {
-	var err error
-	if !allyes.Check() {
-		notEmptyPaths := garray.NewStrArray()
-		if !gfile.IsEmpty(genDaoModelPath) {
-			notEmptyPaths.Append(genDaoModelPath)
-		}
-		if !gfile.IsEmpty(genDaoDaoPath) {
-			notEmptyPaths.Append(genDaoDaoPath)
-		}
-		if !notEmptyPaths.IsEmpty() {
-			paths := `'` + notEmptyPaths.Join(`' and '`) + `'`
-			s := gcmd.Scanf("paths %s is not empty, files might be overwrote, continue? [y/n]: ", paths)
-			if strings.EqualFold(s, "n") {
-				return
+	config := g.Cfg()
+	if config.Available() {
+		array := config.GetArray(nodeNameGenDaoInConfigFile)
+		if len(array) > 0 {
+			for i := 0; i < len(array); i++ {
+				doGenDaoForArray(i, parser)
 			}
 		}
+	} else {
+		doGenDaoForArray(-1, parser)
 	}
+	mlog.Print("done!")
+}
 
+// doGenDaoForArray implements the "gen dao" command for configuration array.
+func doGenDaoForArray(index int, parser *gcmd.Parser) {
 	var (
-		modName     = getOptionForDao(parser, "mod")
-		tableOpt    = getOptionForDao(parser, "table")
-		linkInfo    = getOptionForDao(parser, "link")
-		configFile  = getOptionForDao(parser, "config")
-		configGroup = getOptionForDao(parser, "group", gdb.DEFAULT_GROUP_NAME)
-		prefixArray = gstr.SplitAndTrim(parser.GetOpt("prefix"), ",")
+		err          error
+		modName      = getOptionOrConfigForDao(index, parser, "mod")                     // Go module name, eg: github.com/gogf/gf.
+		dirPath      = getOptionOrConfigForDao(index, parser, "path", genDaoDefaultPath) // Generated directory path.
+		tablesStr    = getOptionOrConfigForDao(index, parser, "tables")                  // Tables that will be generated.
+		prefixName   = getOptionOrConfigForDao(index, parser, "prefix")                  // Add prefix to DAO and Model struct name.
+		removePrefix = getOptionOrConfigForDao(index, parser, "remove-prefix")           // Remove prefix from table name.
+		linkInfo     = getOptionOrConfigForDao(index, parser, "link")                    // Custom database link.
+		configPath   = getOptionOrConfigForDao(index, parser, "config")                  // Config file path, eg: ./config/db.toml.
+		configGroup  = getOptionOrConfigForDao(index, parser, "group", "default")        // Group name of database configuration node for generated DAO.
 	)
+	removePrefixArray := gstr.SplitAndTrim(removePrefix, ",")
 	if modName == "" {
 		if !gfile.Exists("go.mod") {
 			mlog.Fatal("go.mod does not exist in current working directory")
@@ -79,11 +80,11 @@ func doGenDao(parser *gcmd.Parser) {
 			mlog.Fatalf("set configuration path '%s' failed: %v", gfile.TempDir(), err)
 		}
 	}
-	// It reads database configuration from project confifuration file.
-	if configFile != "" {
-		path, err := gfile.Search(configFile)
+	// It reads database configuration from project configuration file.
+	if configPath != "" {
+		path, err := gfile.Search(configPath)
 		if err != nil {
-			mlog.Fatalf("search configuration file '%s' failed: %v", configFile, err)
+			mlog.Fatalf("search configuration file '%s' failed: %v", configPath, err)
 		}
 		if err := g.Cfg().SetPath(gfile.Dir(path)); err != nil {
 			mlog.Fatalf("set configuration path '%s' failed: %v", path, err)
@@ -96,39 +97,74 @@ func doGenDao(parser *gcmd.Parser) {
 		mlog.Fatal("database initialization failed")
 	}
 
-	tables := ([]string)(nil)
-	if tableOpt != "" {
-		tables = gstr.SplitAndTrim(tableOpt, ",")
+	tableNames := ([]string)(nil)
+	if tablesStr != "" {
+		tableNames = gstr.SplitAndTrim(tablesStr, ",")
 	} else {
-		tables, err = db.Tables()
+		tableNames, err = db.Tables()
 		if err != nil {
 			mlog.Fatalf("fetching tables failed: \n %v", err)
 		}
 	}
 
-	for _, table := range tables {
-		variable := table
-		for _, v := range prefixArray {
-			variable = gstr.TrimLeftStr(variable, v)
+	for _, tableName := range tableNames {
+		newTableName := tableName
+		for _, v := range removePrefixArray {
+			newTableName = gstr.TrimLeftStr(newTableName, v)
 		}
-		generateDaoAndModelContentFile(db, table, variable, configGroup, modName)
+		generateDaoAndModelContentFile(
+			db,
+			tableName,
+			newTableName,
+			prefixName,
+			configGroup,
+			modName,
+			dirPath,
+		)
 	}
 	mlog.Print("done!")
 }
 
 // generateDaoAndModelContentFile generates the dao and model content of given table.
-// The parameter <variable> specifies the variable name for the table, which
-// is the prefix-stripped name of the table.
-func generateDaoAndModelContentFile(db gdb.DB, tableName, variable, groupName, modName string) {
+//
+// The parameter <tableName> specifies the table name of the table.
+// The parameter <newTableName> specifies the prefix-stripped name of the table.
+// The parameter <prefixName> specifies the custom prefix name for generated dao and model struct.
+// The parameter <groupName> specifies the group name of database configuration node for generated DAO.
+// The parameter <modName> specifies the module name of current golang project, which is used for import purpose.
+// The parameter <dirPath> specifies the directory path for generated files.
+func generateDaoAndModelContentFile(db gdb.DB, tableName, newTableName, prefixName, groupName, modName, dirPath string) {
 	fieldMap, err := db.TableFields(tableName)
 	if err != nil {
 		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", tableName, err)
 	}
 	var (
-		tableNameCamelCase      = gstr.CamelCase(variable)
-		tableNameCamelLowerCase = gstr.CamelLowerCase(variable)
-		tableNameSnakeCase      = gstr.SnakeCase(variable)
-		structDefine            = generateStructDefinitionV2(tableNameCamelCase, fieldMap)
+		dirPathDao   = gfile.Join(dirPath, "dao")
+		dirPathModel = gfile.Join(dirPath, "model")
+	)
+	if !allyes.Check() {
+		notEmptyPaths := garray.NewStrArray()
+		if !gfile.IsEmpty(dirPathDao) {
+			notEmptyPaths.Append(dirPathDao)
+		}
+		if !gfile.IsEmpty(dirPathModel) {
+			notEmptyPaths.Append(dirPathModel)
+		}
+		if !notEmptyPaths.IsEmpty() {
+			paths := `'` + notEmptyPaths.Join(`' and '`) + `'`
+			s := gcmd.Scanf("paths %s is not empty, files might be overwrote, continue? [y/n]: ", paths)
+			if strings.EqualFold(s, "n") {
+				return
+			}
+		}
+	}
+	// Change the `newTableName` if `prefixName` is given.
+	newTableName = prefixName + newTableName
+	var (
+		tableNameCamelCase      = gstr.CamelCase(newTableName)
+		tableNameCamelLowerCase = gstr.CamelLowerCase(newTableName)
+		tableNameSnakeCase      = gstr.SnakeCase(newTableName)
+		structDefine            = generateStructDefinitionForDao(tableNameCamelCase, fieldMap)
 		packageImports          = ""
 	)
 	if strings.Contains(structDefine, "gtime.Time") {
@@ -146,7 +182,7 @@ import (
 		fileName += "_table"
 	}
 	// model - index
-	path := gfile.Join(genDaoModelPath, fileName+".go")
+	path := gfile.Join(dirPathModel, fileName+".go")
 	if !gfile.Exists(path) {
 		indexContent := gstr.ReplaceByMap(templateDaoModelIndexContent, g.MapStrStr{
 			"{TplModName}":            modName,
@@ -160,7 +196,7 @@ import (
 		}
 	}
 	// model - internal
-	path = gfile.Join(genDaoModelPath, "internal", fileName+".go")
+	path = gfile.Join(dirPathModel, "internal", fileName+".go")
 	entityContent := gstr.ReplaceByMap(templateDaoModelInternalContent, g.MapStrStr{
 		"{TplTableName}":          tableName,
 		"{TplTableNameCamelCase}": tableNameCamelCase,
@@ -173,7 +209,7 @@ import (
 		mlog.Print("generated:", path)
 	}
 	// dao - index
-	path = gfile.Join(genDaoDaoPath, fileName+".go")
+	path = gfile.Join(dirPathDao, fileName+".go")
 	if !gfile.Exists(path) {
 		indexContent := gstr.ReplaceByMap(templateDaoDaoIndexContent, g.MapStrStr{
 			"{TplModName}":                 modName,
@@ -188,7 +224,7 @@ import (
 		}
 	}
 	// dao - internal
-	path = gfile.Join(genDaoDaoPath, "internal", fileName+".go")
+	path = gfile.Join(dirPathDao, "internal", fileName+".go")
 	modelContent := gstr.ReplaceByMap(templateDaoDaoInternalContent, g.MapStrStr{
 		"{TplModName}":                 modName,
 		"{TplTableName}":               tableName,
@@ -196,8 +232,8 @@ import (
 		"{TplTableNameCamelCase}":      tableNameCamelCase,
 		"{TplTableNameCamelLowerCase}": tableNameCamelLowerCase,
 		"{TplStructDefine}":            structDefine,
-		"{TplColumnDefine}":            gstr.Trim(generateColumnDefinitionV2(fieldMap)),
-		"{TplColumnNames}":             gstr.Trim(generateColumnNamesV2(fieldMap)),
+		"{TplColumnDefine}":            gstr.Trim(generateColumnDefinitionForDao(fieldMap)),
+		"{TplColumnNames}":             gstr.Trim(generateColumnNamesForDao(fieldMap)),
 	})
 	if err := gfile.PutContents(path, strings.TrimSpace(modelContent)); err != nil {
 		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
@@ -206,14 +242,14 @@ import (
 	}
 }
 
-// generateStructDefinitionV2 generates and returns the struct definition for specified table.
-func generateStructDefinitionV2(structName string, fieldMap map[string]*gdb.TableField) string {
+// generateStructDefinitionForDao generates and returns the struct definition for specified table.
+func generateStructDefinitionForDao(structName string, fieldMap map[string]*gdb.TableField) string {
 	buffer := bytes.NewBuffer(nil)
 	array := make([][]string, len(fieldMap))
-	names := sortFieldKeyV2(fieldMap)
+	names := sortFieldKeyForDao(fieldMap)
 	for index, name := range names {
 		field := fieldMap[name]
-		array[index] = generateStructFieldV2(field)
+		array[index] = generateStructFieldForDao(field)
 	}
 	tw := tablewriter.NewWriter(buffer)
 	tw.SetBorder(false)
@@ -232,8 +268,8 @@ func generateStructDefinitionV2(structName string, fieldMap map[string]*gdb.Tabl
 	return buffer.String()
 }
 
-// generateStructFieldV2 generates and returns the attribute definition for specified field.
-func generateStructFieldV2(field *gdb.TableField) []string {
+// generateStructFieldForDao generates and returns the attribute definition for specified field.
+func generateStructFieldForDao(field *gdb.TableField) []string {
 	var typeName, ormTag, jsonTag, comment string
 	t, _ := gregex.ReplaceString(`\(.+\)`, "", field.Type)
 	t = gstr.Split(gstr.Trim(t), " ")[0]
@@ -307,12 +343,12 @@ func generateStructFieldV2(field *gdb.TableField) []string {
 	}
 }
 
-// generateColumnDefinitionV2 generates and returns the column names definition for specified table.
-func generateColumnDefinitionV2(fieldMap map[string]*gdb.TableField) string {
+// generateColumnDefinitionForDao generates and returns the column names definition for specified table.
+func generateColumnDefinitionForDao(fieldMap map[string]*gdb.TableField) string {
 	var (
 		buffer = bytes.NewBuffer(nil)
 		array  = make([][]string, len(fieldMap))
-		names  = sortFieldKeyV2(fieldMap)
+		names  = sortFieldKeyForDao(fieldMap)
 	)
 	for index, name := range names {
 		field := fieldMap[name]
@@ -341,13 +377,13 @@ func generateColumnDefinitionV2(fieldMap map[string]*gdb.TableField) string {
 	return buffer.String()
 }
 
-// generateColumnNamesV2 generates and returns the column names assignment content of column struct
+// generateColumnNamesForDao generates and returns the column names assignment content of column struct
 // for specified table.
-func generateColumnNamesV2(fieldMap map[string]*gdb.TableField) string {
+func generateColumnNamesForDao(fieldMap map[string]*gdb.TableField) string {
 	var (
 		buffer = bytes.NewBuffer(nil)
 		array  = make([][]string, len(fieldMap))
-		names  = sortFieldKeyV2(fieldMap)
+		names  = sortFieldKeyForDao(fieldMap)
 	)
 	for index, name := range names {
 		field := fieldMap[name]
@@ -371,7 +407,7 @@ func generateColumnNamesV2(fieldMap map[string]*gdb.TableField) string {
 	return buffer.String()
 }
 
-func sortFieldKeyV2(fieldMap map[string]*gdb.TableField) []string {
+func sortFieldKeyForDao(fieldMap map[string]*gdb.TableField) []string {
 	names := make(map[int]string)
 	for _, field := range fieldMap {
 		names[field.Index] = field.Name
@@ -393,16 +429,21 @@ func sortFieldKeyV2(fieldMap map[string]*gdb.TableField) []string {
 	return result
 }
 
-// getOptionForDao retrieves option value from parser and configuration file.
+// getOptionOrConfigForDao retrieves option value from parser and configuration file.
 // It returns the default value specified by parameter <value> is no value found.
-func getOptionForDao(parser *gcmd.Parser, name string, value ...string) (result string) {
+func getOptionOrConfigForDao(index int, parser *gcmd.Parser, name string, defaultValue ...string) (result string) {
 	result = parser.GetOpt(name)
 	if result == "" && g.Config().Available() {
-		g.Config().SetViolenceCheck(true)
-		result = g.Config().GetString(nodeNameGenDaoInConfigFile + "." + name)
+		g.Cfg().SetViolenceCheck(true)
+		if index >= 0 {
+			result = g.Cfg().GetString(fmt.Sprintf(`%s.%d.%s`, nodeNameGenDaoInConfigFile, index, name))
+		} else {
+			result = g.Cfg().GetString(fmt.Sprintf(`%s.%s`, nodeNameGenDaoInConfigFile, name))
+		}
+
 	}
-	if result == "" && len(value) > 0 {
-		result = value[0]
+	if result == "" && len(defaultValue) > 0 {
+		result = defaultValue[0]
 	}
 	return
 }
