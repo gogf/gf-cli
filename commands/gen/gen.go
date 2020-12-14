@@ -10,7 +10,7 @@ import (
 func Help() {
 	mlog.Print(gstr.TrimLeft(`
 USAGE 
-    gf gen [TYPE] [OPTION]
+    gf gen TYPE [OPTION]
 
 TYPE
     dao     generate dao and model files.
@@ -80,7 +80,6 @@ func Run() {
 	genType := parser.GetArg(2)
 	if genType == "" {
 		mlog.Print("generating type cannot be empty")
-		Help()
 		return
 	}
 	switch genType {
