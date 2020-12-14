@@ -4,13 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	_ "github.com/denisenkom/go-mssqldb"
-	"github.com/gogf/gf-cli/library/allyes"
 	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf/container/garray"
 	"github.com/gogf/gf/database/gdb"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/os/gfile"
+	"github.com/gogf/gf/os/gtime"
 	"github.com/gogf/gf/text/gregex"
 	"github.com/gogf/gf/text/gstr"
 	_ "github.com/lib/pq"
@@ -29,11 +28,13 @@ const (
 func doGenDao(parser *gcmd.Parser) {
 	config := g.Cfg()
 	if config.Available() {
-		array := config.GetArray(nodeNameGenDaoInConfigFile)
-		if len(array) > 0 {
-			for i := 0; i < len(array); i++ {
+		v := config.GetVar(nodeNameGenDaoInConfigFile)
+		if v.IsSlice() {
+			for i := 0; i < len(v.Interfaces()); i++ {
 				doGenDaoForArray(i, parser)
 			}
+		} else {
+			doGenDaoForArray(-1, parser)
 		}
 	} else {
 		doGenDaoForArray(-1, parser)
@@ -45,6 +46,7 @@ func doGenDao(parser *gcmd.Parser) {
 func doGenDaoForArray(index int, parser *gcmd.Parser) {
 	var (
 		err          error
+		db           gdb.DB
 		modName      = getOptionOrConfigForDao(index, parser, "mod")                     // Go module name, eg: github.com/gogf/gf.
 		dirPath      = getOptionOrConfigForDao(index, parser, "path", genDaoDefaultPath) // Generated directory path.
 		tablesStr    = getOptionOrConfigForDao(index, parser, "tables")                  // Tables that will be generated.
@@ -69,17 +71,6 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 			mlog.Fatal("module name does not found in go.mod")
 		}
 	}
-	// It uses user passed database configuration.
-	if linkInfo != "" {
-		path := gfile.TempDir() + gfile.Separator + "config.toml"
-		if err := gfile.PutContents(path, fmt.Sprintf("[database]\n\tlink=\"%s\"", linkInfo)); err != nil {
-			mlog.Fatalf("write configuration file to '%s' failed: %v", path, err)
-		}
-		defer gfile.Remove(path)
-		if err := g.Cfg().SetPath(gfile.TempDir()); err != nil {
-			mlog.Fatalf("set configuration path '%s' failed: %v", gfile.TempDir(), err)
-		}
-	}
 	// It reads database configuration from project configuration file.
 	if configPath != "" {
 		path, err := gfile.Search(configPath)
@@ -91,8 +82,20 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		}
 		g.Cfg().SetFileName(gfile.Basename(path))
 	}
-
-	db := g.DB(configGroup)
+	// It uses user passed database configuration.
+	if linkInfo != "" {
+		tempGroup := gtime.TimestampNanoStr()
+		match, _ := gregex.MatchString(`([a-z]+):(.+)`, linkInfo)
+		if len(match) == 3 {
+			gdb.AddConfigNode(tempGroup, gdb.ConfigNode{
+				Type:     gstr.Trim(match[1]),
+				LinkInfo: gstr.Trim(match[2]),
+			})
+			db, _ = gdb.Instance(tempGroup)
+		}
+	} else {
+		db = g.DB(configGroup)
+	}
 	if db == nil {
 		mlog.Fatal("database initialization failed")
 	}
@@ -122,7 +125,6 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 			dirPath,
 		)
 	}
-	mlog.Print("done!")
 }
 
 // generateDaoAndModelContentFile generates the dao and model content of given table.
@@ -138,35 +140,29 @@ func generateDaoAndModelContentFile(db gdb.DB, tableName, newTableName, prefixNa
 	if err != nil {
 		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", tableName, err)
 	}
-	var (
-		dirPathDao   = gfile.Join(dirPath, "dao")
-		dirPathModel = gfile.Join(dirPath, "model")
-	)
-	if !allyes.Check() {
-		notEmptyPaths := garray.NewStrArray()
-		if !gfile.IsEmpty(dirPathDao) {
-			notEmptyPaths.Append(dirPathDao)
-		}
-		if !gfile.IsEmpty(dirPathModel) {
-			notEmptyPaths.Append(dirPathModel)
-		}
-		if !notEmptyPaths.IsEmpty() {
-			paths := `'` + notEmptyPaths.Join(`' and '`) + `'`
-			s := gcmd.Scanf("paths %s is not empty, files might be overwrote, continue? [y/n]: ", paths)
-			if strings.EqualFold(s, "n") {
-				return
-			}
-		}
-	}
 	// Change the `newTableName` if `prefixName` is given.
 	newTableName = prefixName + newTableName
 	var (
+		dirPathDao              = gstr.Trim(gfile.Join(dirPath, "dao"), "./")
+		dirPathModel            = gstr.Trim(gfile.Join(dirPath, "model"), "./")
 		tableNameCamelCase      = gstr.CamelCase(newTableName)
 		tableNameCamelLowerCase = gstr.CamelLowerCase(newTableName)
 		tableNameSnakeCase      = gstr.SnakeCase(newTableName)
 		structDefine            = generateStructDefinitionForDao(tableNameCamelCase, fieldMap)
 		packageImports          = ""
+		importPrefix            = ""
+		dirRealPath             = gfile.RealPath(dirPath)
 	)
+	if dirRealPath == "" {
+		dirRealPath = dirPath
+		importPrefix = dirRealPath
+		importPrefix = gstr.Trim(dirRealPath, "./")
+	} else {
+		importPrefix = gstr.Replace(dirRealPath, gfile.Pwd(), "")
+	}
+	importPrefix = gstr.Replace(importPrefix, gfile.Separator, "/")
+	importPrefix = gstr.Join(g.SliceStr{modName, importPrefix}, "/")
+	importPrefix, _ = gregex.ReplaceString(`\/{2,}`, `/`, gstr.Trim(importPrefix, "/"))
 	if strings.Contains(structDefine, "gtime.Time") {
 		packageImports = gstr.Trim(`
 import (
@@ -185,7 +181,7 @@ import (
 	path := gfile.Join(dirPathModel, fileName+".go")
 	if !gfile.Exists(path) {
 		indexContent := gstr.ReplaceByMap(templateDaoModelIndexContent, g.MapStrStr{
-			"{TplModName}":            modName,
+			"{TplImportPrefix}":       importPrefix,
 			"{TplTableName}":          tableName,
 			"{TplTableNameCamelCase}": tableNameCamelCase,
 		})
@@ -212,7 +208,7 @@ import (
 	path = gfile.Join(dirPathDao, fileName+".go")
 	if !gfile.Exists(path) {
 		indexContent := gstr.ReplaceByMap(templateDaoDaoIndexContent, g.MapStrStr{
-			"{TplModName}":                 modName,
+			"{TplImportPrefix}":            importPrefix,
 			"{TplTableName}":               tableName,
 			"{TplTableNameCamelCase}":      tableNameCamelCase,
 			"{TplTableNameCamelLowerCase}": tableNameCamelLowerCase,
@@ -226,7 +222,7 @@ import (
 	// dao - internal
 	path = gfile.Join(dirPathDao, "internal", fileName+".go")
 	modelContent := gstr.ReplaceByMap(templateDaoDaoInternalContent, g.MapStrStr{
-		"{TplModName}":                 modName,
+		"{TplImportPrefix}":            importPrefix,
 		"{TplTableName}":               tableName,
 		"{TplGroupName}":               groupName,
 		"{TplTableNameCamelCase}":      tableNameCamelCase,
@@ -440,7 +436,6 @@ func getOptionOrConfigForDao(index int, parser *gcmd.Parser, name string, defaul
 		} else {
 			result = g.Cfg().GetString(fmt.Sprintf(`%s.%s`, nodeNameGenDaoInConfigFile, name))
 		}
-
 	}
 	if result == "" && len(defaultValue) > 0 {
 		result = defaultValue[0]

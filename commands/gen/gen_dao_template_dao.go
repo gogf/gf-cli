@@ -8,7 +8,7 @@ const templateDaoDaoIndexContent = `
 package dao
 
 import (
-	"{TplModName}/app/dao/internal"
+	"{TplImportPrefix}/dao/internal"
 )
 
 // {TplTableNameCamelLowerCase}Dao is the manager for logic model data accessing
@@ -39,11 +39,12 @@ package internal
 import (
 	"context"
 	"database/sql"
-	"{TplModName}/app/model"
 	"github.com/gogf/gf/database/gdb"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/frame/gmvc"
 	"time"
+
+	"{TplImportPrefix}/model"
 )
 
 // {TplTableNameCamelCase}Dao is the manager for logic model data accessing

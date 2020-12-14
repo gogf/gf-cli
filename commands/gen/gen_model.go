@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	_ "github.com/denisenkom/go-mssqldb"
-	"github.com/gogf/gf-cli/library/allyes"
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/database/gdb"
 	"github.com/gogf/gf/frame/g"
@@ -26,20 +25,14 @@ const (
 
 // doGenModel implements the "gen model" command.
 func doGenModel(parser *gcmd.Parser) {
-	var err error
-	genPath := parser.GetArg(3, genModelPath)
-	if !gfile.IsEmpty(genPath) && !allyes.Check() {
-		s := gcmd.Scanf("path '%s' is not empty, files might be overwrote, continue? [y/n]: ", genPath)
-		if strings.EqualFold(s, "n") {
-			return
-		}
-	}
 	var (
-		tableOpt    = getOptionOrConfigForDao(-1, parser, "tables")
-		linkInfo    = getOptionOrConfigForDao(-1, parser, "link")
-		configFile  = getOptionOrConfigForDao(-1, parser, "config")
-		configGroup = getOptionOrConfigForDao(-1, parser, "group", gdb.DEFAULT_GROUP_NAME)
-		prefixArray = gstr.SplitAndTrim(parser.GetOpt("prefix"), ",")
+		err               error
+		genPath           = getOptionOrConfigForDao(-1, parser, "path", genModelPath)
+		tableOpt          = getOptionOrConfigForDao(-1, parser, "tables")
+		linkInfo          = getOptionOrConfigForDao(-1, parser, "link")
+		configFile        = getOptionOrConfigForDao(-1, parser, "config")
+		configGroup       = getOptionOrConfigForDao(-1, parser, "group", gdb.DefaultGroupName)
+		removePrefixArray = gstr.SplitAndTrim(parser.GetOpt("remove-prefix"), ",")
 	)
 	if linkInfo != "" {
 		path := gfile.TempDir() + gfile.Separator + "config.toml"
@@ -84,7 +77,7 @@ func doGenModel(parser *gcmd.Parser) {
 
 	for _, table := range tables {
 		variable := table
-		for _, v := range prefixArray {
+		for _, v := range removePrefixArray {
 			variable = gstr.TrimLeftStr(variable, v)
 		}
 		generateModelContentFile(db, table, variable, genPath, configGroup)
