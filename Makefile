@@ -2,7 +2,7 @@
 .PHONY: default
 
 default:
-	@echo "USAGE: make upx"
+	@echo "USAGE: make build/upx"
 
 build:
 	gf build main.go
