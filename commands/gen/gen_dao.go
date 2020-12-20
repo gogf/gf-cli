@@ -113,7 +113,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 	for _, tableName := range tableNames {
 		newTableName := tableName
 		for _, v := range removePrefixArray {
-			newTableName = gstr.TrimLeftStr(newTableName, v)
+			newTableName = gstr.TrimLeftStr(newTableName, v, 1)
 		}
 		generateDaoAndModelContentFile(
 			db,
