@@ -8,7 +8,7 @@ const templateDaoModelIndexContent = `
 package model
 
 import (
-	"{TplModName}/app/model/internal"
+	"{TplImportPrefix}/model/internal"
 )
 
 // {TplTableNameCamelCase} is the golang structure for table {TplTableName}.
