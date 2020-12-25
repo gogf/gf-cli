@@ -155,7 +155,7 @@ func (app *App) Run() {
 	// Rebuild and run the codes.
 	renamePath := ""
 	mlog.Printf("build: %s", app.File)
-	outputPath := gfile.Join(gfile.TempDir(), "gf-cli", gfile.Name(app.File))
+	outputPath := gfile.Join("bin", gfile.Name(app.File))
 	if runtime.GOOS == "windows" {
 		outputPath += ".exe"
 		if gfile.Exists(outputPath) {

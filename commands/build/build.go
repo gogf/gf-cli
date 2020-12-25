@@ -29,7 +29,6 @@ import (
 //    plan9     amd64
 //    solaris   amd64
 const platforms = `
-    darwin    386
     darwin    amd64
     freebsd   386
     freebsd   amd64
