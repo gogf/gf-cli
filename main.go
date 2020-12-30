@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	VERSION = "v1.14.6"
+	VERSION = "v1.15.0"
 )
 
 func init() {
@@ -152,6 +152,8 @@ func help(command string) {
 		pack.Help()
 	case "run":
 		run.Help()
+	case "mod":
+		mod.Help()
 	default:
 		mlog.Print(helpContent)
 	}
