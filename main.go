@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/gogf/gf-cli/commands/env"
 	"github.com/gogf/gf-cli/commands/mod"
-	"strings"
 
 	_ "github.com/gogf/gf-cli/boot"
 	"github.com/gogf/gf-cli/commands/build"
@@ -18,6 +19,7 @@ import (
 	"github.com/gogf/gf-cli/commands/run"
 	"github.com/gogf/gf-cli/commands/swagger"
 	"github.com/gogf/gf-cli/commands/update"
+	"github.com/gogf/gf-cli/common"
 	"github.com/gogf/gf-cli/library/allyes"
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf-cli/library/proxy"
@@ -27,46 +29,10 @@ import (
 	"github.com/gogf/gf/text/gstr"
 )
 
-const (
-	VERSION = "v1.15.0"
-)
-
 func init() {
 	// Automatically sets the golang proxy for all commands.
 	proxy.AutoSet()
 }
-
-var (
-	helpContent = gstr.TrimLeft(`
-USAGE
-    gf COMMAND [ARGUMENT] [OPTION]
-
-COMMAND
-    env        show current Golang environment variables
-    get        install or update GF to system in default...
-    gen        automatically generate go files for ORM models...
-    mod        extra features for go modules...
-    run        running go codes with hot-compiled-like feature...
-    init       create and initialize an empty GF project...
-    help       show more information about a specified command
-    pack       packing any file/directory to a resource file, or a go file...
-    build      cross-building go project for lots of platforms...
-    docker     create a docker image for current GF project...
-    swagger    swagger feature for current project...
-    update     update current gf binary to latest one (might need root/admin permission)
-    install    install gf binary to system (might need root/admin permission)
-    version    show current binary version info
-
-OPTION
-    -y         all yes for all command without prompt ask 
-    -?,-h      show this help or detail for specified command
-    -v,-i      show version information
-
-ADDITIONAL
-    Use 'gf help COMMAND' or 'gf COMMAND -h' for detail about a command, which has '...' 
-    in the tail of their comments.
-`)
-)
 
 func main() {
 	allyes.Init()
@@ -78,43 +44,43 @@ func main() {
 		return
 	}
 	switch command {
-	case "help":
+	case common.Help:
 		help(gcmd.GetArg(2))
-	case "version":
+	case common.Version:
 		version()
-	case "env":
+	case common.Env:
 		env.Run()
-	case "get":
+	case common.Get:
 		get.Run()
-	case "gen":
+	case common.Gen:
 		gen.Run()
-	case "fix":
+	case common.Fix:
 		fix.Run()
-	case "mod":
+	case common.Mod:
 		mod.Run()
-	case "init":
+	case common.Init:
 		initialize.Run()
-	case "pack":
+	case common.Pack:
 		pack.Run()
-	case "docker":
+	case common.Docker:
 		docker.Run()
-	case "swagger":
+	case common.Swagger:
 		swagger.Run()
-	case "update":
+	case common.Update:
 		update.Run()
-	case "install":
+	case common.Install:
 		install.Run()
-	case "build":
+	case common.Build:
 		build.Run()
-	case "run":
+	case common.Run:
 		run.Run()
 	default:
 		for k := range gcmd.GetOptAll() {
 			switch k {
-			case "?", "h":
-				mlog.Print(helpContent)
+			case common.AsQues, common.AsHelp:
+				mlog.Print(common.HelpContent)
 				return
-			case "i", "v":
+			case common.AsInfo, common.AsVersion:
 				version()
 				return
 			}
@@ -123,39 +89,39 @@ func main() {
 		if !install.IsInstalled() {
 			mlog.Print("hi, it seams it's the first time you installing gf cli.")
 			s := gcmd.Scanf("do you want to install gf binary to your system? [y/n]: ")
-			if strings.EqualFold(s, "y") {
+			if strings.EqualFold(s, common.AsYes) {
 				install.Run()
 				gcmd.Scan("press <Enter> to exit...")
 				return
 			}
 		}
-		mlog.Print(helpContent)
+		mlog.Print(common.HelpContent)
 	}
 }
 
 // help shows more information for specified command.
 func help(command string) {
 	switch command {
-	case "get":
+	case common.Get:
 		get.Help()
-	case "gen":
+	case common.Gen:
 		gen.Help()
-	case "init":
+	case common.Init:
 		initialize.Help()
-	case "docker":
+	case common.Docker:
 		docker.Help()
-	case "swagger":
+	case common.Swagger:
 		swagger.Help()
-	case "build":
+	case common.Build:
 		build.Help()
-	case "pack":
+	case common.Pack:
 		pack.Help()
-	case "run":
+	case common.Run:
 		run.Help()
-	case "mod":
+	case common.Mod:
 		mod.Help()
 	default:
-		mlog.Print(helpContent)
+		mlog.Print(common.HelpContent)
 	}
 }
 
@@ -165,7 +131,7 @@ func version() {
 	if info["git"] == "" {
 		info["git"] = "none"
 	}
-	mlog.Printf(`GoFrame CLI Tool %s, https://goframe.org`, VERSION)
+	mlog.Printf(`GoFrame CLI Tool %s, %s`, common.VERSION, common.Host)
 	mlog.Printf(`Install Path: %s`, gfile.SelfPath())
 	if info["gf"] == "" {
 		mlog.Print(`Current is a custom installed version, no installation info.`)

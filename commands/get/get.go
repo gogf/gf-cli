@@ -2,10 +2,11 @@ package get
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/os/gproc"
 	"github.com/gogf/gf/text/gstr"
-	"os"
 )
 
 func Help() {
