@@ -63,10 +63,10 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		}
 		var (
 			goModContent = gfile.GetContents("go.mod")
-			match, _     = gregex.MatchString(`module\s+(.+)\s+`, goModContent)
+			match, _     = gregex.MatchString(`^module\s+(.+)\s*`, goModContent)
 		)
 		if len(match) > 1 {
-			modName = match[1]
+			modName = gstr.Trim(match[1])
 		} else {
 			mlog.Fatal("module name does not found in go.mod")
 		}
