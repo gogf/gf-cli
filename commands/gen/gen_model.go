@@ -216,7 +216,7 @@ func generateStructField(field *gdb.TableField) []string {
 			typeName = "int"
 		}
 
-	case "big_int", "bigint":
+	case "big_int", "bigint", "int8":
 		if gstr.ContainsI(field.Type, "unsigned") {
 			typeName = "uint64"
 		} else {
