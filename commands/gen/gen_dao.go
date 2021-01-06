@@ -3,7 +3,6 @@ package gen
 import (
 	"bytes"
 	"fmt"
-	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/database/gdb"
 	"github.com/gogf/gf/frame/g"
@@ -12,11 +11,13 @@ import (
 	"github.com/gogf/gf/os/gtime"
 	"github.com/gogf/gf/text/gregex"
 	"github.com/gogf/gf/text/gstr"
+	"github.com/olekukonko/tablewriter"
+	"strings"
+
+	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/lib/pq"
 	//_ "github.com/mattn/go-oci8"
 	//_ "github.com/mattn/go-sqlite3"
-	"github.com/olekukonko/tablewriter"
-	"strings"
 )
 
 const (
