@@ -76,15 +76,15 @@ OPTION
     -e, --extra      extra custom "go build" options
     -m, --mod        like "-mod" option of "go build", use "-m none" to disable go module
     -c, --cgo        enable or disable cgo feature, it's disabled in default
-    --swagger        auto parse and pack swagger into packed/swagger.go before building. 
-    --pack           auto pack config,public,template folder into packed/data.go before building.
+    --pack           pack specified folder into packed/data.go before building.
+    --swagger        auto parse and pack swagger into packed/swagger.go before building.
 
 EXAMPLES
     gf build main.go
     gf build main.go --swagger
-    gf build main.go --pack
+    gf build main.go --pack public,template
     gf build main.go --cgo
-    gf build main.go -m none --pack
+    gf build main.go -m none 
     gf build main.go -n my-app -a all -s all
     gf build main.go -n my-app -a amd64,386 -s linux -p .
     gf build main.go -n my-app -v 1.0 -a amd64,386 -s linux,windows,darwin -p ./docker/bin
@@ -98,7 +98,7 @@ DESCRIPTION
     3. Build-In Variables.
 
 PLATFORMS
-    darwin    386,amd64
+    darwin    amd64
     freebsd   386,amd64,arm
     linux     386,amd64,arm,arm64,ppc64,ppc64le,mips,mipsle,mips64,mips64le
     netbsd    386,amd64,arm
@@ -118,9 +118,9 @@ func Run() {
 		"p,path":    true,
 		"e,extra":   true,
 		"m,mod":     true,
+		"pack":      true,
 		"c,cgo":     false,
 		"swagger":   false,
-		"pack":      false,
 	})
 	if err != nil {
 		mlog.Fatal(err)
@@ -157,6 +157,7 @@ func Run() {
 		outputPath   = getOption(parser, "output")
 		archOption   = getOption(parser, "arch")
 		systemOption = getOption(parser, "system")
+		packStr      = getOption(parser, "pack")
 		arches       = strings.Split(archOption, ",")
 		systems      = strings.Split(systemOption, ",")
 	)
@@ -182,23 +183,10 @@ func Run() {
 	}
 
 	// Auto packing.
-	if containsOption(parser, "pack") {
-		packFolderStr := ""
-		if gfile.Exists("config") {
-			packFolderStr += "config,"
-		}
-		if gfile.Exists("public") {
-			packFolderStr += "public,"
-		}
-		if gfile.Exists("template") {
-			packFolderStr += "template,"
-		}
-		packFolderStr = gstr.Trim(packFolderStr, ",")
-		if len(packFolderStr) > 0 {
-			packCmd := fmt.Sprintf(`gf pack %s packed/%s`, packFolderStr, packedGoFileName)
-			mlog.Print(packCmd)
-			gproc.ShellRun(packCmd)
-		}
+	if len(packStr) > 0 {
+		packCmd := fmt.Sprintf(`gf pack %s packed/%s`, packStr, packedGoFileName)
+		mlog.Print(packCmd)
+		gproc.ShellRun(packCmd)
 	}
 
 	// Injected information by building flags.
