@@ -184,7 +184,15 @@ func Run() {
 
 	// Auto packing.
 	if len(packStr) > 0 {
-		packCmd := fmt.Sprintf(`gf pack %s packed/%s`, packStr, packedGoFileName)
+		dataFilePath := fmt.Sprintf(`packed/%s`, packedGoFileName)
+		if !gfile.Exists(dataFilePath) {
+			// Remove the go file that is automatically packed resource.
+			defer func() {
+				gfile.Remove(dataFilePath)
+				mlog.Printf(`remove the automatically generated resource go file: %s`, dataFilePath)
+			}()
+		}
+		packCmd := fmt.Sprintf(`gf pack %s %s`, packStr, dataFilePath)
 		mlog.Print(packCmd)
 		gproc.ShellRun(packCmd)
 	}
