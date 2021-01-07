@@ -54,8 +54,8 @@ const platforms = `
 `
 
 const (
-	nodeNameInConfigFile = "gfcli.build" // nodeNameInConfigFile is the node name for compiler configurations in configuration file.
-	packedGoFileName     = "data.go"     // packedGoFileName specifies the file name for packing common folders into one single go file.
+	nodeNameInConfigFile = "gfcli.build"        // nodeNameInConfigFile is the node name for compiler configurations in configuration file.
+	packedGoFileName     = "build_pack_data.go" // packedGoFileName specifies the file name for packing common folders into one single go file.
 )
 
 func Help() {
