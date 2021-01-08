@@ -76,33 +76,33 @@ var (
 // Note that this returned DB object can be used only once, so do not assign it to
 // a global or package variable for long using.
 func (d *{TplTableNameCamelCase}Dao) Ctx(ctx context.Context) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.Ctx(ctx)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.Ctx(ctx)}
 }
 
 // As sets an alias name for current table.
 func (d *{TplTableNameCamelCase}Dao) As(as string) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.As(as)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.As(as)}
 }
 
 // TX sets the transaction for current operation.
 func (d *{TplTableNameCamelCase}Dao) TX(tx *gdb.TX) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.TX(tx)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.TX(tx)}
 }
 
 // Master marks the following operation on master node.
 func (d *{TplTableNameCamelCase}Dao) Master() *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.Master()}
+	return &{TplTableNameCamelCase}Dao{M: d.M.Master()}
 }
 
 // Slave marks the following operation on slave node.
 // Note that it makes sense only if there's any slave node configured.
 func (d *{TplTableNameCamelCase}Dao) Slave() *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.Slave()}
+	return &{TplTableNameCamelCase}Dao{M: d.M.Slave()}
 }
 
 // Args sets custom arguments for model operation.
 func (d *{TplTableNameCamelCase}Dao) Args(args ...interface{}) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.Args(args ...)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.Args(args ...)}
 }
 
 // LeftJoin does "LEFT JOIN ... ON ..." statement on the model.
@@ -111,7 +111,7 @@ func (d *{TplTableNameCamelCase}Dao) Args(args ...interface{}) *{TplTableNameCam
 // Table("user").LeftJoin("user_detail", "user_detail.uid=user.uid")
 // Table("user", "u").LeftJoin("user_detail", "ud", "ud.uid=u.uid")
 func (d *{TplTableNameCamelCase}Dao) LeftJoin(table ...string) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.LeftJoin(table...)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.LeftJoin(table...)}
 }
 
 // RightJoin does "RIGHT JOIN ... ON ..." statement on the model.
@@ -120,7 +120,7 @@ func (d *{TplTableNameCamelCase}Dao) LeftJoin(table ...string) *{TplTableNameCam
 // Table("user").RightJoin("user_detail", "user_detail.uid=user.uid")
 // Table("user", "u").RightJoin("user_detail", "ud", "ud.uid=u.uid")
 func (d *{TplTableNameCamelCase}Dao) RightJoin(table ...string) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.RightJoin(table...)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.RightJoin(table...)}
 }
 
 // InnerJoin does "INNER JOIN ... ON ..." statement on the model.
@@ -129,35 +129,35 @@ func (d *{TplTableNameCamelCase}Dao) RightJoin(table ...string) *{TplTableNameCa
 // Table("user").InnerJoin("user_detail", "user_detail.uid=user.uid")
 // Table("user", "u").InnerJoin("user_detail", "ud", "ud.uid=u.uid")
 func (d *{TplTableNameCamelCase}Dao) InnerJoin(table ...string) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.InnerJoin(table...)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.InnerJoin(table...)}
 }
 
 // Fields sets the operation fields of the model, multiple fields joined using char ','.
 // The parameter <fieldNamesOrMapStruct> can be type of string/map/*map/struct/*struct.
 func (d *{TplTableNameCamelCase}Dao) Fields(fieldNamesOrMapStruct ...interface{}) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.Fields(fieldNamesOrMapStruct...)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.Fields(fieldNamesOrMapStruct...)}
 }
 
 // FieldsEx sets the excluded operation fields of the model, multiple fields joined using char ','.
 // The parameter <fieldNamesOrMapStruct> can be type of string/map/*map/struct/*struct.
 func (d *{TplTableNameCamelCase}Dao) FieldsEx(fieldNamesOrMapStruct ...interface{}) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.FieldsEx(fieldNamesOrMapStruct...)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.FieldsEx(fieldNamesOrMapStruct...)}
 }
 
 // Option sets the extra operation option for the model.
 func (d *{TplTableNameCamelCase}Dao) Option(option int) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.Option(option)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.Option(option)}
 }
 
 // OmitEmpty sets OPTION_OMITEMPTY option for the model, which automatically filers
 // the data and where attributes for empty values.
 func (d *{TplTableNameCamelCase}Dao) OmitEmpty() *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.OmitEmpty()}
+	return &{TplTableNameCamelCase}Dao{M: d.M.OmitEmpty()}
 }
 
 // Filter marks filtering the fields which does not exist in the fields of the operated table.
 func (d *{TplTableNameCamelCase}Dao) Filter() *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.Filter()}
+	return &{TplTableNameCamelCase}Dao{M: d.M.Filter()}
 }
 
 // Where sets the condition statement for the model. The parameter <where> can be type of
@@ -172,7 +172,7 @@ func (d *{TplTableNameCamelCase}Dao) Filter() *{TplTableNameCamelCase}Dao {
 // Where("age IN(?,?)", 18, 50)
 // Where(User{ Id : 1, UserName : "john"})
 func (d *{TplTableNameCamelCase}Dao) Where(where interface{}, args ...interface{}) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.Where(where, args...)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.Where(where, args...)}
 }
 
 // WherePri does the same logic as M.Where except that if the parameter <where>
@@ -181,27 +181,27 @@ func (d *{TplTableNameCamelCase}Dao) Where(where interface{}, args ...interface{
 // WherePri function treats the condition as "id=123", but M.Where treats the condition
 // as string "123".
 func (d *{TplTableNameCamelCase}Dao) WherePri(where interface{}, args ...interface{}) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.WherePri(where, args...)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.WherePri(where, args...)}
 }
 
 // And adds "AND" condition to the where statement.
 func (d *{TplTableNameCamelCase}Dao) And(where interface{}, args ...interface{}) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.And(where, args...)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.And(where, args...)}
 }
 
 // Or adds "OR" condition to the where statement.
 func (d *{TplTableNameCamelCase}Dao) Or(where interface{}, args ...interface{}) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.Or(where, args...)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.Or(where, args...)}
 }
 
 // Group sets the "GROUP BY" statement for the model.
 func (d *{TplTableNameCamelCase}Dao) Group(groupBy string) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.Group(groupBy)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.Group(groupBy)}
 }
 
 // Order sets the "ORDER BY" statement for the model.
 func (d *{TplTableNameCamelCase}Dao) Order(orderBy ...string) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.Order(orderBy...)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.Order(orderBy...)}
 }
 
 // Limit sets the "LIMIT" statement for the model.
@@ -209,25 +209,25 @@ func (d *{TplTableNameCamelCase}Dao) Order(orderBy ...string) *{TplTableNameCame
 // it then sets "LIMIT limit[0],limit[1]" statement for the model, or else it sets "LIMIT limit[0]"
 // statement.
 func (d *{TplTableNameCamelCase}Dao) Limit(limit ...int) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.Limit(limit...)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.Limit(limit...)}
 }
 
 // Offset sets the "OFFSET" statement for the model.
 // It only makes sense for some databases like SQLServer, PostgreSQL, etc.
 func (d *{TplTableNameCamelCase}Dao) Offset(offset int) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.Offset(offset)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.Offset(offset)}
 }
 
 // Page sets the paging number for the model.
 // The parameter <page> is started from 1 for paging.
 // Note that, it differs that the Limit function start from 0 for "LIMIT" statement.
 func (d *{TplTableNameCamelCase}Dao) Page(page, limit int) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.Page(page, limit)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.Page(page, limit)}
 }
 
 // Batch sets the batch operation number for the model.
 func (d *{TplTableNameCamelCase}Dao) Batch(batch int) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.Batch(batch)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.Batch(batch)}
 }
 
 // Cache sets the cache feature for the model. It caches the result of the sql, which means
@@ -243,7 +243,7 @@ func (d *{TplTableNameCamelCase}Dao) Batch(batch int) *{TplTableNameCamelCase}Da
 //
 // Note that, the cache feature is disabled if the model is operating on a transaction.
 func (d *{TplTableNameCamelCase}Dao) Cache(duration time.Duration, name ...string) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.Cache(duration, name...)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.Cache(duration, name...)}
 }
 
 // Data sets the operation data for the model.
@@ -254,7 +254,7 @@ func (d *{TplTableNameCamelCase}Dao) Cache(duration time.Duration, name ...strin
 // Data(g.Map{"uid": 10000, "name":"john"})
 // Data(g.Slice{g.Map{"uid": 10000, "name":"john"}, g.Map{"uid": 20000, "name":"smith"})
 func (d *{TplTableNameCamelCase}Dao) Data(data ...interface{}) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.Data(data...)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.Data(data...)}
 }
 
 // All does "SELECT FROM ..." statement for the model.
@@ -399,16 +399,16 @@ func (d *{TplTableNameCamelCase}Dao) Chunk(limit int, callback func(entities []*
 
 // LockUpdate sets the lock for update for current operation.
 func (d *{TplTableNameCamelCase}Dao) LockUpdate() *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.LockUpdate()}
+	return &{TplTableNameCamelCase}Dao{M: d.M.LockUpdate()}
 }
 
 // LockShared sets the lock in share mode for current operation.
 func (d *{TplTableNameCamelCase}Dao) LockShared() *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.LockShared()}
+	return &{TplTableNameCamelCase}Dao{M: d.M.LockShared()}
 }
 
 // Unscoped enables/disables the soft deleting feature.
 func (d *{TplTableNameCamelCase}Dao) Unscoped() *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M:d.M.Unscoped()}
+	return &{TplTableNameCamelCase}Dao{M: d.M.Unscoped()}
 }
 `
