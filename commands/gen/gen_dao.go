@@ -20,10 +20,76 @@ import (
 	//_ "github.com/mattn/go-sqlite3"
 )
 
+// generateDaoReq is the input parameter for generating dao.
+type generateDaoReq struct {
+	TableName    string // TableName specifies the table name of the table.
+	NewTableName string // NewTableName specifies the prefix-stripped name of the table.
+	PrefixName   string // PrefixName specifies the custom prefix name for generated dao and model struct.
+	GroupName    string // GroupName specifies the group name of database configuration node for generated DAO.
+	ModName      string // ModName specifies the module name of current golang project, which is used for import purpose.
+	JsonCase     string // JsonCase specifies the case of generated 'json' tag for model struct, value from gstr.Case* function names.
+	DirPath      string // DirPath specifies the directory path for generated files.
+}
+
 const (
 	genDaoDefaultPath          = "./app"
 	nodeNameGenDaoInConfigFile = "gfcli.gen.dao"
 )
+
+func HelpDao() {
+	mlog.Print(gstr.TrimLeft(`
+USAGE 
+    gf gen dao [OPTION]
+
+OPTION
+    -/--path             directory path for generated files.
+    -l, --link           database configuration, the same as the ORM configuration of GoFrame.
+    -t, --tables         generate models only for given tables, multiple table names separated with ',' 
+    -g, --group          specifying the configuration group name for database,
+                         it's not necessary and the default value is "default"
+    -c, --config         used to specify the configuration file for database, it's commonly not necessary.
+                         If "-l" is not passed, it will search "./config.toml" and "./config/config.toml" 
+                         in current working directory in default.
+    -p, --prefix         add prefix for all table of specified link/database tables.
+    -r, --removePrefix   remove specified prefix of the table, multiple prefix separated with ',' 
+    -m, --mod            module name for generated golang file imports.
+    -j, --jsonCase       generated "json" tag case for model struct, cases are as follows(default Snake):
+                         | Case            | Example            |
+                         |---------------- |--------------------|
+                         | Camel           | AnyKindOfString    |
+                         | CamelLower      | anyKindOfString    |
+                         | Snake           | any_kind_of_string |
+                         | SnakeScreaming  | ANY_KIND_OF_STRING |
+                         | SnakeFirstUpper | rgb_code_md5       |
+                         | Kebab           | any-kind-of-string |
+                         | KebabScreaming  | ANY-KIND-OF-STRING |
+
+                  
+CONFIGURATION SUPPORT
+    Options are also supported by configuration file. The configuration node name is "gf.gen", which also supports
+    multiple databases, for example:
+    [gfcli]
+        [[gfcli.gen.dao]]
+            link     = "mysql:root:12345678@tcp(127.0.0.1:3306)/test"
+            tables   = "order,products"
+            jsonCase = "CamelLower"
+        [[gfcli.gen.dao]]
+            link   = "mysql:root:12345678@tcp(127.0.0.1:3306)/primary"
+            path   = "./my-app"
+            prefix = "primary_"
+            tables = "user, userDetail"
+
+EXAMPLES
+    gf gen dao
+    gf gen dao -l "mysql:root:12345678@tcp(127.0.0.1:3306)/test"
+    gf gen dao -path ./model -c config.yaml -g user-center -t user,user_detail,user_login
+    gf gen dao -r user_
+
+DESCRIPTION
+    The "gen" command is designed for multiple generating purposes.
+    It's currently supporting generating go files for ORM models.
+`))
+}
 
 // doGenDao implements the "gen dao" command.
 func doGenDao(parser *gcmd.Parser) {
@@ -52,11 +118,16 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		dirPath      = getOptionOrConfigForDao(index, parser, "path", genDaoDefaultPath) // Generated directory path.
 		tablesStr    = getOptionOrConfigForDao(index, parser, "tables")                  // Tables that will be generated.
 		prefixName   = getOptionOrConfigForDao(index, parser, "prefix")                  // Add prefix to DAO and Model struct name.
-		removePrefix = getOptionOrConfigForDao(index, parser, "remove-prefix")           // Remove prefix from table name.
 		linkInfo     = getOptionOrConfigForDao(index, parser, "link")                    // Custom database link.
 		configPath   = getOptionOrConfigForDao(index, parser, "config")                  // Config file path, eg: ./config/db.toml.
 		configGroup  = getOptionOrConfigForDao(index, parser, "group", "default")        // Group name of database configuration node for generated DAO.
+		removePrefix = getOptionOrConfigForDao(index, parser, "removePrefix")            // Remove prefix from table name.
+		jsonCase     = getOptionOrConfigForDao(index, parser, "jsonCase")                // Case configuration for 'json' tag.
 	)
+	// Make it compatible with old CLI version.
+	if removePrefix == "" {
+		removePrefix = getOptionOrConfigForDao(index, parser, "remove-prefix")
+	}
 	removePrefixArray := gstr.SplitAndTrim(removePrefix, ",")
 	if modName == "" {
 		if !gfile.Exists("go.mod") {
@@ -116,58 +187,52 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		for _, v := range removePrefixArray {
 			newTableName = gstr.TrimLeftStr(newTableName, v, 1)
 		}
-		generateDaoAndModelContentFile(
-			db,
-			tableName,
-			newTableName,
-			prefixName,
-			configGroup,
-			modName,
-			dirPath,
-		)
+		req := &generateDaoReq{
+			TableName:    tableName,
+			NewTableName: newTableName,
+			PrefixName:   prefixName,
+			GroupName:    configGroup,
+			ModName:      modName,
+			JsonCase:     jsonCase,
+			DirPath:      dirPath,
+		}
+		generateDaoAndModelContentFile(db, req)
 	}
 }
 
 // generateDaoAndModelContentFile generates the dao and model content of given table.
-//
-// The parameter <tableName> specifies the table name of the table.
-// The parameter <newTableName> specifies the prefix-stripped name of the table.
-// The parameter <prefixName> specifies the custom prefix name for generated dao and model struct.
-// The parameter <groupName> specifies the group name of database configuration node for generated DAO.
-// The parameter <modName> specifies the module name of current golang project, which is used for import purpose.
-// The parameter <dirPath> specifies the directory path for generated files.
-func generateDaoAndModelContentFile(db gdb.DB, tableName, newTableName, prefixName, groupName, modName, dirPath string) {
-	fieldMap, err := db.TableFields(tableName)
+func generateDaoAndModelContentFile(db gdb.DB, req *generateDaoReq) {
+	fieldMap, err := db.TableFields(req.TableName)
 	if err != nil {
-		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", tableName, err)
+		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", req.TableName, err)
 	}
 	// Change the `newTableName` if `prefixName` is given.
-	newTableName = prefixName + newTableName
+	newTableName := req.PrefixName + req.NewTableName
 	var (
-		dirPathDao              = gstr.Trim(gfile.Join(dirPath, "dao"), "./")
-		dirPathModel            = gstr.Trim(gfile.Join(dirPath, "model"), "./")
+		dirPathDao              = gstr.Trim(gfile.Join(req.DirPath, "dao"), "./")
+		dirPathModel            = gstr.Trim(gfile.Join(req.DirPath, "model"), "./")
 		tableNameCamelCase      = gstr.CamelCase(newTableName)
 		tableNameCamelLowerCase = gstr.CamelLowerCase(newTableName)
 		tableNameSnakeCase      = gstr.SnakeCase(newTableName)
-		structDefine            = generateStructDefinitionForDao(tableNameCamelCase, fieldMap)
+		structDefine            = generateStructDefinitionForDao(tableNameCamelCase, fieldMap, req)
 		packageImports          = ""
 		importPrefix            = ""
-		dirRealPath             = gfile.RealPath(dirPath)
+		dirRealPath             = gfile.RealPath(req.DirPath)
 	)
 	if dirRealPath == "" {
-		dirRealPath = dirPath
+		dirRealPath = req.DirPath
 		importPrefix = dirRealPath
 		importPrefix = gstr.Trim(dirRealPath, "./")
 	} else {
 		importPrefix = gstr.Replace(dirRealPath, gfile.Pwd(), "")
 	}
 	importPrefix = gstr.Replace(importPrefix, gfile.Separator, "/")
-	importPrefix = gstr.Join(g.SliceStr{modName, importPrefix}, "/")
+	importPrefix = gstr.Join(g.SliceStr{req.ModName, importPrefix}, "/")
 	importPrefix, _ = gregex.ReplaceString(`\/{2,}`, `/`, gstr.Trim(importPrefix, "/"))
 	if strings.Contains(structDefine, "gtime.Time") {
 		packageImports = gstr.Trim(`
 import (
-	"github.com/gogf/gf/os/gtime"
+    "github.com/gogf/gf/os/gtime"
 )`)
 	} else {
 		packageImports = ""
@@ -183,7 +248,7 @@ import (
 	if !gfile.Exists(path) {
 		indexContent := gstr.ReplaceByMap(templateDaoModelIndexContent, g.MapStrStr{
 			"{TplImportPrefix}":       importPrefix,
-			"{TplTableName}":          tableName,
+			"{TplTableName}":          req.TableName,
 			"{TplTableNameCamelCase}": tableNameCamelCase,
 		})
 		if err := gfile.PutContents(path, strings.TrimSpace(indexContent)); err != nil {
@@ -195,7 +260,7 @@ import (
 	// model - internal
 	path = gfile.Join(dirPathModel, "internal", fileName+".go")
 	entityContent := gstr.ReplaceByMap(templateDaoModelInternalContent, g.MapStrStr{
-		"{TplTableName}":          tableName,
+		"{TplTableName}":          req.TableName,
 		"{TplTableNameCamelCase}": tableNameCamelCase,
 		"{TplPackageImports}":     packageImports,
 		"{TplStructDefine}":       structDefine,
@@ -210,7 +275,7 @@ import (
 	if !gfile.Exists(path) {
 		indexContent := gstr.ReplaceByMap(templateDaoDaoIndexContent, g.MapStrStr{
 			"{TplImportPrefix}":            importPrefix,
-			"{TplTableName}":               tableName,
+			"{TplTableName}":               req.TableName,
 			"{TplTableNameCamelCase}":      tableNameCamelCase,
 			"{TplTableNameCamelLowerCase}": tableNameCamelLowerCase,
 		})
@@ -224,8 +289,8 @@ import (
 	path = gfile.Join(dirPathDao, "internal", fileName+".go")
 	modelContent := gstr.ReplaceByMap(templateDaoDaoInternalContent, g.MapStrStr{
 		"{TplImportPrefix}":            importPrefix,
-		"{TplTableName}":               tableName,
-		"{TplGroupName}":               groupName,
+		"{TplTableName}":               req.TableName,
+		"{TplGroupName}":               req.GroupName,
 		"{TplTableNameCamelCase}":      tableNameCamelCase,
 		"{TplTableNameCamelLowerCase}": tableNameCamelLowerCase,
 		"{TplStructDefine}":            structDefine,
@@ -240,13 +305,13 @@ import (
 }
 
 // generateStructDefinitionForDao generates and returns the struct definition for specified table.
-func generateStructDefinitionForDao(structName string, fieldMap map[string]*gdb.TableField) string {
+func generateStructDefinitionForDao(structName string, fieldMap map[string]*gdb.TableField, req *generateDaoReq) string {
 	buffer := bytes.NewBuffer(nil)
 	array := make([][]string, len(fieldMap))
 	names := sortFieldKeyForDao(fieldMap)
 	for index, name := range names {
 		field := fieldMap[name]
-		array[index] = generateStructFieldForDao(field)
+		array[index] = generateStructFieldForDao(field, req)
 	}
 	tw := tablewriter.NewWriter(buffer)
 	tw.SetBorder(false)
@@ -266,7 +331,7 @@ func generateStructDefinitionForDao(structName string, fieldMap map[string]*gdb.
 }
 
 // generateStructFieldForDao generates and returns the attribute definition for specified field.
-func generateStructFieldForDao(field *gdb.TableField) []string {
+func generateStructFieldForDao(field *gdb.TableField, req *generateDaoReq) []string {
 	var typeName, ormTag, jsonTag, comment string
 	t, _ := gregex.ReplaceString(`\(.+\)`, "", field.Type)
 	t = gstr.Split(gstr.Trim(t), " ")[0]
@@ -321,7 +386,7 @@ func generateStructFieldForDao(field *gdb.TableField) []string {
 		}
 	}
 	ormTag = field.Name
-	jsonTag = gstr.SnakeCase(field.Name)
+	jsonTag = getJsonTagFromCase(field.Name, req.JsonCase)
 	if gstr.ContainsI(field.Key, "pri") {
 		ormTag += ",primary"
 	}
@@ -405,6 +470,33 @@ func generateColumnNamesForDao(fieldMap map[string]*gdb.TableField) string {
 	buffer.Reset()
 	buffer.WriteString(namesContent)
 	return buffer.String()
+}
+
+// getJsonTagFromCase call gstr.Case* function to convert the s to specified case.
+func getJsonTagFromCase(str, caseStr string) string {
+	switch gstr.ToLower(caseStr) {
+	case gstr.ToLower("Camel"):
+		return gstr.CaseCamel(str)
+
+	case gstr.ToLower("CamelLower"):
+		return gstr.CaseCamelLower(str)
+
+	case gstr.ToLower("Kebab"):
+		return gstr.CaseKebab(str)
+
+	case gstr.ToLower("KebabScreaming"):
+		return gstr.CaseKebabScreaming(str)
+
+	case gstr.ToLower("Snake"):
+		return gstr.CaseSnake(str)
+
+	case gstr.ToLower("SnakeFirstUpper"):
+		return gstr.CaseSnakeFirstUpper(str)
+
+	case gstr.ToLower("SnakeScreaming"):
+		return gstr.CaseSnakeScreaming(str)
+	}
+	return str
 }
 
 func sortFieldKeyForDao(fieldMap map[string]*gdb.TableField) []string {

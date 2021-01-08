@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gogf/gf-cli/commands/env"
 	"github.com/gogf/gf-cli/commands/mod"
+	"github.com/gogf/gf/errors/gerror"
 	"strings"
 
 	_ "github.com/gogf/gf-cli/boot"
@@ -69,6 +70,16 @@ ADDITIONAL
 )
 
 func main() {
+	defer func() {
+		if exception := recover(); exception != nil {
+			if err, ok := exception.(error); ok {
+				mlog.Print(gerror.Current(err).Error())
+			} else {
+				panic(exception)
+			}
+		}
+	}()
+
 	allyes.Init()
 
 	command := gcmd.GetArg(1)
