@@ -45,7 +45,7 @@ OPTION
     -/--path             directory path for generated files.
     -l, --link           database configuration, the same as the ORM configuration of GoFrame.
     -t, --tables         generate models only for given tables, multiple table names separated with ',' 
-    -g, --group          specifying the configuration group name for database,
+    -g, --group          specifying the configuration group name of database for generated ORM instance,
                          it's not necessary and the default value is "default"
     -c, --config         used to specify the configuration file for database, it's commonly not necessary.
                          If "-l" is not passed, it will search "./config.toml" and "./config/config.toml" 
@@ -53,11 +53,11 @@ OPTION
     -p, --prefix         add prefix for all table of specified link/database tables.
     -r, --removePrefix   remove specified prefix of the table, multiple prefix separated with ',' 
     -m, --mod            module name for generated golang file imports.
-    -j, --jsonCase       generated "json" tag case for model struct, cases are as follows(default Snake):
+    -j, --jsonCase       generated json tag case for model struct, cases are as follows:
                          | Case            | Example            |
                          |---------------- |--------------------|
-                         | Camel           | AnyKindOfString    |
-                         | CamelLower      | anyKindOfString    |
+                         | Camel           | AnyKindOfString    | 
+                         | CamelLower      | anyKindOfString    | default
                          | Snake           | any_kind_of_string |
                          | SnakeScreaming  | ANY_KIND_OF_STRING |
                          | SnakeFirstUpper | rgb_code_md5       |
@@ -66,8 +66,9 @@ OPTION
 
                   
 CONFIGURATION SUPPORT
-    Options are also supported by configuration file. The configuration node name is "gf.gen", which also supports
-    multiple databases, for example:
+    Options are also supported by configuration file.
+    It's suggested using configuration file instead of command line arguments making producing. 
+    The configuration node name is "gf.gen.dao", which also supports multiple databases, for example:
     [gfcli]
         [[gfcli.gen.dao]]
             link     = "mysql:root:12345678@tcp(127.0.0.1:3306)/test"
@@ -84,15 +85,26 @@ EXAMPLES
     gf gen dao -l "mysql:root:12345678@tcp(127.0.0.1:3306)/test"
     gf gen dao -path ./model -c config.yaml -g user-center -t user,user_detail,user_login
     gf gen dao -r user_
-
-DESCRIPTION
-    The "gen" command is designed for multiple generating purposes.
-    It's currently supporting generating go files for ORM models.
 `))
 }
 
 // doGenDao implements the "gen dao" command.
-func doGenDao(parser *gcmd.Parser) {
+func doGenDao() {
+	parser, err := gcmd.Parse(g.MapStrBool{
+		"path":           true,
+		"m,mod":          true,
+		"l,link":         true,
+		"t,tables":       true,
+		"g,group":        true,
+		"c,config":       true,
+		"p,prefix":       true,
+		"r,removePrefix": true,
+		"j,jsonCase":     true,
+	})
+	if err != nil {
+		mlog.Fatal(err)
+	}
+
 	config := g.Cfg()
 	if config.Available() {
 		v := config.GetVar(nodeNameGenDaoInConfigFile)
@@ -122,9 +134,9 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		configPath   = getOptionOrConfigForDao(index, parser, "config")                  // Config file path, eg: ./config/db.toml.
 		configGroup  = getOptionOrConfigForDao(index, parser, "group", "default")        // Group name of database configuration node for generated DAO.
 		removePrefix = getOptionOrConfigForDao(index, parser, "removePrefix")            // Remove prefix from table name.
-		jsonCase     = getOptionOrConfigForDao(index, parser, "jsonCase")                // Case configuration for 'json' tag.
+		jsonCase     = getOptionOrConfigForDao(index, parser, "jsonCase", "CamelLower")  // Case configuration for 'json' tag.
 	)
-	// Make it compatible with old CLI version.
+	// Make it compatible with old CLI version for option name: remove-prefix
 	if removePrefix == "" {
 		removePrefix = getOptionOrConfigForDao(index, parser, "remove-prefix")
 	}

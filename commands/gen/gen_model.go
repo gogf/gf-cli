@@ -32,7 +32,7 @@ OPTION
     -/--path             directory path for generated files.
     -l, --link           database configuration, the same as the ORM configuration of GoFrame.
     -t, --tables         generate models only for given tables, multiple table names separated with ',' 
-    -g, --group          specifying the configuration group name for database,
+    -g, --group          specifying the configuration group name of database for generated ORM instance,
                          it's not necessary and the default value is "default"
     -c, --config         used to specify the configuration file for database, it's commonly not necessary.
                          If "-l" is not passed, it will search "./config.toml" and "./config/config.toml" 
@@ -42,8 +42,9 @@ OPTION
     -m, --mod            module name for generated golang file imports.
                   
 CONFIGURATION SUPPORT
-    Options are also supported by configuration file. The configuration node name is "gf.gen", which also supports
-    multiple databases, for example:
+    Options are also supported by configuration file.
+    It's suggested using configuration file instead of command line arguments making producing. 
+    The configuration node name is "gf.gen.model", which also supports multiple databases, for example:
     [gfcli]
         [[gfcli.gen.model]]
             link   = "mysql:root:12345678@tcp(127.0.0.1:3306)/test"
@@ -59,15 +60,24 @@ EXAMPLES
     gf gen model -l "mysql:root:12345678@tcp(127.0.0.1:3306)/test"
     gf gen model -path ./model -c config.yaml -g user-center -t user,user_detail,user_login
     gf gen model -r user_
-
-DESCRIPTION
-    The "gen" command is designed for multiple generating purposes.
-    It's currently supporting generating go files for ORM models.
 `))
 }
 
 // doGenModel implements the "gen model" command.
-func doGenModel(parser *gcmd.Parser) {
+func doGenModel() {
+	parser, err := gcmd.Parse(g.MapStrBool{
+		"path":           true,
+		"m,mod":          true,
+		"l,link":         true,
+		"t,tables":       true,
+		"g,group":        true,
+		"c,config":       true,
+		"p,prefix":       true,
+		"r,removePrefix": true,
+	})
+	if err != nil {
+		mlog.Fatal(err)
+	}
 	config := g.Cfg()
 	if config.Available() {
 		v := config.GetVar(nodeNameGenModelInConfigFile)
@@ -98,7 +108,7 @@ func doGenModelForArray(index int, parser *gcmd.Parser) {
 	if removePrefix == "" {
 		removePrefix = getOptionOrConfigForModel(index, parser, "remove-prefix")
 	}
-	removePrefixArray := gstr.SplitAndTrim(parser.GetOpt("remove-prefix"), ",")
+	removePrefixArray := gstr.SplitAndTrim(removePrefix, ",")
 	if linkInfo != "" {
 		path := gfile.TempDir() + gfile.Separator + "config.toml"
 		if err := gfile.PutContents(path, fmt.Sprintf("[database]\n\tlink=\"%s\"", linkInfo)); err != nil {
