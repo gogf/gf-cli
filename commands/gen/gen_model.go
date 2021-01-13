@@ -157,7 +157,6 @@ func doGenModelForArray(index int, parser *gcmd.Parser) {
 		}
 		generateModelContentFile(db, table, variable, genPath, configGroup)
 	}
-	mlog.Print("done!")
 }
 
 // generateModelContentFile generates the model content of given table.
