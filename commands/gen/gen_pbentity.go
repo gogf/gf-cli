@@ -24,8 +24,8 @@ import (
 type generatePbEntityReq struct {
 	TableName     string // TableName specifies the table name of the table.
 	NewTableName  string // NewTableName specifies the prefix-stripped name of the table.
-	PrefixName    string // PrefixName specifies the custom prefix name for generated dao and model struct.
-	GroupName     string // GroupName specifies the group name of database configuration node for generated DAO.
+	PrefixName    string // PrefixName specifies the custom prefix name for generated protobuf entity.
+	GroupName     string // GroupName specifies the group name of database configuration node for generated protobuf entity.
 	PkgName       string // PkgName specifies package name for generated protobuf.
 	NameCase      string // NameCase specifies the case of generated attribute name for entity message, value from gstr.Case* function names.
 	JsonCase      string // JsonCase specifies the case of json tag for attribute name of entity message, value from gstr.Case* function names.
@@ -138,10 +138,10 @@ func doGenPbEntityForArray(index int, parser *gcmd.Parser) {
 		dirPath       = getOptionOrConfigForPbEntity(index, parser, "path")                   // Generated directory path.
 		pkgName       = getOptionOrConfigForPbEntity(index, parser, "package")                // Package name for protobuf.
 		tablesStr     = getOptionOrConfigForPbEntity(index, parser, "tables")                 // Tables that will be generated.
-		prefixName    = getOptionOrConfigForPbEntity(index, parser, "prefix")                 // Add prefix to DAO and Model struct name.
+		prefixName    = getOptionOrConfigForPbEntity(index, parser, "prefix")                 // Add prefix to entity name.
 		linkInfo      = getOptionOrConfigForPbEntity(index, parser, "link")                   // Custom database link.
 		configPath    = getOptionOrConfigForPbEntity(index, parser, "config")                 // Config file path, eg: ./config/db.toml.
-		configGroup   = getOptionOrConfigForPbEntity(index, parser, "group", "default")       // Group name of database configuration node for generated DAO.
+		configGroup   = getOptionOrConfigForPbEntity(index, parser, "group", "default")       // Group name of database configuration node for generated protobuf entity.
 		removePrefix  = getOptionOrConfigForPbEntity(index, parser, "removePrefix")           // Remove prefix from table name.
 		nameCase      = getOptionOrConfigForPbEntity(index, parser, "nameCase", "Camel")      // Case configuration for message name.
 		jsonCase      = getOptionOrConfigForPbEntity(index, parser, "jsonCase", "CamelLower") // Case configuration for message json tag.
@@ -214,7 +214,7 @@ func doGenPbEntityForArray(index int, parser *gcmd.Parser) {
 	}
 }
 
-// generateDaoAndModelContentFile generates the dao and model content of given table.
+// generatePbEntityContentFile generates the protobuf files for given table.
 func generatePbEntityContentFile(db gdb.DB, req *generatePbEntityReq) {
 	fieldMap, err := db.TableFields(req.TableName)
 	if err != nil {
@@ -246,7 +246,7 @@ func generateEntityMessageDefinition(name string, fieldMap map[string]*gdb.Table
 	var (
 		buffer = bytes.NewBuffer(nil)
 		array  = make([][]string, len(fieldMap))
-		names  = sortFieldKeyForDao(fieldMap)
+		names  = sortFieldKeyForPbEntity(fieldMap)
 	)
 	for index, name := range names {
 		array[index] = generateMessageFieldForPbEntity(index+1, fieldMap[name], req)
@@ -271,7 +271,6 @@ func generateEntityMessageDefinition(name string, fieldMap map[string]*gdb.Table
 // generateMessageFieldForPbEntity generates and returns the message definition for specified field.
 func generateMessageFieldForPbEntity(index int, field *gdb.TableField, req *generatePbEntityReq) []string {
 	var (
-		fieldName  string
 		typeName   string
 		comment    string
 		jsonTagStr string
@@ -328,13 +327,13 @@ func generateMessageFieldForPbEntity(index int, field *gdb.TableField, req *gene
 			typeName = "string"
 		}
 	}
-	fieldName = formatCase(field.Name, req.NameCase)
 	comment = gstr.ReplaceByArray(field.Comment, g.SliceStr{
 		"\n", " ",
 		"\r", " ",
 	})
 	comment = gstr.Trim(comment)
 	comment = gstr.Replace(comment, `\n`, " ")
+	comment, _ = gregex.ReplaceString(`\s{2,}`, ` `, comment)
 	if jsonTagName := formatCase(field.Name, req.JsonCase); jsonTagName != "" {
 		jsonTagStr = fmt.Sprintf(`[(gogoproto.jsontag) = "%s"]`, jsonTagName)
 		// beautiful indent.
@@ -351,7 +350,7 @@ func generateMessageFieldForPbEntity(index int, field *gdb.TableField, req *gene
 	}
 	return []string{
 		"    #" + typeName,
-		" #" + gstr.CaseCamel(fieldName),
+		" #" + formatCase(field.Name, req.NameCase),
 		" #= " + gconv.String(index) + jsonTagStr + ";",
 		" #" + fmt.Sprintf(`// %s`, comment),
 	}
@@ -403,4 +402,28 @@ func getOptionOrConfigForPbEntity(index int, parser *gcmd.Parser, name string, d
 		result = defaultValue[0]
 	}
 	return
+}
+
+func sortFieldKeyForPbEntity(fieldMap map[string]*gdb.TableField) []string {
+	names := make(map[int]string)
+	for _, field := range fieldMap {
+		names[field.Index] = field.Name
+	}
+	var (
+		result = make([]string, len(names))
+		i      = 0
+		j      = 0
+	)
+	for {
+		if len(names) == 0 {
+			break
+		}
+		if val, ok := names[i]; ok {
+			result[j] = val
+			j++
+			delete(names, i)
+		}
+		i++
+	}
+	return result
 }
