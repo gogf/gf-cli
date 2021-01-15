@@ -50,7 +50,7 @@ OPTION
     -c, --config         used to specify the configuration file for database, it's commonly not necessary.
                          If "-l" is not passed, it will search "./config.toml" and "./config/config.toml" 
                          in current working directory in default.
-    -p, --prefix         add prefix for all table of specified link/database tables.
+    -p, --prefix         add specified prefix for all entity names and entity proto files.
     -r, --removePrefix   remove specified prefix of the table, multiple prefix separated with ',' 
     -n, --nameCase       case for message attribute names, default is "Camel": 
                          | Case            | Example            |
