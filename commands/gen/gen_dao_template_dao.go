@@ -51,6 +51,7 @@ import (
 // and custom defined data operations functions management.
 type {TplTableNameCamelCase}Dao struct {
 	gmvc.M
+	DB      gdb.DB
 	Table   string
 	Columns {TplTableNameCamelLowerCase}Columns
 }
@@ -64,6 +65,7 @@ var (
 	// {TplTableNameCamelCase} is globally public accessible object for table {TplTableName} operations.
 	{TplTableNameCamelCase} = &{TplTableNameCamelCase}Dao{
 		M:     g.DB("{TplGroupName}").Model("{TplTableName}").Safe(),
+		DB:    g.DB("{TplGroupName}"),
 		Table: "{TplTableName}",
 		Columns: {TplTableNameCamelLowerCase}Columns{
 			{TplColumnNames}
