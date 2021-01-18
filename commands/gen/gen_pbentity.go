@@ -31,6 +31,7 @@ type generatePbEntityReq struct {
 	JsonCase      string // JsonCase specifies the case of json tag for attribute name of entity message, value from gstr.Case* function names.
 	DirPath       string // DirPath specifies the directory path for generated files.
 	OptionContent string // OptionContent specifies the extra option configuration content for protobuf.
+	TplEntityPath string // TplEntityPath specifies the file path for generating protobuf entity files.
 }
 
 const (
@@ -65,6 +66,7 @@ OPTION
     -j, --jsonCase       case for message json tag, cases are the same as "nameCase", default "CamelLower".
                          set it to "none" to ignore json tag generating.
     -o, --option         extra protobuf options.
+    -/--tplEntity        template content for protobuf entity files generating.
                   
 CONFIGURATION SUPPORT
     Options are also supported by configuration file.
@@ -109,14 +111,17 @@ func doGenPbEntity() {
 		"o,option":       true,
 		"n,nameCase":     true,
 		"j,jsonCase":     true,
+		"tplEntity":      true,
 	})
 	if err != nil {
 		mlog.Fatal(err)
 	}
-
 	config := g.Cfg()
 	if config.Available() {
 		v := config.GetVar(nodeNameGenPbEntityInConfigFile)
+		if v.IsEmpty() && g.IsEmpty(parser.GetOptAll()) {
+			mlog.Fatal(`command arguments and configurations not found for generating protobuf entity files`)
+		}
 		if v.IsSlice() {
 			for i := 0; i < len(v.Interfaces()); i++ {
 				doGenPbEntityForArray(i, parser)
@@ -146,7 +151,11 @@ func doGenPbEntityForArray(index int, parser *gcmd.Parser) {
 		nameCase      = getOptionOrConfigForPbEntity(index, parser, "nameCase", "Camel")      // Case configuration for message name.
 		jsonCase      = getOptionOrConfigForPbEntity(index, parser, "jsonCase", "CamelLower") // Case configuration for message json tag.
 		optionContent = getOptionOrConfigForPbEntity(index, parser, "option")                 // Option content for protobuf.
+		tplEntityPath = getOptionOrConfigForPbEntity(index, parser, "tplEntity")              // Specifies the file path for generating protobuf entity files.
 	)
+	if tplEntityPath != "" && (!gfile.Exists(tplEntityPath) || !gfile.IsReadable(tplEntityPath)) {
+		mlog.Fatalf("template file for entity files generating does not exist or is not readable: %s", tplEntityPath)
+	}
 	// Make it compatible with old CLI version for option name: remove-prefix
 	if removePrefix == "" {
 		removePrefix = getOptionOrConfigForPbEntity(index, parser, "remove-prefix")
@@ -209,6 +218,7 @@ func doGenPbEntityForArray(index int, parser *gcmd.Parser) {
 			JsonCase:      jsonCase,
 			DirPath:       dirPath,
 			OptionContent: gstr.Trim(optionContent),
+			TplEntityPath: tplEntityPath,
 		}
 		generatePbEntityContentFile(db, req)
 	}
@@ -229,7 +239,7 @@ func generatePbEntityContentFile(db gdb.DB, req *generatePbEntityReq) {
 		fileName            = gstr.Trim(tableNameSnakeCase, "-_.")
 		path                = gfile.Join(req.DirPath, fileName+".proto")
 	)
-	entityContent := gstr.ReplaceByMap(templatePbEntityMessageContent, g.MapStrStr{
+	entityContent := gstr.ReplaceByMap(getTplPbEntityContent(req.TplEntityPath), g.MapStrStr{
 		"{PackageName}":   req.PkgName,
 		"{OptionContent}": req.OptionContent,
 		"{EntityMessage}": entityMessageDefine,
@@ -354,6 +364,13 @@ func generateMessageFieldForPbEntity(index int, field *gdb.TableField, req *gene
 		" #= " + gconv.String(index) + jsonTagStr + ";",
 		" #" + fmt.Sprintf(`// %s`, comment),
 	}
+}
+
+func getTplPbEntityContent(tplEntityPath string) string {
+	if tplEntityPath != "" {
+		return gfile.GetContents(tplEntityPath)
+	}
+	return templatePbEntityMessageContent
 }
 
 // formatCase call gstr.Case* function to convert the s to specified case.

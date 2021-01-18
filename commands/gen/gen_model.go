@@ -81,6 +81,9 @@ func doGenModel() {
 	config := g.Cfg()
 	if config.Available() {
 		v := config.GetVar(nodeNameGenModelInConfigFile)
+		if v.IsEmpty() && g.IsEmpty(parser.GetOptAll()) {
+			mlog.Fatal(`command arguments and configurations not found for generating model files`)
+		}
 		if v.IsSlice() {
 			for i := 0; i < len(v.Interfaces()); i++ {
 				doGenModelForArray(i, parser)
