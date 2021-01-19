@@ -21,13 +21,6 @@ import (
 )
 
 // https://golang.google.cn/doc/install/source
-// Here're the most commonly used platforms and arches,
-// but some are removed:
-//    android    arm
-//    dragonfly amd64
-//    plan9     386
-//    plan9     amd64
-//    solaris   amd64
 const platforms = `
     darwin    amd64
     darwin    arm64
@@ -52,6 +45,11 @@ const platforms = `
     openbsd   arm
     windows   386
     windows   amd64
+	android   arm
+	dragonfly amd64
+	plan9     386
+	plan9     amd64
+	solaris   amd64
 `
 
 const (
@@ -152,15 +150,18 @@ func Run() {
 			extra = fmt.Sprintf(`-mod=%s %s`, mod, extra)
 		}
 	}
+	if extra != "" {
+		extra += " "
+	}
 	var (
-		cgoEnabled   = gconv.Bool(getOption(parser, "cgo"))
-		version      = getOption(parser, "version")
-		outputPath   = getOption(parser, "output")
-		archOption   = getOption(parser, "arch")
-		systemOption = getOption(parser, "system")
-		packStr      = getOption(parser, "pack")
-		arches       = strings.Split(archOption, ",")
-		systems      = strings.Split(systemOption, ",")
+		cgoEnabled    = gconv.Bool(getOption(parser, "cgo"))
+		version       = getOption(parser, "version")
+		outputPath    = getOption(parser, "output")
+		archOption    = getOption(parser, "arch")
+		systemOption  = getOption(parser, "system")
+		packStr       = getOption(parser, "pack")
+		customSystems = gstr.SplitAndTrim(systemOption, ",")
+		customArches  = gstr.SplitAndTrim(archOption, ",")
 	)
 	if !cgoEnabled {
 		cgoEnabled = parser.ContainsOpt("cgo")
@@ -168,7 +169,24 @@ func Run() {
 	if len(version) > 0 {
 		path += "/" + version
 	}
-
+	// System and arch checks.
+	var (
+		spaceRegex  = regexp.MustCompile(`\s+`)
+		platformMap = make(map[string]map[string]bool)
+	)
+	for _, line := range strings.Split(strings.TrimSpace(platforms), "\n") {
+		line = gstr.Trim(line)
+		line = spaceRegex.ReplaceAllString(line, " ")
+		var (
+			array  = strings.Split(line, " ")
+			system = strings.TrimSpace(array[0])
+			arch   = strings.TrimSpace(array[1])
+		)
+		if platformMap[system] == nil {
+			platformMap[system] = make(map[string]bool)
+		}
+		platformMap[system][arch] = true
+	}
 	// Auto swagger.
 	if containsOption(parser, "swagger") {
 		if err := gproc.ShellRun(`gf swagger`); err != nil {
@@ -209,58 +227,53 @@ func Run() {
 		genv.Set("CGO_ENABLED", "0")
 	}
 	var (
-		cmd   = ""
-		ext   = ""
-		reg   = regexp.MustCompile(`\s+`)
-		lines = strings.Split(strings.TrimSpace(platforms), "\n")
-	)
-	for _, line := range lines {
 		cmd = ""
 		ext = ""
-		line = strings.TrimSpace(line)
-		line = reg.ReplaceAllString(line, " ")
-		array := strings.Split(line, " ")
-		array[0] = strings.TrimSpace(array[0])
-		array[1] = strings.TrimSpace(array[1])
-		if len(systems) > 0 && systems[0] != "" && systems[0] != "all" && !gstr.InArray(systems, array[0]) {
+	)
+	for system, item := range platformMap {
+		cmd = ""
+		ext = ""
+		if len(customSystems) > 0 && customSystems[0] != "all" && !gstr.InArray(customSystems, system) {
 			continue
 		}
-		if len(arches) > 0 && arches[0] != "" && arches[0] != "all" && !gstr.InArray(arches, array[1]) {
-			continue
-		}
-		if len(systemOption) == 0 && len(archOption) == 0 {
-			if runtime.GOOS == "windows" {
-				ext = ".exe"
+		for arch, _ := range item {
+			if len(customArches) > 0 && customArches[0] != "all" && !gstr.InArray(customArches, arch) {
+				continue
 			}
-			// Single binary building, output the binary to current working folder.
-			output := ""
-			if len(outputPath) > 0 {
-				output = "-o " + outputPath + ext
+			if len(customSystems) == 0 && len(customArches) == 0 {
+				if runtime.GOOS == "windows" {
+					ext = ".exe"
+				}
+				// Single binary building, output the binary to current working folder.
+				output := ""
+				if len(outputPath) > 0 {
+					output = "-o " + outputPath + ext
+				} else {
+					output = "-o " + name + ext
+				}
+				cmd = fmt.Sprintf(`go build %s -ldflags "%s" %s %s`, output, ldFlags, extra, file)
 			} else {
-				output = "-o " + name + ext
+				// Cross-building, output the compiled binary to specified path.
+				if system == "windows" {
+					ext = ".exe"
+				}
+				genv.Set("GOOS", system)
+				genv.Set("GOARCH", arch)
+				cmd = fmt.Sprintf(
+					`go build -o %s/%s/%s%s -ldflags "%s" %s%s`,
+					path, system+"_"+arch, name, ext, ldFlags, extra, file,
+				)
 			}
-			cmd = fmt.Sprintf(`go build %s -ldflags "%s" %s %s`, output, ldFlags, extra, file)
-		} else {
-			// Cross-building, output the compiled binary to specified path.
-			if array[0] == "windows" {
-				ext = ".exe"
+			// It's not necessary printing the complete command string.
+			cmdShow, _ := gregex.ReplaceString(`\s+(-ldflags ".+?")\s+`, " ", cmd)
+			mlog.Print(cmdShow)
+			if _, err := gproc.ShellExec(cmd); err != nil {
+				mlog.Print("failed to build")
 			}
-			genv.Set("GOOS", array[0])
-			genv.Set("GOARCH", array[1])
-			cmd = fmt.Sprintf(
-				`go build -o %s/%s/%s%s -ldflags "%s" %s %s`,
-				path, array[0]+"_"+array[1], name, ext, ldFlags, extra, file,
-			)
-		}
-		// It's not necessary printing the complete command string.
-		cmdShow, _ := gregex.ReplaceString(`\s+(-ldflags ".+?")\s+`, " ", cmd)
-		mlog.Print(cmdShow)
-		if result, err := gproc.ShellExec(cmd); err != nil {
-			mlog.Fatalf("build failed: %s%s", result, err.Error())
-		}
-		// single binary building.
-		if len(systemOption) == 0 && len(archOption) == 0 {
-			break
+			// single binary building.
+			if len(systemOption) == 0 && len(archOption) == 0 {
+				break
+			}
 		}
 	}
 	mlog.Print("done!")
