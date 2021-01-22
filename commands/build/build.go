@@ -271,11 +271,12 @@ func Run() {
 				mlog.Print("failed to build")
 			}
 			// single binary building.
-			if len(systemOption) == 0 && len(archOption) == 0 {
-				break
+			if len(customSystems) == 0 && len(customArches) == 0 {
+				goto buildDone
 			}
 		}
 	}
+buildDone:
 	mlog.Print("done!")
 }
 
