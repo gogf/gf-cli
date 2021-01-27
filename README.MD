@@ -1,6 +1,7 @@
 # GF-CLI
+English | [简体中文](README_ZH.MD)
 
-`gf-cli` is a powerful CLI tool for building [GF](https://goframe.org) application with convenience.
+`gf-cli` is a powerful CLI tool for building [GoFrame](https://goframe.org) application with convenience.
 
 ## 1. Install
 
@@ -42,7 +43,7 @@ After downloads, please use `gf install` command to install gf binary to system 
     git clone --branch v0.7.3 https://github.com/gogf/gf-cli 
     cd gf-cli && go build main.go && ./main install
     ```
-1. Database `sqlite` and `oracle` are not support in `gf gen model` command in default as it needs `cgo` and `gcc`, you can manually make some changes to the source codes and do the building.
+1. Database `sqlite` and `oracle` are not support in `gf gen` command in default as it needs `cgo` and `gcc`, you can manually make some changes to the source codes and do the building.
 
 ## 2. Commands
 ```html
