@@ -43,7 +43,7 @@
     git clone --branch v0.7.3 https://github.com/gogf/gf-cli 
     cd gf-cli && go build main.go && ./main install
     ```
-> 注意：在`gf gen`命令中，由于`sqlite`和`oracle`数据库需要`cgo`和`gcc`支持，因此预编译的二进制中不提供对这两个数据库的支持，您需要手动修改源码，去掉对应数据库`import`的注释后手动编译支持。
+> 注意：在`gf gen`命令中，由于`sqlite`和`oracle`数据库需要`cgo`和`gcc`支持，因此预编译的二进制中不提供对这两个数据库的支持，您需要手动修改源码，去掉对应源码文件中指定数据库类型的`import`注释后手动编译支持。
 
 ## 2. 命名
 ```html
