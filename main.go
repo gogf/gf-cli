@@ -5,7 +5,6 @@ import (
 	"github.com/gogf/gf-cli/commands/env"
 	"github.com/gogf/gf-cli/commands/mod"
 	"github.com/gogf/gf/errors/gerror"
-	"github.com/gogf/gf/os/genv"
 	"strings"
 
 	_ "github.com/gogf/gf-cli/boot"
@@ -71,9 +70,6 @@ ADDITIONAL
 )
 
 func main() {
-	// Force using configuration file in current working directory.
-	genv.Set("GF_GCFG_PATH", gfile.Pwd())
-
 	defer func() {
 		if exception := recover(); exception != nil {
 			if err, ok := exception.(error); ok {

@@ -112,7 +112,6 @@ func doGenDao() {
 	if err != nil {
 		mlog.Fatal(err)
 	}
-
 	config := g.Cfg()
 	if config.Available() {
 		v := config.GetVar(nodeNameGenDaoInConfigFile)

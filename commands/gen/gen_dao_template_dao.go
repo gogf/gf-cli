@@ -15,12 +15,12 @@ import (
 // and custom defined data operations functions management. You can define
 // methods on it to extend its functionality as you wish.
 type {TplTableNameCamelLowerCase}Dao struct {
-	*internal.{TplTableNameCamelCase}Dao
+	internal.{TplTableNameCamelCase}Dao
 }
 
 var (
 	// {TplTableNameCamelCase} is globally public accessible object for table {TplTableName} operations.
-	{TplTableNameCamelCase} = &{TplTableNameCamelLowerCase}Dao{
+	{TplTableNameCamelCase} = {TplTableNameCamelLowerCase}Dao{
 		internal.{TplTableNameCamelCase},
 	}
 )
@@ -63,7 +63,7 @@ type {TplTableNameCamelLowerCase}Columns struct {
 
 var (
 	// {TplTableNameCamelCase} is globally public accessible object for table {TplTableName} operations.
-	{TplTableNameCamelCase} = &{TplTableNameCamelCase}Dao{
+	{TplTableNameCamelCase} = {TplTableNameCamelCase}Dao{
 		M:     g.DB("{TplGroupName}").Model("{TplTableName}").Safe(),
 		DB:    g.DB("{TplGroupName}"),
 		Table: "{TplTableName}",
@@ -104,7 +104,7 @@ func (d *{TplTableNameCamelCase}Dao) Slave() *{TplTableNameCamelCase}Dao {
 
 // Args sets custom arguments for model operation.
 func (d *{TplTableNameCamelCase}Dao) Args(args ...interface{}) *{TplTableNameCamelCase}Dao {
-	return &{TplTableNameCamelCase}Dao{M: d.M.Args(args ...)}
+	return &{TplTableNameCamelCase}Dao{M: d.M.Args(args...)}
 }
 
 // LeftJoin does "LEFT JOIN ... ON ..." statement on the model.
