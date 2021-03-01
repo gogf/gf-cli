@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/gogf/gf-cli/library/mlog"
+	"github.com/gogf/gf-cli/library/utils"
 	"github.com/gogf/gf/database/gdb"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gcmd"
@@ -296,6 +297,7 @@ import (
 		if err := gfile.PutContents(path, strings.TrimSpace(indexContent)); err != nil {
 			mlog.Fatalf("writing content to '%s' failed: %v", path, err)
 		} else {
+			utils.GoFmt(path)
 			mlog.Print("generated:", path)
 		}
 	}
@@ -310,6 +312,7 @@ import (
 	if err := gfile.PutContents(path, strings.TrimSpace(entityContent)); err != nil {
 		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
 	} else {
+		utils.GoFmt(path)
 		mlog.Print("generated:", path)
 	}
 	// dao - index
@@ -324,6 +327,7 @@ import (
 		if err := gfile.PutContents(path, strings.TrimSpace(indexContent)); err != nil {
 			mlog.Fatalf("writing content to '%s' failed: %v", path, err)
 		} else {
+			utils.GoFmt(path)
 			mlog.Print("generated:", path)
 		}
 	}
@@ -342,6 +346,7 @@ import (
 	if err := gfile.PutContents(path, strings.TrimSpace(modelContent)); err != nil {
 		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
 	} else {
+		utils.GoFmt(path)
 		mlog.Print("generated:", path)
 	}
 }
