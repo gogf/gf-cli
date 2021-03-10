@@ -387,14 +387,14 @@ func generateStructFieldForDao(field *gdb.TableField, req *generateDaoReq) []str
 	case "binary", "varbinary", "blob", "tinyblob", "mediumblob", "longblob":
 		typeName = "[]byte"
 
-	case "bit", "int", "tinyint", "small_int", "smallint", "medium_int", "mediumint", "serial":
+	case "bit", "int", "int2", "tinyint", "small_int", "smallint", "medium_int", "mediumint", "serial":
 		if gstr.ContainsI(field.Type, "unsigned") {
 			typeName = "uint"
 		} else {
 			typeName = "int"
 		}
 
-	case "int8", "big_int", "bigint", "bigserial":
+	case "int4","int8","big_int", "bigint", "bigserial":
 		if gstr.ContainsI(field.Type, "unsigned") {
 			typeName = "uint64"
 		} else {
@@ -404,7 +404,7 @@ func generateStructFieldForDao(field *gdb.TableField, req *generateDaoReq) []str
 	case "real":
 		typeName = "float32"
 
-	case "float", "double", "decimal", "smallmoney":
+	case "float", "double", "decimal", "smallmoney", "numeric":
 		typeName = "float64"
 
 	case "bool":
