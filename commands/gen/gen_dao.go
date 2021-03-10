@@ -394,7 +394,7 @@ func generateStructFieldForDao(field *gdb.TableField, req *generateDaoReq) []str
 			typeName = "int"
 		}
 
-	case "int4","int8","big_int", "bigint", "bigserial":
+	case "int4", "int8", "big_int", "bigint", "bigserial":
 		if gstr.ContainsI(field.Type, "unsigned") {
 			typeName = "uint64"
 		} else {
