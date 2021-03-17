@@ -268,7 +268,7 @@ func Run() {
 			cmdShow, _ := gregex.ReplaceString(`\s+(-ldflags ".+?")\s+`, " ", cmd)
 			mlog.Print(cmdShow)
 			if _, err := gproc.ShellExec(cmd); err != nil {
-				mlog.Print("failed to build")
+				mlog.Printf("failed to build, os:%s, arch:%s", system, arch)
 			}
 			// single binary building.
 			if len(customSystems) == 0 && len(customArches) == 0 {
