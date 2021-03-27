@@ -52,6 +52,39 @@ const platforms = `
 	solaris   amd64
 `
 
+const platforms116 = `
+    darwin    amd64
+    darwin    arm64
+    ios       amd64
+    ios       arm64
+    freebsd   386
+    freebsd   amd64
+    freebsd   arm
+    linux     386
+    linux     amd64
+    linux     arm
+    linux     arm64
+    linux     ppc64
+    linux     ppc64le
+    linux     mips
+    linux     mipsle
+    linux     mips64
+    linux     mips64le
+    netbsd    386
+    netbsd    amd64
+    netbsd    arm
+    openbsd   386
+    openbsd   amd64
+    openbsd   arm
+    windows   386
+    windows   amd64
+	android   arm
+	dragonfly amd64
+	plan9     386
+	plan9     amd64
+	solaris   amd64
+`
+
 const (
 	nodeNameInConfigFile = "gfcli.build"        // nodeNameInConfigFile is the node name for compiler configurations in configuration file.
 	packedGoFileName     = "build_pack_data.go" // packedGoFileName specifies the file name for packing common folders into one single go file.
@@ -108,6 +141,14 @@ PLATFORMS
 
 func Run() {
 	mlog.SetHeaderPrint(true)
+	runtimeVersion := runtime.Version()
+	versionArray := strings.Split(runtimeVersion, ".")
+	go116 := false
+	if gconv.Int(versionArray[0][2:]) >= 1 && gconv.Int(versionArray[1]) > 15 {
+		mlog.Debug("go version >= 1.16,apple silicon supported")
+		go116 = true
+	}
+
 	parser, err := gcmd.Parse(g.MapStrBool{
 		"n,name":    true,
 		"v,version": true,
@@ -171,10 +212,14 @@ func Run() {
 	}
 	// System and arch checks.
 	var (
-		spaceRegex  = regexp.MustCompile(`\s+`)
-		platformMap = make(map[string]map[string]bool)
+		spaceRegex    = regexp.MustCompile(`\s+`)
+		platformMap   = make(map[string]map[string]bool)
+		platformsData = platforms
 	)
-	for _, line := range strings.Split(strings.TrimSpace(platforms), "\n") {
+	if go116 {
+		platformsData = platforms116
+	}
+	for _, line := range strings.Split(strings.TrimSpace(platformsData), "\n") {
 		line = gstr.Trim(line)
 		line = spaceRegex.ReplaceAllString(line, " ")
 		var (
@@ -268,7 +313,7 @@ func Run() {
 			cmdShow, _ := gregex.ReplaceString(`\s+(-ldflags ".+?")\s+`, " ", cmd)
 			mlog.Print(cmdShow)
 			if _, err := gproc.ShellExec(cmd); err != nil {
-				mlog.Print("failed to build")
+				mlog.Printf("failed to build, os:%s, arch:%s", system, arch)
 			}
 			// single binary building.
 			if len(customSystems) == 0 && len(customArches) == 0 {
