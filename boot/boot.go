@@ -24,7 +24,7 @@ func handleZshAlias() {
 			aliasCommand := `alias gf=gf`
 			content := gfile.GetContents(zshPath)
 			if !gstr.Contains(content, aliasCommand) {
-				_ = gfile.PutContentsAppend(zshPath, "\n"+aliasCommand)
+				_ = gfile.PutContentsAppend(zshPath, "\n"+aliasCommand+"\n")
 			}
 		}
 	}
