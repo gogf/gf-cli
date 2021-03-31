@@ -3,6 +3,10 @@ package build
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"runtime"
+	"strings"
+
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/encoding/gbase64"
 	"github.com/gogf/gf/frame/g"
@@ -15,44 +19,10 @@ import (
 	"github.com/gogf/gf/text/gstr"
 	"github.com/gogf/gf/util/gconv"
 	"github.com/gogf/gf/util/gutil"
-	"regexp"
-	"runtime"
-	"strings"
 )
 
 // https://golang.google.cn/doc/install/source
 const platforms = `
-    darwin    amd64
-    darwin    arm64
-    freebsd   386
-    freebsd   amd64
-    freebsd   arm
-    linux     386
-    linux     amd64
-    linux     arm
-    linux     arm64
-    linux     ppc64
-    linux     ppc64le
-    linux     mips
-    linux     mipsle
-    linux     mips64
-    linux     mips64le
-    netbsd    386
-    netbsd    amd64
-    netbsd    arm
-    openbsd   386
-    openbsd   amd64
-    openbsd   arm
-    windows   386
-    windows   amd64
-	android   arm
-	dragonfly amd64
-	plan9     386
-	plan9     amd64
-	solaris   amd64
-`
-
-const platforms116 = `
     darwin    amd64
     darwin    arm64
     ios       amd64
@@ -141,14 +111,6 @@ PLATFORMS
 
 func Run() {
 	mlog.SetHeaderPrint(true)
-	runtimeVersion := runtime.Version()
-	versionArray := strings.Split(runtimeVersion, ".")
-	go116 := false
-	if gconv.Int(versionArray[0][2:]) >= 1 && gconv.Int(versionArray[1]) > 15 {
-		mlog.Debug("go version >= 1.16,apple silicon supported")
-		go116 = true
-	}
-
 	parser, err := gcmd.Parse(g.MapStrBool{
 		"n,name":    true,
 		"v,version": true,
@@ -214,12 +176,8 @@ func Run() {
 	var (
 		spaceRegex    = regexp.MustCompile(`\s+`)
 		platformMap   = make(map[string]map[string]bool)
-		platformsData = platforms
 	)
-	if go116 {
-		platformsData = platforms116
-	}
-	for _, line := range strings.Split(strings.TrimSpace(platformsData), "\n") {
+	for _, line := range strings.Split(strings.TrimSpace(platforms), "\n") {
 		line = gstr.Trim(line)
 		line = spaceRegex.ReplaceAllString(line, " ")
 		var (
