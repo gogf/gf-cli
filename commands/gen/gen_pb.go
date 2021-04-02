@@ -62,5 +62,16 @@ func doGenPb() {
 		}
 		return true
 	})
+	// Custom replacement.
+	//pbFolder := "protobuf"
+	//_, _ = gfile.ScanDirFileFunc(pbFolder, "*.go", true, func(path string) string {
+	//	content := gfile.GetContents(path)
+	//	content = gstr.ReplaceByArray(content, g.SliceStr{
+	//		`gtime "gtime"`, `gtime "github.com/gogf/gf/os/gtime"`,
+	//	})
+	//	_ = gfile.PutContents(path, content)
+	//	utils.GoFmt(path)
+	//	return path
+	//})
 	mlog.Print("done!")
 }
