@@ -21,7 +21,6 @@ EXAMPLES
     gf get github.com/gogf/gf@latest
     gf get github.com/gogf/gf@master
     gf get golang.org/x/sys
-
 `))
 }
 
