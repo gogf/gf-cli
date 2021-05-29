@@ -2,6 +2,7 @@ package gen
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/gogf/gf-cli/library/mlog"
@@ -197,7 +198,7 @@ func doGenPbEntityForArray(index int, parser *gcmd.Parser) {
 	if tablesStr != "" {
 		tableNames = gstr.SplitAndTrim(tablesStr, ",")
 	} else {
-		tableNames, err = db.Tables()
+		tableNames, err = db.Tables(context.TODO())
 		if err != nil {
 			mlog.Fatalf("fetching tables failed: \n %v", err)
 		}
@@ -226,7 +227,7 @@ func doGenPbEntityForArray(index int, parser *gcmd.Parser) {
 
 // generatePbEntityContentFile generates the protobuf files for given table.
 func generatePbEntityContentFile(db gdb.DB, req *generatePbEntityReq) {
-	fieldMap, err := db.TableFields(req.TableName)
+	fieldMap, err := db.TableFields(db.GetCtx(), req.TableName)
 	if err != nil {
 		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", req.TableName, err)
 	}

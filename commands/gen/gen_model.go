@@ -2,6 +2,7 @@ package gen
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/gogf/gf-cli/library/mlog"
@@ -147,7 +148,7 @@ func doGenModelForArray(index int, parser *gcmd.Parser) {
 	if tableOpt != "" {
 		tables = gstr.SplitAndTrim(tableOpt, ",")
 	} else {
-		tables, err = db.Tables()
+		tables, err = db.Tables(context.TODO())
 		if err != nil {
 			mlog.Fatalf("fetching tables failed: \n %v", err)
 		}
@@ -171,7 +172,7 @@ func doGenModelForArray(index int, parser *gcmd.Parser) {
 // file_entity.go : the entity definition go file, it can be overwrote by gf-cli tool, don't edit it;
 // file_model.go  : the active record design model definition go file, it can be overwrote by gf-cli tool, don't edit it;
 func generateModelContentFile(db gdb.DB, table, variable, folderPath, groupName string) {
-	fieldMap, err := db.TableFields(table)
+	fieldMap, err := db.TableFields(context.TODO(), table)
 	if err != nil {
 		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", table, err)
 	}
