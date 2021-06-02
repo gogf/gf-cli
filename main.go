@@ -215,5 +215,4 @@ func getGFVersionOfCurrentProject() (string, error) {
 	} else {
 		return "", gerror.New("cannot find go.mod")
 	}
-	return "", nil
 }
