@@ -178,9 +178,9 @@ func version() {
 		info["git"] = "none"
 	}
 	mlog.Printf(`GoFrame CLI Tool %s, https://goframe.org`, VERSION)
-	gfVersion := getGFVersionOfCurrentProject()
-	if gfVersion == "" {
-		gfVersion = "Cannot find go.mod"
+	gfVersion, err := getGFVersionOfCurrentProject()
+	if err != nil {
+		gfVersion = err.Error()
 	} else {
 		gfVersion = gfVersion + " in current go.mod"
 	}
@@ -201,14 +201,19 @@ CLI Built Detail:
 }
 
 // getGFVersionOfCurrentProject checks and returns the GoFrame version current project using.
-func getGFVersionOfCurrentProject() string {
+func getGFVersionOfCurrentProject() (string, error) {
 	goModPath := gfile.Join(gfile.Pwd(), "go.mod")
 	if gfile.Exists(goModPath) {
-		match, err := gregex.MatchString(`github.com/gogf/gf\s+(.+)`, gfile.GetContents(goModPath))
+		match, err := gregex.MatchString(`github.com/gogf/gf\s+([\w\d\.]+)`, gfile.GetContents(goModPath))
 		if err != nil {
-			panic(err)
+			return "", err
 		}
-		return match[1]
+		if len(match) > 1 {
+			return match[1], nil
+		}
+		return "", gerror.New("cannot find goframe requirement in go.mod")
+	} else {
+		return "", gerror.New("cannot find go.mod")
 	}
-	return ""
+	return "", nil
 }
