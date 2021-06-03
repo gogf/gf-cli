@@ -15,7 +15,7 @@ import (
 // and custom defined data operations functions management. You can define
 // methods on it to extend its functionality as you wish.
 type {TplTableNameCamelLowerCase}Dao struct {
-	internal.{TplTableNameCamelCase}Dao
+	*internal.{TplTableNameCamelCase}Dao
 }
 
 var (
@@ -25,7 +25,7 @@ var (
 
 func init() {
 	{TplTableNameCamelCase} = {TplTableNameCamelLowerCase}Dao{
-		internal.{TplTableNameCamelCase},
+		internal.New{TplTableNameCamelCase}Dao(),
 	}
 }
 
@@ -60,13 +60,8 @@ type {TplTableNameCamelLowerCase}Columns struct {
 	{TplColumnDefine}
 }
 
-var (
-	// {TplTableNameCamelCase} is globally public accessible object for table {TplTableName} operations.
-	{TplTableNameCamelCase} {TplTableNameCamelCase}Dao
-)
-
-func init() {
-	{TplTableNameCamelCase} = {TplTableNameCamelCase}Dao{
+func New{TplTableNameCamelCase}Dao() *{TplTableNameCamelCase}Dao {
+	return &{TplTableNameCamelCase}Dao{
 		M:     g.DB("{TplGroupName}").Model("{TplTableName}").Safe(),
 		DB:    g.DB("{TplGroupName}"),
 		Table: "{TplTableName}",
