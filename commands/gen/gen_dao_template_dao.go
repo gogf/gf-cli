@@ -20,10 +20,14 @@ type {TplTableNameCamelLowerCase}Dao struct {
 
 var (
 	// {TplTableNameCamelCase} is globally public accessible object for table {TplTableName} operations.
+	{TplTableNameCamelCase} {TplTableNameCamelLowerCase}Dao
+)
+
+func init() {
 	{TplTableNameCamelCase} = {TplTableNameCamelLowerCase}Dao{
 		internal.{TplTableNameCamelCase},
 	}
-)
+}
 
 // Fill with you ideas below.
 
@@ -58,6 +62,10 @@ type {TplTableNameCamelLowerCase}Columns struct {
 
 var (
 	// {TplTableNameCamelCase} is globally public accessible object for table {TplTableName} operations.
+	{TplTableNameCamelCase} {TplTableNameCamelCase}Dao
+)
+
+func init() {
 	{TplTableNameCamelCase} = {TplTableNameCamelCase}Dao{
 		M:     g.DB("{TplGroupName}").Model("{TplTableName}").Safe(),
 		DB:    g.DB("{TplGroupName}"),
@@ -66,5 +74,5 @@ var (
 			{TplColumnNames}
 		},
 	}
-)
+}
 `
