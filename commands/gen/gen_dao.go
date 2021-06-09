@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf-cli/library/utils"
+	"github.com/gogf/gf/container/garray"
 	"github.com/gogf/gf/database/gdb"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gcmd"
@@ -51,6 +52,7 @@ OPTION
     -/--path             directory path for generated files.
     -l, --link           database configuration, the same as the ORM configuration of GoFrame.
     -t, --tables         generate models only for given tables, multiple table names separated with ',' 
+    -e, --tablesEx       generate models excluding given tables, multiple table names separated with ',' 
     -g, --group          specifying the configuration group name of database for generated ORM instance,
                          it's not necessary and the default value is "default"
     -p, --prefix         add prefix for all table of specified link/database tables.
@@ -101,6 +103,7 @@ func doGenDao() {
 		"m,mod":            true,
 		"l,link":           true,
 		"t,tables":         true,
+		"e,tablesEx":       true,
 		"g,group":          true,
 		"c,config":         true,
 		"p,prefix":         true,
@@ -141,6 +144,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		modName              = getOptionOrConfigForDao(index, parser, "mod")                     // Go module name, eg: github.com/gogf/gf.
 		dirPath              = getOptionOrConfigForDao(index, parser, "path", genDaoDefaultPath) // Generated directory path.
 		tablesStr            = getOptionOrConfigForDao(index, parser, "tables")                  // Tables that will be generated.
+		tablesEx             = getOptionOrConfigForDao(index, parser, "tablesEx")                // Tables that will be excluded for generating.
 		prefixName           = getOptionOrConfigForDao(index, parser, "prefix")                  // Add prefix to DAO and Model struct name.
 		linkInfo             = getOptionOrConfigForDao(index, parser, "link")                    // Custom database link.
 		configPath           = getOptionOrConfigForDao(index, parser, "config")                  // Config file path, eg: ./config/db.toml.
@@ -212,7 +216,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		mlog.Fatal("database initialization failed")
 	}
 
-	tableNames := ([]string)(nil)
+	var tableNames []string
 	if tablesStr != "" {
 		tableNames = gstr.SplitAndTrim(tablesStr, ",")
 	} else {
@@ -221,7 +225,16 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 			mlog.Fatalf("fetching tables failed: \n %v", err)
 		}
 	}
+	// Table excluding.
+	if tablesEx != "" {
+		array := garray.NewStrArrayFrom(tableNames)
+		for _, v := range gstr.SplitAndTrim(tablesEx, ",") {
+			array.RemoveValue(v)
+		}
+		tableNames = array.Slice()
+	}
 
+	// Generating dao & model go files one by one according to given table name.
 	for _, tableName := range tableNames {
 		newTableName := tableName
 		for _, v := range removePrefixArray {
