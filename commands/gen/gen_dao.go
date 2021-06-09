@@ -246,6 +246,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 
 // generateDaoAndModelContentFile generates the dao and model content of given table.
 func generateDaoAndModelContentFile(db gdb.DB, req *generateDaoReq) {
+	// Generating data preparing.
 	fieldMap, err := db.TableFields(context.TODO(), req.TableName)
 	if err != nil {
 		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", req.TableName, err)
@@ -273,6 +274,7 @@ func generateDaoAndModelContentFile(db gdb.DB, req *generateDaoReq) {
 	importPrefix = gstr.Replace(importPrefix, gfile.Separator, "/")
 	importPrefix = gstr.Join(g.SliceStr{req.ModName, importPrefix}, "/")
 	importPrefix, _ = gregex.ReplaceString(`\/{2,}`, `/`, gstr.Trim(importPrefix, "/"))
+	// Time package recognition.
 	if strings.Contains(structDefine, "gtime.Time") {
 		packageImports = gstr.Trim(`
 import (
@@ -288,36 +290,49 @@ import (
 		fileName += "_table"
 	}
 	// model - index
-	path := gfile.Join(dirPathModel, fileName+".go")
-	if !gfile.Exists(path) {
-		indexContent := gstr.ReplaceByMap(getTplModelIndexContent(req.TplModelIndexPath), g.MapStrStr{
-			"{TplImportPrefix}":       importPrefix,
-			"{TplTableName}":          req.TableName,
-			"{TplTableNameCamelCase}": tableNameCamelCase,
-		})
-		if err := gfile.PutContents(path, strings.TrimSpace(indexContent)); err != nil {
-			mlog.Fatalf("writing content to '%s' failed: %v", path, err)
-		} else {
-			utils.GoFmt(path)
-			mlog.Print("generated:", path)
-		}
-	}
+	generateDaoModelIndex(
+		tableNameCamelCase,
+		importPrefix,
+		dirPathModel,
+		fileName,
+		req,
+	)
+
 	// model - internal
-	path = gfile.Join(dirPathModel, "internal", fileName+".go")
-	entityContent := gstr.ReplaceByMap(getTplModelInternalContent(req.TplModelInternalPath), g.MapStrStr{
-		"{TplTableName}":          req.TableName,
-		"{TplTableNameCamelCase}": tableNameCamelCase,
-		"{TplPackageImports}":     packageImports,
-		"{TplStructDefine}":       structDefine,
-	})
-	if err := gfile.PutContents(path, strings.TrimSpace(entityContent)); err != nil {
-		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
-	} else {
-		utils.GoFmt(path)
-		mlog.Print("generated:", path)
-	}
+	generateDaoModelInternal(
+		tableNameCamelCase,
+		packageImports,
+		structDefine,
+		dirPathModel,
+		fileName,
+		req,
+	)
+
 	// dao - index
-	path = gfile.Join(dirPathDao, fileName+".go")
+	generateDaoIndex(
+		tableNameCamelCase,
+		tableNameCamelLowerCase,
+		importPrefix,
+		dirPathDao,
+		fileName,
+		req,
+	)
+
+	// dao - internal
+	generateDaoInternal(
+		tableNameCamelCase,
+		tableNameCamelLowerCase,
+		importPrefix,
+		structDefine,
+		dirPathDao,
+		fileName,
+		fieldMap,
+		req,
+	)
+}
+
+func generateDaoIndex(tableNameCamelCase, tableNameCamelLowerCase, importPrefix, dirPathDao, fileName string, req *generateDaoReq) {
+	path := gfile.Join(dirPathDao, fileName+".go")
 	if !gfile.Exists(path) {
 		indexContent := gstr.ReplaceByMap(getTplDaoIndexContent(req.TplDaoIndexPath), g.MapStrStr{
 			"{TplImportPrefix}":            importPrefix,
@@ -332,8 +347,15 @@ import (
 			mlog.Print("generated:", path)
 		}
 	}
-	// dao - internal
-	path = gfile.Join(dirPathDao, "internal", fileName+".go")
+}
+
+func generateDaoInternal(
+	tableNameCamelCase, tableNameCamelLowerCase, importPrefix, structDefine string,
+	dirPathDao, fileName string,
+	fieldMap map[string]*gdb.TableField,
+	req *generateDaoReq,
+) {
+	path := gfile.Join(dirPathDao, "internal", fileName+".go")
 	modelContent := gstr.ReplaceByMap(getTplDaoInternalContent(req.TplDaoInternalPath), g.MapStrStr{
 		"{TplImportPrefix}":            importPrefix,
 		"{TplTableName}":               req.TableName,
@@ -345,6 +367,51 @@ import (
 		"{TplColumnNames}":             gstr.Trim(generateColumnNamesForDao(fieldMap)),
 	})
 	if err := gfile.PutContents(path, strings.TrimSpace(modelContent)); err != nil {
+		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
+	} else {
+		utils.GoFmt(path)
+		mlog.Print("generated:", path)
+	}
+}
+
+func generateDaoModelIndex(tableNameCamelCase, importPrefix, dirPathModel, fileName string, req *generateDaoReq) {
+	// If the internal struct is already used by a model index struct,
+	// it ignores the automatic go file generating.
+	var (
+		pattern  = fmt.Sprintf(`\s+internal\.%s\s+`, gregex.Quote(tableNameCamelCase))
+		files, _ = gfile.ScanDirFile(dirPathModel, "*.go", false)
+	)
+	for _, file := range files {
+		if gregex.IsMatchString(pattern, gfile.GetContents(file)) {
+			return
+		}
+	}
+
+	path := gfile.Join(dirPathModel, fileName+".go")
+	if !gfile.Exists(path) {
+		indexContent := gstr.ReplaceByMap(getTplModelIndexContent(req.TplModelIndexPath), g.MapStrStr{
+			"{TplImportPrefix}":       importPrefix,
+			"{TplTableName}":          req.TableName,
+			"{TplTableNameCamelCase}": tableNameCamelCase,
+		})
+		if err := gfile.PutContents(path, strings.TrimSpace(indexContent)); err != nil {
+			mlog.Fatalf("writing content to '%s' failed: %v", path, err)
+		} else {
+			utils.GoFmt(path)
+			mlog.Print("generated:", path)
+		}
+	}
+}
+
+func generateDaoModelInternal(tableNameCamelCase, packageImports, structDefine, dirPathModel, fileName string, req *generateDaoReq) {
+	path := gfile.Join(dirPathModel, "internal", fileName+".go")
+	entityContent := gstr.ReplaceByMap(getTplModelInternalContent(req.TplModelInternalPath), g.MapStrStr{
+		"{TplTableName}":          req.TableName,
+		"{TplTableNameCamelCase}": tableNameCamelCase,
+		"{TplPackageImports}":     packageImports,
+		"{TplStructDefine}":       structDefine,
+	})
+	if err := gfile.PutContents(path, strings.TrimSpace(entityContent)); err != nil {
 		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
 	} else {
 		utils.GoFmt(path)
