@@ -236,11 +236,13 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 	}
 
 	// Generating dao & model go files one by one according to given table name.
-	for _, tableName := range tableNames {
+	newTableNames := make([]string, len(tableNames))
+	for i, tableName := range tableNames {
 		newTableName := tableName
 		for _, v := range removePrefixArray {
 			newTableName = gstr.TrimLeftStr(newTableName, v, 1)
 		}
+		newTableNames[i] = newTableName
 		generateDaoAndModelContentFile(db, generateDaoReq{
 			TableName:            tableName,
 			NewTableName:         newTableName,
@@ -255,7 +257,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 			TplModelInternalPath: tplModelInternalPath,
 		})
 	}
-	generateDaoModelIndex(db, generateDaoReq{
+	generateDaoModelIndex(tableNames, newTableNames, generateDaoReq{
 		PrefixName:           prefixName,
 		GroupName:            configGroup,
 		ModName:              modName,
@@ -406,12 +408,7 @@ func generateDaoModelInternal(tableNameCamelCase, packageImports, structDefine, 
 	}
 }
 
-func generateDaoModelIndex(db gdb.DB, req generateDaoReq) {
-	// Generating data preparing.
-	fieldMap, err := db.TableFields(context.TODO(), req.TableName)
-	if err != nil {
-		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", req.TableName, err)
-	}
+func generateDaoModelIndex(tableNames, newTableNames []string, req generateDaoReq) {
 	var (
 		dirPathModel = gstr.Trim(gfile.Join(req.DirPath, "model"), "./")
 		importPrefix = ""
@@ -431,16 +428,18 @@ func generateDaoModelIndex(db gdb.DB, req generateDaoReq) {
 	// Generate model type content.
 	var (
 		buffer = bytes.NewBuffer(nil)
-		array  = make([][]string, len(fieldMap))
-		names  = sortFieldKeyForDao(fieldMap)
+		array  = make([][]string, len(tableNames))
 		tw     = tablewriter.NewWriter(buffer)
 	)
-	for index, name := range names {
-		field := fieldMap[name]
-		array[index] = []string{
-			"    #" + gstr.CaseCamel(field.Name),
-			" #" + fmt.Sprintf(`internal.%s`, gstr.CaseCamel(field.Name)),
-			" #" + fmt.Sprintf(`// %s`, formatComment(field.Comment)),
+	for i, tableName := range tableNames {
+		array[i] = []string{
+			"    #" + gstr.CaseCamel(newTableNames[i]),
+			" #" + fmt.Sprintf(`internal.%s`, gstr.CaseCamel(newTableNames[i])),
+			" #" + fmt.Sprintf(
+				`// %s is the golang structure for table %s.`,
+				gstr.CaseCamel(newTableNames[i]),
+				tableName,
+			),
 		}
 	}
 	tw.SetBorder(false)
