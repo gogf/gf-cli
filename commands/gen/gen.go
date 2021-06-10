@@ -11,9 +11,6 @@ func Help() {
 	case "dao":
 		HelpDao()
 
-	case "model":
-		HelpModel()
-
 	case "pb":
 		HelpPb()
 
@@ -27,8 +24,6 @@ USAGE
 
 TYPE
     dao        generate dao and model files.
-    model      generate model files, note that these generated model files are different from model files 
-               of command "gf gen dao".
     pb         parse proto files and generate protobuf go files.
     pbentity   generate entity message files in protobuf3 format.
 
@@ -49,9 +44,6 @@ func Run() {
 	switch genType {
 	case "dao":
 		doGenDao()
-
-	case "model":
-		doGenModel()
 
 	case "pb":
 		doGenPb()
