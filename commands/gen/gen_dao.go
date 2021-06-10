@@ -427,6 +427,7 @@ func generateDaoModelIndex(db gdb.DB, req generateDaoReq) {
 	importPrefix = gstr.Replace(importPrefix, gfile.Separator, "/")
 	importPrefix = gstr.Join(g.SliceStr{req.ModName, importPrefix}, "/")
 	importPrefix, _ = gregex.ReplaceString(`\/{2,}`, `/`, gstr.Trim(importPrefix, "/"))
+
 	// Generate model type content.
 	var (
 		buffer = bytes.NewBuffer(nil)
@@ -448,13 +449,14 @@ func generateDaoModelIndex(db gdb.DB, req generateDaoReq) {
 	tw.SetColumnSeparator("")
 	tw.AppendBulk(array)
 	tw.Render()
-	stContent := buffer.String()
+	typeContent := buffer.String()
 	// Let's do this hack of table writer for indent!
-	stContent = gstr.Replace(stContent, "  #", "")
+	typeContent = gstr.Replace(typeContent, "  #", "")
 	buffer.Reset()
 	buffer.WriteString("type (\n")
-	buffer.WriteString(stContent)
+	buffer.WriteString(typeContent)
 	buffer.WriteString(")")
+
 	// Generate and write content to golang file.
 	path := gfile.Join(dirPathModel, modelIndexFileName)
 	if err := gfile.PutContents(path, strings.TrimSpace(buffer.String())); err != nil {
