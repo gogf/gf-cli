@@ -457,8 +457,12 @@ func generateDaoModelIndex(tableNames, newTableNames []string, req generateDaoRe
 	buffer.WriteString(")")
 
 	// Generate and write content to golang file.
+	modelContent := gstr.ReplaceByMap(getTplModelIndexContent(req.TplModelIndexPath), g.MapStrStr{
+		"{TplImportPrefix}": importPrefix,
+		"{TplModelTypes}":   buffer.String(),
+	})
 	path := gfile.Join(dirPathModel, modelIndexFileName)
-	if err := gfile.PutContents(path, strings.TrimSpace(buffer.String())); err != nil {
+	if err := gfile.PutContents(path, strings.TrimSpace(modelContent)); err != nil {
 		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
 	} else {
 		utils.GoFmt(path)
