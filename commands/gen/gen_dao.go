@@ -41,6 +41,7 @@ type generateDaoReq struct {
 const (
 	genDaoDefaultPath          = "./app"
 	nodeNameGenDaoInConfigFile = "gfcli.gen.dao"
+	modelIndexFileName         = "model.go"
 )
 
 func HelpDao() {
@@ -240,7 +241,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		for _, v := range removePrefixArray {
 			newTableName = gstr.TrimLeftStr(newTableName, v, 1)
 		}
-		req := &generateDaoReq{
+		generateDaoAndModelContentFile(db, generateDaoReq{
 			TableName:            tableName,
 			NewTableName:         newTableName,
 			PrefixName:           prefixName,
@@ -252,13 +253,23 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 			TplDaoInternalPath:   tplDaoInternalPath,
 			TplModelIndexPath:    tplModelIndexPath,
 			TplModelInternalPath: tplModelInternalPath,
-		}
-		generateDaoAndModelContentFile(db, req)
+		})
 	}
+	generateDaoModelIndex(db, generateDaoReq{
+		PrefixName:           prefixName,
+		GroupName:            configGroup,
+		ModName:              modName,
+		JsonCase:             jsonCase,
+		DirPath:              dirPath,
+		TplDaoIndexPath:      tplDaoIndexPath,
+		TplDaoInternalPath:   tplDaoInternalPath,
+		TplModelIndexPath:    tplModelIndexPath,
+		TplModelInternalPath: tplModelInternalPath,
+	})
 }
 
 // generateDaoAndModelContentFile generates the dao and model content of given table.
-func generateDaoAndModelContentFile(db gdb.DB, req *generateDaoReq) {
+func generateDaoAndModelContentFile(db gdb.DB, req generateDaoReq) {
 	// Generating data preparing.
 	fieldMap, err := db.TableFields(context.TODO(), req.TableName)
 	if err != nil {
@@ -302,14 +313,6 @@ import (
 		// which would make the go file a testing file.
 		fileName += "_table"
 	}
-	// model - index
-	generateDaoModelIndex(
-		tableNameCamelCase,
-		importPrefix,
-		dirPathModel,
-		fileName,
-		req,
-	)
 
 	// model - internal
 	generateDaoModelInternal(
@@ -344,7 +347,7 @@ import (
 	)
 }
 
-func generateDaoIndex(tableNameCamelCase, tableNameCamelLowerCase, importPrefix, dirPathDao, fileName string, req *generateDaoReq) {
+func generateDaoIndex(tableNameCamelCase, tableNameCamelLowerCase, importPrefix, dirPathDao, fileName string, req generateDaoReq) {
 	path := gfile.Join(dirPathDao, fileName+".go")
 	if !gfile.Exists(path) {
 		indexContent := gstr.ReplaceByMap(getTplDaoIndexContent(req.TplDaoIndexPath), g.MapStrStr{
@@ -366,7 +369,7 @@ func generateDaoInternal(
 	tableNameCamelCase, tableNameCamelLowerCase, importPrefix, structDefine string,
 	dirPathDao, fileName string,
 	fieldMap map[string]*gdb.TableField,
-	req *generateDaoReq,
+	req generateDaoReq,
 ) {
 	path := gfile.Join(dirPathDao, "internal", fileName+".go")
 	modelContent := gstr.ReplaceByMap(getTplDaoInternalContent(req.TplDaoInternalPath), g.MapStrStr{
@@ -387,36 +390,7 @@ func generateDaoInternal(
 	}
 }
 
-func generateDaoModelIndex(tableNameCamelCase, importPrefix, dirPathModel, fileName string, req *generateDaoReq) {
-	// If the internal struct is already used by a model index struct,
-	// it ignores the automatic go file generating.
-	var (
-		pattern  = fmt.Sprintf(`\s+internal\.%s\s+`, gregex.Quote(tableNameCamelCase))
-		files, _ = gfile.ScanDirFile(dirPathModel, "*.go", false)
-	)
-	for _, file := range files {
-		if gregex.IsMatchString(pattern, gfile.GetContents(file)) {
-			return
-		}
-	}
-
-	path := gfile.Join(dirPathModel, fileName+".go")
-	if !gfile.Exists(path) {
-		indexContent := gstr.ReplaceByMap(getTplModelIndexContent(req.TplModelIndexPath), g.MapStrStr{
-			"{TplImportPrefix}":       importPrefix,
-			"{TplTableName}":          req.TableName,
-			"{TplTableNameCamelCase}": tableNameCamelCase,
-		})
-		if err := gfile.PutContents(path, strings.TrimSpace(indexContent)); err != nil {
-			mlog.Fatalf("writing content to '%s' failed: %v", path, err)
-		} else {
-			utils.GoFmt(path)
-			mlog.Print("generated:", path)
-		}
-	}
-}
-
-func generateDaoModelInternal(tableNameCamelCase, packageImports, structDefine, dirPathModel, fileName string, req *generateDaoReq) {
+func generateDaoModelInternal(tableNameCamelCase, packageImports, structDefine, dirPathModel, fileName string, req generateDaoReq) {
 	path := gfile.Join(dirPathModel, "internal", fileName+".go")
 	entityContent := gstr.ReplaceByMap(getTplModelInternalContent(req.TplModelInternalPath), g.MapStrStr{
 		"{TplTableName}":          req.TableName,
@@ -432,8 +406,67 @@ func generateDaoModelInternal(tableNameCamelCase, packageImports, structDefine, 
 	}
 }
 
+func generateDaoModelIndex(db gdb.DB, req generateDaoReq) {
+	// Generating data preparing.
+	fieldMap, err := db.TableFields(context.TODO(), req.TableName)
+	if err != nil {
+		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", req.TableName, err)
+	}
+	var (
+		dirPathModel = gstr.Trim(gfile.Join(req.DirPath, "model"), "./")
+		importPrefix = ""
+		dirRealPath  = gfile.RealPath(req.DirPath)
+	)
+	if dirRealPath == "" {
+		dirRealPath = req.DirPath
+		importPrefix = dirRealPath
+		importPrefix = gstr.Trim(dirRealPath, "./")
+	} else {
+		importPrefix = gstr.Replace(dirRealPath, gfile.Pwd(), "")
+	}
+	importPrefix = gstr.Replace(importPrefix, gfile.Separator, "/")
+	importPrefix = gstr.Join(g.SliceStr{req.ModName, importPrefix}, "/")
+	importPrefix, _ = gregex.ReplaceString(`\/{2,}`, `/`, gstr.Trim(importPrefix, "/"))
+	// Generate model type content.
+	var (
+		buffer = bytes.NewBuffer(nil)
+		array  = make([][]string, len(fieldMap))
+		names  = sortFieldKeyForDao(fieldMap)
+		tw     = tablewriter.NewWriter(buffer)
+	)
+	for index, name := range names {
+		field := fieldMap[name]
+		array[index] = []string{
+			"    #" + gstr.CaseCamel(field.Name),
+			" #" + fmt.Sprintf(`internal.%s`, gstr.CaseCamel(field.Name)),
+			" #" + fmt.Sprintf(`// %s`, formatComment(field.Comment)),
+		}
+	}
+	tw.SetBorder(false)
+	tw.SetRowLine(false)
+	tw.SetAutoWrapText(false)
+	tw.SetColumnSeparator("")
+	tw.AppendBulk(array)
+	tw.Render()
+	stContent := buffer.String()
+	// Let's do this hack of table writer for indent!
+	stContent = gstr.Replace(stContent, "  #", "")
+	buffer.Reset()
+	buffer.WriteString("type (\n")
+	buffer.WriteString(stContent)
+	buffer.WriteString(")")
+	// Generate and write content to golang file.
+	path := gfile.Join(dirPathModel, modelIndexFileName)
+	if err := gfile.PutContents(path, strings.TrimSpace(buffer.String())); err != nil {
+		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
+	} else {
+		utils.GoFmt(path)
+		mlog.Print("generated:", path)
+	}
+}
+
 // generateStructDefinitionForDao generates and returns the struct definition for specified table.
-func generateStructDefinitionForDao(structName string, fieldMap map[string]*gdb.TableField, req *generateDaoReq) string {
+func generateStructDefinitionForDao(structName string, fieldMap map[string]*gdb.TableField, req generateDaoReq) string {
 	buffer := bytes.NewBuffer(nil)
 	array := make([][]string, len(fieldMap))
 	names := sortFieldKeyForDao(fieldMap)
@@ -459,8 +492,8 @@ func generateStructDefinitionForDao(structName string, fieldMap map[string]*gdb.
 }
 
 // generateStructFieldForDao generates and returns the attribute definition for specified field.
-func generateStructFieldForDao(field *gdb.TableField, req *generateDaoReq) []string {
-	var typeName, ormTag, jsonTag, comment string
+func generateStructFieldForDao(field *gdb.TableField, req generateDaoReq) []string {
+	var typeName, ormTag, jsonTag string
 	t, _ := gregex.ReplaceString(`\(.+\)`, "", field.Type)
 	t = gstr.Split(gstr.Trim(t), " ")[0]
 	t = gstr.ToLower(t)
@@ -521,19 +554,24 @@ func generateStructFieldForDao(field *gdb.TableField, req *generateDaoReq) []str
 	if gstr.ContainsI(field.Key, "uni") {
 		ormTag += ",unique"
 	}
-	comment = gstr.ReplaceByArray(field.Comment, g.SliceStr{
-		"\n", " ",
-		"\r", " ",
-	})
-	comment = gstr.Trim(comment)
-	comment = gstr.Replace(comment, `\n`, " ")
 	return []string{
 		"    #" + gstr.CaseCamel(field.Name),
 		" #" + typeName,
 		" #" + fmt.Sprintf("`"+`orm:"%s"`, ormTag),
 		" #" + fmt.Sprintf(`json:"%s"`+"`", jsonTag),
-		" #" + fmt.Sprintf(`// %s`, comment),
+		" #" + fmt.Sprintf(`// %s`, formatComment(field.Comment)),
 	}
+}
+
+// formatComment formats the comment string to fit the golang code without any lines.
+func formatComment(comment string) string {
+	comment = gstr.ReplaceByArray(comment, g.SliceStr{
+		"\n", " ",
+		"\r", " ",
+	})
+	comment = gstr.Trim(comment)
+	comment = gstr.Replace(comment, `\n`, " ")
+	return comment
 }
 
 // generateColumnDefinitionForDao generates and returns the column names definition for specified table.
