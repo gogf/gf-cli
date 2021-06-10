@@ -321,9 +321,10 @@ func generateDaoModelContentFile(db gdb.DB, tableNames, newTableNames []string, 
 			mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", req.TableName, err)
 		}
 		modelContent += generateDaoModelStructContent(
+			tableName,
 			gstr.CaseCamel(newTableNames[i]),
+			req.TplModelStructPath,
 			generateStructDefinitionForModel(gstr.CaseCamel(newTableNames[i]), fieldMap, req),
-			req,
 		)
 		modelContent += "\n"
 	}
@@ -351,9 +352,9 @@ import (
 	}
 }
 
-func generateDaoModelStructContent(tableNameCamelCase, structDefine string, req generateDaoReq) string {
-	return gstr.ReplaceByMap(getTplModelStructContent(req.TplModelStructPath), g.MapStrStr{
-		"{TplTableName}":          req.TableName,
+func generateDaoModelStructContent(tableName, tableNameCamelCase, tplModelStructPath, structDefine string) string {
+	return gstr.ReplaceByMap(getTplModelStructContent(tplModelStructPath), g.MapStrStr{
+		"{TplTableName}":          tableName,
 		"{TplTableNameCamelCase}": tableNameCamelCase,
 		"{TplStructDefine}":       structDefine,
 	})
