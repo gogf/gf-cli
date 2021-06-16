@@ -14,6 +14,7 @@ import (
 	"github.com/gogf/gf/os/gtime"
 	"github.com/gogf/gf/text/gregex"
 	"github.com/gogf/gf/text/gstr"
+	"github.com/gogf/gf/util/gconv"
 	"github.com/olekukonko/tablewriter"
 	"strings"
 
@@ -32,6 +33,7 @@ type generateDaoReq struct {
 	ModName            string // ModName specifies the module name of current golang project, which is used for import purpose.
 	JsonCase           string // JsonCase specifies the case of generated 'json' tag for model struct, value from gstr.Case* function names.
 	DirPath            string // DirPath specifies the directory path for generated files.
+	StdTime            bool   // StdTime defines using time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
 	TplDaoIndexPath    string // TplDaoIndexPath specifies the file path for generating dao index files.
 	TplDaoInternalPath string // TplDaoInternalPath specifies the file path for generating dao internal files.
 	TplModelIndexPath  string // TplModelIndexPath specifies the file path for generating model index content.
@@ -69,6 +71,7 @@ OPTION
                          | SnakeFirstUpper | rgb_code_md5       |
                          | Kebab           | any-kind-of-string |
                          | KebabScreaming  | ANY-KIND-OF-STRING |
+    -/--stdTime          use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
     -/--tplDaoIndex      template content for Dao index files generating.
     -/--tplDaoInternal   template content for Dao internal files generating.
     -/--tplModelIndex    template content for Model index files generating.
@@ -110,6 +113,7 @@ func doGenDao() {
 		"p,prefix":       true,
 		"r,removePrefix": true,
 		"j,jsonCase":     true,
+		"stdTime":        false,
 		"tplDaoIndex":    true,
 		"tplDaoInternal": true,
 		"tplModelIndex":  true,
@@ -152,6 +156,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		configGroup        = getOptionOrConfigForDao(index, parser, "group", "default")        // Group name of database configuration node for generated DAO.
 		removePrefix       = getOptionOrConfigForDao(index, parser, "removePrefix")            // Remove prefix from table name.
 		jsonCase           = getOptionOrConfigForDao(index, parser, "jsonCase", "CamelLower")  // Case configuration for 'json' tag.
+		stdTime            = getOptionOrConfigForDao(index, parser, "stdTime", "false")        // Use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
 		tplDaoIndexPath    = getOptionOrConfigForDao(index, parser, "tplDaoIndex")             // Template file path for generating dao index files.
 		tplDaoInternalPath = getOptionOrConfigForDao(index, parser, "tplDaoInternal")          // Template file path for generating dao internal files.
 		tplModelIndexPath  = getOptionOrConfigForDao(index, parser, "tplModelIndex")           // Template file path for generating model index files.
@@ -251,6 +256,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 			ModName:            modName,
 			JsonCase:           jsonCase,
 			DirPath:            dirPath,
+			StdTime:            gconv.Bool(stdTime),
 			TplDaoIndexPath:    tplDaoIndexPath,
 			TplDaoInternalPath: tplDaoInternalPath,
 			TplModelIndexPath:  tplModelIndexPath,
@@ -260,6 +266,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 	generateDaoModelContentFile(db, tableNames, newTableNames, generateDaoReq{
 		JsonCase:           jsonCase,
 		DirPath:            dirPath,
+		StdTime:            gconv.Bool(stdTime),
 		TplModelIndexPath:  tplModelIndexPath,
 		TplModelStructPath: tplModelStructPath,
 	})
@@ -328,11 +335,17 @@ func generateDaoModelContentFile(db gdb.DB, tableNames, newTableNames []string, 
 		)
 		modelContent += "\n"
 	}
+
 	// Time package recognition.
-	if strings.Contains(modelContent, "gtime.Time") {
+	if strings.Contains(modelContent, "*gtime.Time") {
 		packageImports = gstr.Trim(`
 import (
     "github.com/gogf/gf/os/gtime"
+)`)
+	} else if strings.Contains(modelContent, "*time.Time") {
+		packageImports = gstr.Trim(`
+import (
+    "time"
 )`)
 	} else {
 		packageImports = ""
@@ -462,7 +475,11 @@ func generateStructFieldForModel(field *gdb.TableField, req generateDaoReq) []st
 		typeName = "bool"
 
 	case "datetime", "timestamp", "date", "time":
-		typeName = "*gtime.Time"
+		if req.StdTime {
+			typeName = "*time.Time"
+		} else {
+			typeName = "*gtime.Time"
+		}
 
 	default:
 		// Auto detecting type.
@@ -478,7 +495,11 @@ func generateStructFieldForModel(field *gdb.TableField, req generateDaoReq) []st
 		case strings.Contains(t, "binary") || strings.Contains(t, "blob"):
 			typeName = "[]byte"
 		case strings.Contains(t, "date") || strings.Contains(t, "time"):
-			typeName = "*gtime.Time"
+			if req.StdTime {
+				typeName = "*time.Time"
+			} else {
+				typeName = "*gtime.Time"
+			}
 		default:
 			typeName = "string"
 		}
