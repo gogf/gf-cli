@@ -337,12 +337,12 @@ func generateDaoModelContentFile(db gdb.DB, tableNames, newTableNames []string, 
 	}
 
 	// Time package recognition.
-	if strings.Contains(modelContent, "*gtime.Time") {
+	if strings.Contains(modelContent, "gtime.Time") {
 		packageImports = gstr.Trim(`
 import (
     "github.com/gogf/gf/os/gtime"
 )`)
-	} else if strings.Contains(modelContent, "*time.Time") {
+	} else if strings.Contains(modelContent, "time.Time") {
 		packageImports = gstr.Trim(`
 import (
     "time"
@@ -476,7 +476,7 @@ func generateStructFieldForModel(field *gdb.TableField, req generateDaoReq) []st
 
 	case "datetime", "timestamp", "date", "time":
 		if req.StdTime {
-			typeName = "*time.Time"
+			typeName = "time.Time"
 		} else {
 			typeName = "*gtime.Time"
 		}
@@ -496,7 +496,7 @@ func generateStructFieldForModel(field *gdb.TableField, req generateDaoReq) []st
 			typeName = "[]byte"
 		case strings.Contains(t, "date") || strings.Contains(t, "time"):
 			if req.StdTime {
-				typeName = "*time.Time"
+				typeName = "time.Time"
 			} else {
 				typeName = "*gtime.Time"
 			}
