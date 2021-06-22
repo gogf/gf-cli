@@ -34,6 +34,7 @@ type generateDaoReq struct {
 	JsonCase           string // JsonCase specifies the case of generated 'json' tag for model struct, value from gstr.Case* function names.
 	DirPath            string // DirPath specifies the directory path for generated files.
 	StdTime            bool   // StdTime defines using time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
+	ModelIndexFileName string // Custom name for storing generated model content.
 	TplDaoIndexPath    string // TplDaoIndexPath specifies the file path for generating dao index files.
 	TplDaoInternalPath string // TplDaoInternalPath specifies the file path for generating dao internal files.
 	TplModelIndexPath  string // TplModelIndexPath specifies the file path for generating model index content.
@@ -43,7 +44,7 @@ type generateDaoReq struct {
 const (
 	genDaoDefaultPath          = "./app"
 	nodeNameGenDaoInConfigFile = "gfcli.gen.dao"
-	modelIndexFileName         = "model.go"
+	defaultModelIndexFileName  = "model.go"
 )
 
 func HelpDao() {
@@ -72,6 +73,7 @@ OPTION
                          | Kebab           | any-kind-of-string |
                          | KebabScreaming  | ANY-KIND-OF-STRING |
     -/--stdTime          use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
+    -/--modelFile        custom file name for storing generated model content.
     -/--tplDaoIndex      template content for Dao index files generating.
     -/--tplDaoInternal   template content for Dao internal files generating.
     -/--tplModelIndex    template content for Model index files generating.
@@ -114,6 +116,7 @@ func doGenDao() {
 		"r,removePrefix": true,
 		"j,jsonCase":     true,
 		"stdTime":        false,
+		"modelFile":      true,
 		"tplDaoIndex":    true,
 		"tplDaoInternal": true,
 		"tplModelIndex":  true,
@@ -146,21 +149,22 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 	var (
 		err                error
 		db                 gdb.DB
-		modName            = getOptionOrConfigForDao(index, parser, "mod")                     // Go module name, eg: github.com/gogf/gf.
-		dirPath            = getOptionOrConfigForDao(index, parser, "path", genDaoDefaultPath) // Generated directory path.
-		tablesStr          = getOptionOrConfigForDao(index, parser, "tables")                  // Tables that will be generated.
-		tablesEx           = getOptionOrConfigForDao(index, parser, "tablesEx")                // Tables that will be excluded for generating.
-		prefixName         = getOptionOrConfigForDao(index, parser, "prefix")                  // Add prefix to DAO and Model struct name.
-		linkInfo           = getOptionOrConfigForDao(index, parser, "link")                    // Custom database link.
-		configPath         = getOptionOrConfigForDao(index, parser, "config")                  // Config file path, eg: ./config/db.toml.
-		configGroup        = getOptionOrConfigForDao(index, parser, "group", "default")        // Group name of database configuration node for generated DAO.
-		removePrefix       = getOptionOrConfigForDao(index, parser, "removePrefix")            // Remove prefix from table name.
-		jsonCase           = getOptionOrConfigForDao(index, parser, "jsonCase", "CamelLower")  // Case configuration for 'json' tag.
-		stdTime            = getOptionOrConfigForDao(index, parser, "stdTime", "false")        // Use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
-		tplDaoIndexPath    = getOptionOrConfigForDao(index, parser, "tplDaoIndex")             // Template file path for generating dao index files.
-		tplDaoInternalPath = getOptionOrConfigForDao(index, parser, "tplDaoInternal")          // Template file path for generating dao internal files.
-		tplModelIndexPath  = getOptionOrConfigForDao(index, parser, "tplModelIndex")           // Template file path for generating model index files.
-		tplModelStructPath = getOptionOrConfigForDao(index, parser, "tplModelStruct")          // Template file path for generating model internal files.
+		modName            = getOptionOrConfigForDao(index, parser, "mod")                                  // Go module name, eg: github.com/gogf/gf.
+		dirPath            = getOptionOrConfigForDao(index, parser, "path", genDaoDefaultPath)              // Generated directory path.
+		tablesStr          = getOptionOrConfigForDao(index, parser, "tables")                               // Tables that will be generated.
+		tablesEx           = getOptionOrConfigForDao(index, parser, "tablesEx")                             // Tables that will be excluded for generating.
+		prefixName         = getOptionOrConfigForDao(index, parser, "prefix")                               // Add prefix to DAO and Model struct name.
+		linkInfo           = getOptionOrConfigForDao(index, parser, "link")                                 // Custom database link.
+		configPath         = getOptionOrConfigForDao(index, parser, "config")                               // Config file path, eg: ./config/db.toml.
+		configGroup        = getOptionOrConfigForDao(index, parser, "group", "default")                     // Group name of database configuration node for generated DAO.
+		removePrefix       = getOptionOrConfigForDao(index, parser, "removePrefix")                         // Remove prefix from table name.
+		jsonCase           = getOptionOrConfigForDao(index, parser, "jsonCase", "CamelLower")               // Case configuration for 'json' tag.
+		stdTime            = getOptionOrConfigForDao(index, parser, "stdTime", "false")                     // Use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
+		modelFileName      = getOptionOrConfigForDao(index, parser, "modelFile", defaultModelIndexFileName) // Custom file name for storing generated model content.
+		tplDaoIndexPath    = getOptionOrConfigForDao(index, parser, "tplDaoIndex")                          // Template file path for generating dao index files.
+		tplDaoInternalPath = getOptionOrConfigForDao(index, parser, "tplDaoInternal")                       // Template file path for generating dao internal files.
+		tplModelIndexPath  = getOptionOrConfigForDao(index, parser, "tplModelIndex")                        // Template file path for generating model index files.
+		tplModelStructPath = getOptionOrConfigForDao(index, parser, "tplModelStruct")                       // Template file path for generating model internal files.
 	)
 	if tplDaoIndexPath != "" && (!gfile.Exists(tplDaoIndexPath) || !gfile.IsReadable(tplDaoIndexPath)) {
 		mlog.Fatalf("template file for dao index files generating does not exist or is not readable: %s", tplDaoIndexPath)
@@ -267,6 +271,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		JsonCase:           jsonCase,
 		DirPath:            dirPath,
 		StdTime:            gconv.Bool(stdTime),
+		ModelIndexFileName: modelFileName,
 		TplModelIndexPath:  tplModelIndexPath,
 		TplModelStructPath: tplModelStructPath,
 	})
@@ -356,7 +361,7 @@ import (
 		"{TplPackageImports}": packageImports,
 		"{TplModelStructs}":   modelContent,
 	})
-	path := gfile.Join(dirPathModel, modelIndexFileName)
+	path := gfile.Join(dirPathModel, req.ModelIndexFileName)
 	if err := gfile.PutContents(path, strings.TrimSpace(modelContent)); err != nil {
 		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
 	} else {
