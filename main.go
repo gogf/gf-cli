@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/gogf/gf-cli/commands/env"
 	"github.com/gogf/gf-cli/commands/mod"
+	"github.com/gogf/gf/errors/gerror"
+	"github.com/gogf/gf/text/gregex"
 	"strings"
 
 	_ "github.com/gogf/gf-cli/boot"
@@ -28,7 +30,7 @@ import (
 )
 
 const (
-	VERSION = "v1.14.5"
+	VERSION = "v1.16.3"
 )
 
 func init() {
@@ -69,6 +71,16 @@ ADDITIONAL
 )
 
 func main() {
+	defer func() {
+		if exception := recover(); exception != nil {
+			if err, ok := exception.(error); ok {
+				mlog.Print(gerror.Current(err).Error())
+			} else {
+				panic(exception)
+			}
+		}
+	}()
+
 	allyes.Init()
 
 	command := gcmd.GetArg(1)
@@ -152,6 +164,8 @@ func help(command string) {
 		pack.Help()
 	case "run":
 		run.Help()
+	case "mod":
+		mod.Help()
 	default:
 		mlog.Print(helpContent)
 	}
@@ -164,17 +178,41 @@ func version() {
 		info["git"] = "none"
 	}
 	mlog.Printf(`GoFrame CLI Tool %s, https://goframe.org`, VERSION)
-	mlog.Printf(`Install Path: %s`, gfile.SelfPath())
+	gfVersion, err := getGFVersionOfCurrentProject()
+	if err != nil {
+		gfVersion = err.Error()
+	} else {
+		gfVersion = gfVersion + " in current go.mod"
+	}
+	mlog.Printf(`GoFrame Version: %s`, gfVersion)
+	mlog.Printf(`CLI Installed At: %s`, gfile.SelfPath())
 	if info["gf"] == "" {
-		mlog.Print(`Current is a custom installed version, no installation info.`)
+		mlog.Print(`Current is a custom installed version, no installation information.`)
 		return
 	}
 
 	mlog.Print(gstr.Trim(fmt.Sprintf(`
-Build Detail:
+CLI Built Detail:
   Go Version:  %s
   GF Version:  %s
   Git Commit:  %s
   Build Time:  %s
 `, info["go"], info["gf"], info["git"], info["time"])))
+}
+
+// getGFVersionOfCurrentProject checks and returns the GoFrame version current project using.
+func getGFVersionOfCurrentProject() (string, error) {
+	goModPath := gfile.Join(gfile.Pwd(), "go.mod")
+	if gfile.Exists(goModPath) {
+		match, err := gregex.MatchString(`github.com/gogf/gf\s+([\w\d\.]+)`, gfile.GetContents(goModPath))
+		if err != nil {
+			return "", err
+		}
+		if len(match) > 1 {
+			return match[1], nil
+		}
+		return "", gerror.New("cannot find goframe requirement in go.mod")
+	} else {
+		return "", gerror.New("cannot find go.mod")
+	}
 }

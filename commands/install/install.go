@@ -32,7 +32,7 @@ func Run() {
 		mlog.Printf("no path detected, you can manually install gf by copying the binary to path folder.")
 		return
 	}
-	mlog.Printf("I found some installable paths for you: ")
+	mlog.Printf("I found some installable paths for you(from $PATH): ")
 	mlog.Printf("  %2s | %8s | %9s | %s", "Id", "Writable", "Installed", "Path")
 
 	// Print all paths status and determine the default selectedID value.

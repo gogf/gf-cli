@@ -8,8 +8,8 @@
 [gfcli]
     [gfcli.build]
         name     = "gf"
-        arch     = "all"
         system   = "all"
+        arch     = "all"
         mod      = "none"
         cgo      = 0
         # mod     = "none"

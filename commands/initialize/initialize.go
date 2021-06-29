@@ -5,7 +5,6 @@ import (
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/encoding/gcompress"
 	"github.com/gogf/gf/frame/g"
-	"github.com/gogf/gf/net/ghttp"
 	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/os/gfile"
 	"github.com/gogf/gf/text/gstr"
@@ -64,9 +63,12 @@ func Run() {
 	}
 	mlog.Print("initializing...")
 	// MD5 retrieving.
-	respMd5, err := ghttp.Get(homeUrl + "/cli/project/md5")
+	respMd5, err := g.Client().Get(homeUrl + "/cli/project/md5")
 	if err != nil {
 		mlog.Fatalf("get the project zip md5 failed: %s", err.Error())
+	}
+	if respMd5 == nil {
+		mlog.Fatal("got the project zip md5 failed")
 	}
 	defer respMd5.Close()
 	md5DataStr := respMd5.ReadAllString()
@@ -75,25 +77,32 @@ func Run() {
 	}
 
 	// Zip data retrieving.
-	respData, err := ghttp.Get(cdnUrl + "/cli/project/zip?" + md5DataStr)
+	respData, err := g.Client().Get(cdnUrl + "/cli/project/zip?" + md5DataStr)
 	if err != nil {
-		mlog.Fatal("got the project zip data failed: %s", err.Error())
+		mlog.Fatalf("got the project zip data failed: %s", err.Error())
+	}
+	if respData == nil {
+		mlog.Fatal("got the project zip data failed")
 	}
 	defer respData.Close()
 	zipData := respData.ReadAll()
 	if len(zipData) == 0 {
 		mlog.Fatal("get the project data failed: empty data value. maybe network issue, try again?")
 	}
-
+	// Current folder.
+	replacedProjectName := projectName
+	if replacedProjectName == "." {
+		replacedProjectName = gfile.Name(gfile.RealPath("."))
+	}
 	// Unzip the zip data.
 	if err = gcompress.UnZipContent(zipData, dirPath, emptyProjectName+"-master"); err != nil {
 		mlog.Fatal("unzip project data failed,", err.Error())
 	}
 	// Replace project name.
-	if err = gfile.ReplaceDir(emptyProject, projectName, dirPath, "Dockerfile,*.go,*.MD,*.mod", true); err != nil {
+	if err = gfile.ReplaceDir(emptyProject, replacedProjectName, dirPath, "Dockerfile,*.go,*.MD,*.mod", true); err != nil {
 		mlog.Fatal("content replacing failed,", err.Error())
 	}
-	if err = gfile.ReplaceDir(emptyProjectName, projectName, dirPath, "Dockerfile,*.go,*.MD,*.mod", true); err != nil {
+	if err = gfile.ReplaceDir(emptyProjectName, replacedProjectName, dirPath, "Dockerfile,*.go,*.MD,*.mod", true); err != nil {
 		mlog.Fatal("content replacing failed,", err.Error())
 	}
 	mlog.Print("initialization done! ")

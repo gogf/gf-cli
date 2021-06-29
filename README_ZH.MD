@@ -1,24 +1,24 @@
 # GF-CLI
-English | [简体中文](README_ZH.MD)
+[English](README.MD) | 简体中文
 
-`gf-cli` is a powerful CLI tool for building [GoFrame](https://goframe.org) application with convenience.
+`gf-cli`是一款强大的[GoFrame](https://goframe.org)开发工具链，使得我们开发基于`GoFrame`框架的项目更加便捷。
 
-## 1. Install
+## 1. 安装
 
-### 1). Binary
-It's recommended using pre-compiled binaries:
+### 1). 预编译二进制
+我们推荐大家安装指定平台预编译的二进制文件：
 - `Linux   (amd64)`: https://goframe.org/cli/linux_amd64/gf
 - `Mac     (amd64)`: https://goframe.org/cli/darwin_amd64/gf
 - `Windows (amd64)`: https://goframe.org/cli/windows_amd64/gf.exe
-- [More...](https://goframe.org/cli)
+- [更多...](https://goframe.org/cli)
 
-After downloads, please use `gf install` command to install gf binary to system binary path.
+下载完成后，通过`gf install`命令安装。
 
 1. `Mac`
     ```shell
     wget https://goframe.org/cli/darwin_amd64/gf && chmod +x gf && ./gf install
     ```
-   > If you're using `zsh`, you might need rename your alias by command `alias gf=gf` to resolve the conflicts between `gf` and `git fetch`.
+   > 如果您的终端使用的是`zsh`, 您需要执行`alias gf=gf`命令以便解决`gf`工具名称和`git fetch`简化指令冲突的问题。
                                                                                                                           
 1. `Linux` 
     ```shell
@@ -27,25 +27,25 @@ After downloads, please use `gf install` command to install gf binary to system 
                                                                                                                   
 1. `Windows`
 
-    Manually download, execute it and then follow the instruction.
+    下载后执行，随后根据提示执行安装。
 
-### 2). Manually Install
 
-> You might need setting the goproxy to make through building.
 
-1. Latest version
+### 2). 手动编译安装
+
+1. 最新版本
     ```
     git clone https://github.com/gogf/gf-cli 
     cd gf-cli && go build main.go && ./main install
     ```
-1. Specified version
+1. 指定版本
     ```
     git clone --branch v0.7.3 https://github.com/gogf/gf-cli 
     cd gf-cli && go build main.go && ./main install
     ```
-1. Database `sqlite` and `oracle` are not support in `gf gen` command in default as it needs `cgo` and `gcc`, you can manually make some changes to the source codes and do the building.
+> 注意：在`gf gen`命令中，由于`sqlite`和`oracle`数据库需要`cgo`和`gcc`支持，因此预编译的二进制中不提供对这两个数据库的支持，您需要手动修改源码，去掉对应源码文件中指定数据库类型的`import`注释后手动编译支持。
 
-## 2. Commands
+## 2. 命令
 ```html
 $ gf
 USAGE
@@ -77,11 +77,15 @@ ADDITIONAL
     in the tail of their comments.
 ```
 
-## 3. FAQ
+## 3. 文档
 
-### 1). Command `gf run` returns `pipe: too many open files`
+完善详尽的中文文档请参考`GoFrame`官网板块：[开发工具](https://itician.org/pages/viewpage.action?pageId=1114260)
 
-Please use `ulimit -n 65535` to enlarge your system configuration for max open files for current terminal shell session, and then `gf run`.
+## 4. FAQ
+
+### 1). `gf run` 命令报错 `pipe: too many open files`
+
+请执行`ulimit -n 65535`命令扩展您当前终端会话支持的最大文件打开数，随后再执行`gf run`。需要注意的是该命令仅对当前终端会话有效。
 
 
 

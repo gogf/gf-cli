@@ -21,15 +21,11 @@ import (
 )
 
 // https://golang.google.cn/doc/install/source
-// Here're the most commonly used platforms and arches,
-// but some are removed:
-//    android    arm
-//    dragonfly amd64
-//    plan9     386
-//    plan9     amd64
-//    solaris   amd64
 const platforms = `
     darwin    amd64
+    darwin    arm64
+    ios       amd64
+    ios       arm64
     freebsd   386
     freebsd   amd64
     freebsd   arm
@@ -51,11 +47,16 @@ const platforms = `
     openbsd   arm
     windows   386
     windows   amd64
+	android   arm
+	dragonfly amd64
+	plan9     386
+	plan9     amd64
+	solaris   amd64
 `
 
 const (
-	nodeNameInConfigFile = "gfcli.build" // nodeNameInConfigFile is the node name for compiler configurations in configuration file.
-	packedGoFileName     = "data.go"     // packedGoFileName specifies the file name for packing common folders into one single go file.
+	nodeNameInConfigFile = "gfcli.build"        // nodeNameInConfigFile is the node name for compiler configurations in configuration file.
+	packedGoFileName     = "build_pack_data.go" // packedGoFileName specifies the file name for packing common folders into one single go file.
 )
 
 func Help() {
@@ -76,15 +77,15 @@ OPTION
     -e, --extra      extra custom "go build" options
     -m, --mod        like "-mod" option of "go build", use "-m none" to disable go module
     -c, --cgo        enable or disable cgo feature, it's disabled in default
-    --swagger        auto parse and pack swagger into packed/swagger.go before building. 
-    --pack           auto pack config,public,template folder into packed/data.go before building.
+    --pack           pack specified folder into packed/data.go before building.
+    --swagger        auto parse and pack swagger into packed/swagger.go before building.
 
 EXAMPLES
     gf build main.go
     gf build main.go --swagger
-    gf build main.go --pack
+    gf build main.go --pack public,template
     gf build main.go --cgo
-    gf build main.go -m none --pack
+    gf build main.go -m none 
     gf build main.go -n my-app -a all -s all
     gf build main.go -n my-app -a amd64,386 -s linux -p .
     gf build main.go -n my-app -v 1.0 -a amd64,386 -s linux,windows,darwin -p ./docker/bin
@@ -98,7 +99,7 @@ DESCRIPTION
     3. Build-In Variables.
 
 PLATFORMS
-    darwin    386,amd64
+    darwin    amd64,arm64
     freebsd   386,amd64,arm
     linux     386,amd64,arm,arm64,ppc64,ppc64le,mips,mipsle,mips64,mips64le
     netbsd    386,amd64,arm
@@ -118,9 +119,9 @@ func Run() {
 		"p,path":    true,
 		"e,extra":   true,
 		"m,mod":     true,
+		"pack":      true,
 		"c,cgo":     false,
 		"swagger":   false,
-		"pack":      false,
 	})
 	if err != nil {
 		mlog.Fatal(err)
@@ -151,14 +152,18 @@ func Run() {
 			extra = fmt.Sprintf(`-mod=%s %s`, mod, extra)
 		}
 	}
+	if extra != "" {
+		extra += " "
+	}
 	var (
-		cgoEnabled   = gconv.Bool(getOption(parser, "cgo"))
-		version      = getOption(parser, "version")
-		outputPath   = getOption(parser, "output")
-		archOption   = getOption(parser, "arch")
-		systemOption = getOption(parser, "system")
-		arches       = strings.Split(archOption, ",")
-		systems      = strings.Split(systemOption, ",")
+		cgoEnabled    = gconv.Bool(getOption(parser, "cgo"))
+		version       = getOption(parser, "version")
+		outputPath    = getOption(parser, "output")
+		archOption    = getOption(parser, "arch")
+		systemOption  = getOption(parser, "system")
+		packStr       = getOption(parser, "pack")
+		customSystems = gstr.SplitAndTrim(systemOption, ",")
+		customArches  = gstr.SplitAndTrim(archOption, ",")
 	)
 	if !cgoEnabled {
 		cgoEnabled = parser.ContainsOpt("cgo")
@@ -166,7 +171,24 @@ func Run() {
 	if len(version) > 0 {
 		path += "/" + version
 	}
-
+	// System and arch checks.
+	var (
+		spaceRegex  = regexp.MustCompile(`\s+`)
+		platformMap = make(map[string]map[string]bool)
+	)
+	for _, line := range strings.Split(strings.TrimSpace(platforms), "\n") {
+		line = gstr.Trim(line)
+		line = spaceRegex.ReplaceAllString(line, " ")
+		var (
+			array  = strings.Split(line, " ")
+			system = strings.TrimSpace(array[0])
+			arch   = strings.TrimSpace(array[1])
+		)
+		if platformMap[system] == nil {
+			platformMap[system] = make(map[string]bool)
+		}
+		platformMap[system][arch] = true
+	}
 	// Auto swagger.
 	if containsOption(parser, "swagger") {
 		if err := gproc.ShellRun(`gf swagger`); err != nil {
@@ -182,23 +204,18 @@ func Run() {
 	}
 
 	// Auto packing.
-	if containsOption(parser, "pack") {
-		packFolderStr := ""
-		if gfile.Exists("config") {
-			packFolderStr += "config,"
+	if len(packStr) > 0 {
+		dataFilePath := fmt.Sprintf(`packed/%s`, packedGoFileName)
+		if !gfile.Exists(dataFilePath) {
+			// Remove the go file that is automatically packed resource.
+			defer func() {
+				gfile.Remove(dataFilePath)
+				mlog.Printf(`remove the automatically generated resource go file: %s`, dataFilePath)
+			}()
 		}
-		if gfile.Exists("public") {
-			packFolderStr += "public,"
-		}
-		if gfile.Exists("template") {
-			packFolderStr += "template,"
-		}
-		packFolderStr = gstr.Trim(packFolderStr, ",")
-		if len(packFolderStr) > 0 {
-			packCmd := fmt.Sprintf(`gf pack %s packed/%s`, packFolderStr, packedGoFileName)
-			mlog.Print(packCmd)
-			gproc.ShellRun(packCmd)
-		}
+		packCmd := fmt.Sprintf(`gf pack %s %s`, packStr, dataFilePath)
+		mlog.Print(packCmd)
+		gproc.ShellRun(packCmd)
 	}
 
 	// Injected information by building flags.
@@ -212,60 +229,56 @@ func Run() {
 		genv.Set("CGO_ENABLED", "0")
 	}
 	var (
-		cmd   = ""
-		ext   = ""
-		reg   = regexp.MustCompile(`\s+`)
-		lines = strings.Split(strings.TrimSpace(platforms), "\n")
-	)
-	for _, line := range lines {
 		cmd = ""
 		ext = ""
-		line = strings.TrimSpace(line)
-		line = reg.ReplaceAllString(line, " ")
-		array := strings.Split(line, " ")
-		array[0] = strings.TrimSpace(array[0])
-		array[1] = strings.TrimSpace(array[1])
-		if len(systems) > 0 && systems[0] != "" && systems[0] != "all" && !gstr.InArray(systems, array[0]) {
+	)
+	for system, item := range platformMap {
+		cmd = ""
+		ext = ""
+		if len(customSystems) > 0 && customSystems[0] != "all" && !gstr.InArray(customSystems, system) {
 			continue
 		}
-		if len(arches) > 0 && arches[0] != "" && arches[0] != "all" && !gstr.InArray(arches, array[1]) {
-			continue
-		}
-		if len(systemOption) == 0 && len(archOption) == 0 {
-			if runtime.GOOS == "windows" {
-				ext = ".exe"
+		for arch, _ := range item {
+			if len(customArches) > 0 && customArches[0] != "all" && !gstr.InArray(customArches, arch) {
+				continue
 			}
-			// Single binary building, output the binary to current working folder.
-			output := ""
-			if len(outputPath) > 0 {
-				output = "-o " + outputPath + ext
+			if len(customSystems) == 0 && len(customArches) == 0 {
+				if runtime.GOOS == "windows" {
+					ext = ".exe"
+				}
+				// Single binary building, output the binary to current working folder.
+				output := ""
+				if len(outputPath) > 0 {
+					output = "-o " + outputPath + ext
+				} else {
+					output = "-o " + name + ext
+				}
+				cmd = fmt.Sprintf(`go build %s -ldflags "%s" %s %s`, output, ldFlags, extra, file)
 			} else {
-				output = "-o " + name + ext
+				// Cross-building, output the compiled binary to specified path.
+				if system == "windows" {
+					ext = ".exe"
+				}
+				genv.Set("GOOS", system)
+				genv.Set("GOARCH", arch)
+				cmd = fmt.Sprintf(
+					`go build -o %s/%s/%s%s -ldflags "%s" %s%s`,
+					path, system+"_"+arch, name, ext, ldFlags, extra, file,
+				)
 			}
-			cmd = fmt.Sprintf(`go build %s -ldflags "%s" %s %s`, output, ldFlags, extra, file)
-		} else {
-			// Cross-building, output the compiled binary to specified path.
-			if array[0] == "windows" {
-				ext = ".exe"
+			// It's not necessary printing the complete command string.
+			cmdShow, _ := gregex.ReplaceString(`\s+(-ldflags ".+?")\s+`, " ", cmd)
+			mlog.Print(cmdShow)
+			if _, err := gproc.ShellExec(cmd); err != nil {
+				mlog.Printf("failed to build, os:%s, arch:%s", system, arch)
 			}
-			genv.Set("GOOS", array[0])
-			genv.Set("GOARCH", array[1])
-			cmd = fmt.Sprintf(
-				`go build -o %s/%s/%s%s -ldflags "%s" %s %s`,
-				path, array[0]+"_"+array[1], name, ext, ldFlags, extra, file,
-			)
-		}
-		// It's not necessary printing the complete command string.
-		cmdShow, _ := gregex.ReplaceString(`\s+(-ldflags ".+?")\s+`, " ", cmd)
-		mlog.Print(cmdShow)
-		if result, err := gproc.ShellExec(cmd); err != nil {
-			mlog.Fatalf("build failed: %s%s", result, err.Error())
-		}
-		// single binary building.
-		if len(systemOption) == 0 && len(archOption) == 0 {
-			break
+			// single binary building.
+			if len(customSystems) == 0 && len(customArches) == 0 {
+				goto buildDone
+			}
 		}
 	}
+buildDone:
 	mlog.Print("done!")
 }
 
