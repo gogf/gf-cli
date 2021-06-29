@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+
+	"strings"
+
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf-cli/library/utils"
 	"github.com/gogf/gf/container/garray"
@@ -16,7 +19,6 @@ import (
 	"github.com/gogf/gf/text/gstr"
 	"github.com/gogf/gf/util/gconv"
 	"github.com/olekukonko/tablewriter"
-	"strings"
 
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/lib/pq"
@@ -346,6 +348,7 @@ func generateDaoModelContentFile(db gdb.DB, tableNames, newTableNames []string, 
 		packageImports = gstr.Trim(`
 import (
     "github.com/gogf/gf/os/gtime"
+	"github.com/shopspring/decimal"
 )`)
 	} else if strings.Contains(modelContent, "time.Time") {
 		packageImports = gstr.Trim(`
@@ -473,8 +476,11 @@ func generateStructFieldForModel(field *gdb.TableField, req generateDaoReq) []st
 	case "real":
 		typeName = "float32"
 
-	case "float", "double", "decimal", "smallmoney", "numeric":
+	case "float", "double", "smallmoney", "numeric":
 		typeName = "float64"
+
+	case "decimal":
+		typeName = "decimal"
 
 	case "bool":
 		typeName = "bool"
