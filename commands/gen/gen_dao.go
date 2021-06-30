@@ -35,7 +35,7 @@ type generateDaoReq struct {
 	JsonCase           string // JsonCase specifies the case of generated 'json' tag for model struct, value from gstr.Case* function names.
 	DirPath            string // DirPath specifies the directory path for generated files.
 	StdTime            bool   // StdTime defines using time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
-	JsonSupport        bool   // JsonSupport defines using *gjson.Json instead of string for geerated json fields of tables.
+	GJsonSupport       bool   // GJsonSupport defines using *gjson.Json instead of string for generated json fields of tables.
 	ModelIndexFileName string // Custom name for storing generated model content.
 	TplDaoIndexPath    string // TplDaoIndexPath specifies the file path for generating dao index files.
 	TplDaoInternalPath string // TplDaoInternalPath specifies the file path for generating dao internal files.
@@ -75,7 +75,7 @@ OPTION
                          | Kebab           | any-kind-of-string |
                          | KebabScreaming  | ANY-KIND-OF-STRING |
     -/--stdTime          use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
-	-/--jsonSupport      use jsonSupport to use *gjson.Json instead of string for geerated json fields of tables.
+    -/--jsonSupport      use jsonSupport to use *gjson.Json instead of string for generated json fields of tables.
     -/--modelFile        custom file name for storing generated model content.
     -/--tplDaoIndex      template content for Dao index files generating.
     -/--tplDaoInternal   template content for Dao internal files generating.
@@ -164,7 +164,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		removePrefix       = getOptionOrConfigForDao(index, parser, "removePrefix")                         // Remove prefix from table name.
 		jsonCase           = getOptionOrConfigForDao(index, parser, "jsonCase", "CamelLower")               // Case configuration for 'json' tag.
 		stdTime            = getOptionOrConfigForDao(index, parser, "stdTime", "false")                     // Use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
-		jsonSupport        = getOptionOrConfigForDao(index, parser, "jsonSupport", "false")                 // use jsonSupport to use *gjson.Json instead of string for geerated json fields of tables.
+		jsonSupport        = getOptionOrConfigForDao(index, parser, "jsonSupport", "false")                 // use jsonSupport to use *gjson.Json instead of string for generated json fields of tables.
 		modelFileName      = getOptionOrConfigForDao(index, parser, "modelFile", defaultModelIndexFileName) // Custom file name for storing generated model content.
 		tplDaoIndexPath    = getOptionOrConfigForDao(index, parser, "tplDaoIndex")                          // Template file path for generating dao index files.
 		tplDaoInternalPath = getOptionOrConfigForDao(index, parser, "tplDaoInternal")                       // Template file path for generating dao internal files.
@@ -276,7 +276,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		JsonCase:           jsonCase,
 		DirPath:            dirPath,
 		StdTime:            gconv.Bool(stdTime),
-		JsonSupport:        gconv.Bool(jsonSupport),
+		GJsonSupport:       gconv.Bool(jsonSupport),
 		ModelIndexFileName: modelFileName,
 		TplModelIndexPath:  tplModelIndexPath,
 		TplModelStructPath: tplModelStructPath,
@@ -491,7 +491,7 @@ func generateStructFieldForModel(field *gdb.TableField, req generateDaoReq) []st
 			typeName = "*gtime.Time"
 		}
 	case "json":
-		if req.JsonSupport {
+		if req.GJsonSupport {
 			typeName = "*gjson.Json"
 		} else {
 			typeName = "string"
