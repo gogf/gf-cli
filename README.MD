@@ -1,28 +1,24 @@
-# GF-CLI
-English | [简体中文](README_ZH.MD)
+# GoFrame CLI TOOL
 
 `gf-cli` is a powerful CLI tool for building [GoFrame](https://goframe.org) application with convenience.
 
 ## 1. Install
 
 ### 1). Binary
-It's recommended using pre-compiled binaries:
-- `Linux   (amd64)`: https://goframe.org/cli/linux_amd64/gf
-- `Mac     (amd64)`: https://goframe.org/cli/darwin_amd64/gf
-- `Windows (amd64)`: https://goframe.org/cli/windows_amd64/gf.exe
-- [More...](https://goframe.org/cli)
 
-After downloads, please use `gf install` command to install gf binary to system binary path.
+It's recommended using pre-compiled binaries: https://github.com/gogf/gf-cli/releases
+
+After downloads, please use `gf_xxx_xxx install` command to install gf binary to system binary path.
 
 1. `Mac`
     ```shell
-    wget https://goframe.org/cli/darwin_amd64/gf && chmod +x gf && ./gf install
+    wget -O gf https://github.com/gogf/gf-cli/releases/download/v1.16.3/gf_darwin_amd64 && chmod +x gf && ./gf install
     ```
    > If you're using `zsh`, you might need rename your alias by command `alias gf=gf` to resolve the conflicts between `gf` and `git fetch`.
                                                                                                                           
 1. `Linux` 
     ```shell
-    wget https://goframe.org/cli/linux_amd64/gf && chmod +x gf && ./gf install
+    wget -O gf https://github.com/gogf/gf-cli/releases/download/v1.16.3/gf_linux_amd64 && chmod +x gf && ./gf install
     ```
                                                                                                                   
 1. `Windows`
@@ -38,11 +34,13 @@ After downloads, please use `gf install` command to install gf binary to system 
     git clone https://github.com/gogf/gf-cli 
     cd gf-cli && go build main.go && ./main install
     ```
+   
 1. Specified version
     ```
-    git clone --branch v0.7.3 https://github.com/gogf/gf-cli 
+    git clone --branch v1.16.3 https://github.com/gogf/gf-cli 
     cd gf-cli && go build main.go && ./main install
     ```
+   
 1. Database `sqlite` and `oracle` are not support in `gf gen` command in default as it needs `cgo` and `gcc`, you can manually make some changes to the source codes and do the building.
 
 ## 2. Commands

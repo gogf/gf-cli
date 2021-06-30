@@ -17,12 +17,13 @@ func init() {
 
 // zsh alias "git fetch" conflicts checks.
 func handleZshAlias() {
-	home, err := gfile.Home()
-	if err == nil {
+	if home, err := gfile.Home(); err == nil {
 		zshPath := gfile.Join(home, ".zshrc")
 		if gfile.Exists(zshPath) {
-			aliasCommand := `alias gf=gf`
-			content := gfile.GetContents(zshPath)
+			var (
+				aliasCommand = `alias gf=gf`
+				content      = gfile.GetContents(zshPath)
+			)
 			if !gstr.Contains(content, aliasCommand) {
 				_ = gfile.PutContentsAppend(zshPath, "\n"+aliasCommand+"\n")
 			}

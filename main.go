@@ -1,36 +1,36 @@
 package main
 
 import (
-	"fmt"
-	"github.com/gogf/gf-cli/commands/env"
-	"github.com/gogf/gf-cli/commands/mod"
-	"github.com/gogf/gf/errors/gerror"
-	"github.com/gogf/gf/text/gregex"
-	"strings"
-
 	_ "github.com/gogf/gf-cli/boot"
-	"github.com/gogf/gf-cli/commands/build"
-	"github.com/gogf/gf-cli/commands/docker"
-	"github.com/gogf/gf-cli/commands/fix"
-	"github.com/gogf/gf-cli/commands/gen"
-	"github.com/gogf/gf-cli/commands/get"
-	"github.com/gogf/gf-cli/commands/initialize"
-	"github.com/gogf/gf-cli/commands/install"
-	"github.com/gogf/gf-cli/commands/pack"
-	"github.com/gogf/gf-cli/commands/run"
-	"github.com/gogf/gf-cli/commands/swagger"
-	"github.com/gogf/gf-cli/commands/update"
+
+	"fmt"
+	"github.com/gogf/gf-cli/command/build"
+	"github.com/gogf/gf-cli/command/docker"
+	"github.com/gogf/gf-cli/command/env"
+	"github.com/gogf/gf-cli/command/fix"
+	"github.com/gogf/gf-cli/command/gen"
+	"github.com/gogf/gf-cli/command/get"
+	"github.com/gogf/gf-cli/command/initialize"
+	"github.com/gogf/gf-cli/command/install"
+	"github.com/gogf/gf-cli/command/mod"
+	"github.com/gogf/gf-cli/command/pack"
+	"github.com/gogf/gf-cli/command/run"
+	"github.com/gogf/gf-cli/command/swagger"
+	"github.com/gogf/gf-cli/command/update"
 	"github.com/gogf/gf-cli/library/allyes"
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf-cli/library/proxy"
+	"github.com/gogf/gf/errors/gerror"
 	"github.com/gogf/gf/os/gbuild"
 	"github.com/gogf/gf/os/gcmd"
 	"github.com/gogf/gf/os/gfile"
+	"github.com/gogf/gf/text/gregex"
 	"github.com/gogf/gf/text/gstr"
+	"strings"
 )
 
 const (
-	VERSION = "v1.16.3"
+	VERSION = "v1.16.4"
 )
 
 func init() {
