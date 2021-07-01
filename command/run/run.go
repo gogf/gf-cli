@@ -2,7 +2,7 @@ package run
 
 import (
 	"fmt"
-	"github.com/gogf/gf-cli/commands/swagger"
+	"github.com/gogf/gf-cli/command/swagger"
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/container/garray"
 	"github.com/gogf/gf/container/gtype"
