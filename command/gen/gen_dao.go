@@ -75,7 +75,7 @@ OPTION
                          | Kebab           | any-kind-of-string |
                          | KebabScreaming  | ANY-KIND-OF-STRING |
     -/--stdTime          use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
-    -/--jsonSupport      use jsonSupport to use *gjson.Json instead of string for generated json fields of tables.
+    -/--gJsonSupport      use gJsonSupport to use *gjson.Json instead of string for generated json fields of tables.
     -/--modelFile        custom file name for storing generated model content.
     -/--tplDaoIndex      template content for Dao index files generating.
     -/--tplDaoInternal   template content for Dao internal files generating.
@@ -119,7 +119,7 @@ func doGenDao() {
 		"r,removePrefix": true,
 		"j,jsonCase":     true,
 		"stdTime":        false,
-		"jsonSupport":    false,
+		"gJsonSupport":   false,
 		"modelFile":      true,
 		"tplDaoIndex":    true,
 		"tplDaoInternal": true,
@@ -164,7 +164,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		removePrefix       = getOptionOrConfigForDao(index, parser, "removePrefix")                         // Remove prefix from table name.
 		jsonCase           = getOptionOrConfigForDao(index, parser, "jsonCase", "CamelLower")               // Case configuration for 'json' tag.
 		stdTime            = getOptionOrConfigForDao(index, parser, "stdTime", "false")                     // Use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
-		jsonSupport        = getOptionOrConfigForDao(index, parser, "jsonSupport", "false")                 // use jsonSupport to use *gjson.Json instead of string for generated json fields of tables.
+		gJsonSupport       = getOptionOrConfigForDao(index, parser, "gJsonSupport", "false")                // use gJsonSupport to use *gjson.Json instead of string for generated json fields of tables.
 		modelFileName      = getOptionOrConfigForDao(index, parser, "modelFile", defaultModelIndexFileName) // Custom file name for storing generated model content.
 		tplDaoIndexPath    = getOptionOrConfigForDao(index, parser, "tplDaoIndex")                          // Template file path for generating dao index files.
 		tplDaoInternalPath = getOptionOrConfigForDao(index, parser, "tplDaoInternal")                       // Template file path for generating dao internal files.
@@ -276,7 +276,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		JsonCase:           jsonCase,
 		DirPath:            dirPath,
 		StdTime:            gconv.Bool(stdTime),
-		GJsonSupport:       gconv.Bool(jsonSupport),
+		GJsonSupport:       gconv.Bool(gJsonSupport),
 		ModelIndexFileName: modelFileName,
 		TplModelIndexPath:  tplModelIndexPath,
 		TplModelStructPath: tplModelStructPath,
