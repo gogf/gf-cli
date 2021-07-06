@@ -17,7 +17,6 @@ var (
 
 func init() {
 	logger.SetStack(false)
-	logger.SetDebug(false)
 	if genv.Get(headerPrintEnvName) == "1" {
 		logger.SetHeaderPrint(true)
 	} else {
@@ -25,6 +24,8 @@ func init() {
 	}
 	if gcmd.ContainsOpt("debug") {
 		logger.SetDebug(true)
+	} else {
+		logger.SetDebug(false)
 	}
 }
 
