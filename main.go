@@ -63,6 +63,7 @@ OPTION
     -y         all yes for all command without prompt ask 
     -?,-h      show this help or detail for specified command
     -v,-i      show version information
+    -debug     show internal detailed debugging information
 
 ADDITIONAL
     Use 'gf help COMMAND' or 'gf COMMAND -h' for detail about a command, which has '...' 
@@ -137,7 +138,7 @@ func main() {
 			s := gcmd.Scanf("do you want to install gf binary to your system? [y/n]: ")
 			if strings.EqualFold(s, "y") {
 				install.Run()
-				gcmd.Scan("press <Enter> to exit...")
+				gcmd.Scan("press `Enter` to exit...")
 				return
 			}
 		}

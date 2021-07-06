@@ -691,7 +691,7 @@ func sortFieldKeyForDao(fieldMap map[string]*gdb.TableField) []string {
 }
 
 // getOptionOrConfigForDao retrieves option value from parser and configuration file.
-// It returns the default value specified by parameter <value> is no value found.
+// It returns the default value specified by parameter `value` is no value found.
 func getOptionOrConfigForDao(index int, parser *gcmd.Parser, name string, defaultValue ...string) (result string) {
 	result = parser.GetOpt(name)
 	if result == "" && g.Config().Available() {

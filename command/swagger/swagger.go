@@ -75,7 +75,7 @@ func Run() {
 		if gfile.ExtName(event.Path) != "go" || gstr.Contains(event.Path, "swagger") {
 			return
 		}
-		// Variable <dirty> is used for running the changes only one in one second.
+		// Variable `dirty` is used for running the changes only one in one second.
 		if !dirty.Cas(false, true) {
 			return
 		}

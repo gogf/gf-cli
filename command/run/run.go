@@ -133,7 +133,7 @@ func Run() {
 		if gfile.Basename(event.Path) == "data-swagger.go" {
 			return
 		}
-		// Variable <dirty> is used for running the changes only one in one second.
+		// Variable `dirty` is used for running the changes only one in one second.
 		if !dirty.Cas(false, true) {
 			return
 		}

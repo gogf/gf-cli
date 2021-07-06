@@ -266,11 +266,13 @@ func Run() {
 					path, system+"_"+arch, name, ext, ldFlags, extra, file,
 				)
 			}
+			mlog.Debug(cmd)
 			// It's not necessary printing the complete command string.
 			cmdShow, _ := gregex.ReplaceString(`\s+(-ldflags ".+?")\s+`, " ", cmd)
 			mlog.Print(cmdShow)
 			if _, err := gproc.ShellExec(cmd); err != nil {
 				mlog.Printf("failed to build, os:%s, arch:%s", system, arch)
+				mlog.Debugf("failed to build, os:%s, arch:%s, err:%+v", system, arch, err)
 			}
 			// single binary building.
 			if len(customSystems) == 0 && len(customArches) == 0 {
@@ -283,7 +285,7 @@ buildDone:
 }
 
 // getOption retrieves option value from parser and configuration file.
-// It returns the default value specified by parameter <value> is no value found.
+// It returns the default value specified by parameter `value` is no value found.
 func getOption(parser *gcmd.Parser, name string, value ...string) (result string) {
 	result = parser.GetOpt(name)
 	if result == "" && g.Config().Available() {

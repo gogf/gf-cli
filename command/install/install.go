@@ -138,35 +138,49 @@ func getInstallPathsData() []installFolderPath {
 	binaryFileName := "gf" + gfile.Ext(gfile.SelfPath())
 	switch runtime.GOOS {
 	case "darwin":
-		folderPaths = checkPathAndAppendToInstallFolderPath(
-			folderPaths, "/usr/local/bin", binaryFileName,
-		)
+		darwinInstallationCheckPaths := []string{"/usr/local/bin"}
+		for _, v := range darwinInstallationCheckPaths {
+			folderPaths = checkPathAndAppendToInstallFolderPath(
+				folderPaths, v, binaryFileName,
+			)
+		}
+		fallthrough
+
 	default:
+		// $GOPATH/bin
+		gopath := gfile.Join(runtime.GOROOT(), "bin")
+		folderPaths = checkPathAndAppendToInstallFolderPath(
+			folderPaths, gopath, binaryFileName,
+		)
 		// Search and find the writable directory path.
 		envPath := genv.Get("PATH", genv.Get("Path"))
 		if gstr.Contains(envPath, ";") {
 			for _, v := range gstr.SplitAndTrim(envPath, ";") {
 				folderPaths = checkPathAndAppendToInstallFolderPath(
-					folderPaths, v, binaryFileName)
+					folderPaths, v, binaryFileName,
+				)
 			}
 		} else if gstr.Contains(envPath, ":") {
 			for _, v := range gstr.SplitAndTrim(envPath, ":") {
 				folderPaths = checkPathAndAppendToInstallFolderPath(
-					folderPaths, v, binaryFileName)
+					folderPaths, v, binaryFileName,
+				)
 			}
 		} else if envPath != "" {
 			folderPaths = checkPathAndAppendToInstallFolderPath(
-				folderPaths, envPath, binaryFileName)
+				folderPaths, envPath, binaryFileName,
+			)
 		} else {
 			folderPaths = checkPathAndAppendToInstallFolderPath(
-				folderPaths, "/usr/local/bin", binaryFileName)
+				folderPaths, "/usr/local/bin", binaryFileName,
+			)
 		}
 	}
 	return folderPaths
 }
 
-// checkPathAndAppendToInstallFolderPath checks if <path> is writable and already installed.
-// It adds the <path> to <folderPaths> if it is writable or already installed, or else it ignores the <path>.
+// checkPathAndAppendToInstallFolderPath checks if `path` is writable and already installed.
+// It adds the `path` to `folderPaths` if it is writable or already installed, or else it ignores the `path`.
 func checkPathAndAppendToInstallFolderPath(folderPaths []installFolderPath, path string, binaryFileName string) []installFolderPath {
 	var (
 		binaryFilePath = gfile.Join(path, binaryFileName)
