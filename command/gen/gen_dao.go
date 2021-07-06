@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf-cli/library/utils"
 	"github.com/gogf/gf/container/garray"
@@ -16,7 +18,6 @@ import (
 	"github.com/gogf/gf/text/gstr"
 	"github.com/gogf/gf/util/gconv"
 	"github.com/olekukonko/tablewriter"
-	"strings"
 
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/lib/pq"
@@ -34,6 +35,7 @@ type generateDaoReq struct {
 	JsonCase           string // JsonCase specifies the case of generated 'json' tag for model struct, value from gstr.Case* function names.
 	DirPath            string // DirPath specifies the directory path for generated files.
 	StdTime            bool   // StdTime defines using time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
+	GJsonSupport       bool   // GJsonSupport defines using *gjson.Json instead of string for generated json fields of tables.
 	ModelIndexFileName string // Custom name for storing generated model content.
 	TplDaoIndexPath    string // TplDaoIndexPath specifies the file path for generating dao index files.
 	TplDaoInternalPath string // TplDaoInternalPath specifies the file path for generating dao internal files.
@@ -73,6 +75,7 @@ OPTION
                          | Kebab           | any-kind-of-string |
                          | KebabScreaming  | ANY-KIND-OF-STRING |
     -/--stdTime          use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
+    -/--gJsonSupport      use gJsonSupport to use *gjson.Json instead of string for generated json fields of tables.
     -/--modelFile        custom file name for storing generated model content.
     -/--tplDaoIndex      template content for Dao index files generating.
     -/--tplDaoInternal   template content for Dao internal files generating.
@@ -116,6 +119,7 @@ func doGenDao() {
 		"r,removePrefix": true,
 		"j,jsonCase":     true,
 		"stdTime":        false,
+		"gJsonSupport":   false,
 		"modelFile":      true,
 		"tplDaoIndex":    true,
 		"tplDaoInternal": true,
@@ -160,6 +164,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		removePrefix       = getOptionOrConfigForDao(index, parser, "removePrefix")                         // Remove prefix from table name.
 		jsonCase           = getOptionOrConfigForDao(index, parser, "jsonCase", "CamelLower")               // Case configuration for 'json' tag.
 		stdTime            = getOptionOrConfigForDao(index, parser, "stdTime", "false")                     // Use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
+		gJsonSupport       = getOptionOrConfigForDao(index, parser, "gJsonSupport", "false")                // use gJsonSupport to use *gjson.Json instead of string for generated json fields of tables.
 		modelFileName      = getOptionOrConfigForDao(index, parser, "modelFile", defaultModelIndexFileName) // Custom file name for storing generated model content.
 		tplDaoIndexPath    = getOptionOrConfigForDao(index, parser, "tplDaoIndex")                          // Template file path for generating dao index files.
 		tplDaoInternalPath = getOptionOrConfigForDao(index, parser, "tplDaoInternal")                       // Template file path for generating dao internal files.
@@ -271,6 +276,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		JsonCase:           jsonCase,
 		DirPath:            dirPath,
 		StdTime:            gconv.Bool(stdTime),
+		GJsonSupport:       gconv.Bool(gJsonSupport),
 		ModelIndexFileName: modelFileName,
 		TplModelIndexPath:  tplModelIndexPath,
 		TplModelStructPath: tplModelStructPath,
@@ -340,20 +346,19 @@ func generateDaoModelContentFile(db gdb.DB, tableNames, newTableNames []string, 
 		)
 		modelContent += "\n"
 	}
-
+	packageImports = ""
 	// Time package recognition.
 	if strings.Contains(modelContent, "gtime.Time") {
-		packageImports = gstr.Trim(`
-import (
-    "github.com/gogf/gf/os/gtime"
-)`)
+		packageImports += `import "github.com/gogf/gf/os/gtime"
+`
 	} else if strings.Contains(modelContent, "time.Time") {
-		packageImports = gstr.Trim(`
-import (
-    "time"
-)`)
-	} else {
-		packageImports = ""
+		packageImports += `import "time"
+`
+	}
+
+	if strings.Contains(modelContent, "gjson.Json") {
+		packageImports += `import "github.com/gogf/gf/encoding/gjson"
+`
 	}
 
 	// Generate and write content to golang file.
@@ -485,7 +490,12 @@ func generateStructFieldForModel(field *gdb.TableField, req generateDaoReq) []st
 		} else {
 			typeName = "*gtime.Time"
 		}
-
+	case "json":
+		if req.GJsonSupport {
+			typeName = "*gjson.Json"
+		} else {
+			typeName = "string"
+		}
 	default:
 		// Auto detecting type.
 		switch {
