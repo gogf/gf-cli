@@ -3,6 +3,10 @@ package build
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"runtime"
+	"strings"
+
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/encoding/gbase64"
 	"github.com/gogf/gf/frame/g"
@@ -15,9 +19,6 @@ import (
 	"github.com/gogf/gf/text/gstr"
 	"github.com/gogf/gf/util/gconv"
 	"github.com/gogf/gf/util/gutil"
-	"regexp"
-	"runtime"
-	"strings"
 )
 
 // https://golang.google.cn/doc/install/source
@@ -270,7 +271,7 @@ func Run() {
 			// It's not necessary printing the complete command string.
 			cmdShow, _ := gregex.ReplaceString(`\s+(-ldflags ".+?")\s+`, " ", cmd)
 			mlog.Print(cmdShow)
-			if _, err := gproc.ShellExec(cmd); err != nil {
+			if err := gproc.ShellRun(cmd); err != nil {
 				mlog.Printf("failed to build, os:%s, arch:%s", system, arch)
 				mlog.Debugf("failed to build, os:%s, arch:%s, err:%+v", system, arch, err)
 			}
