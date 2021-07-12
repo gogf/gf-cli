@@ -77,11 +77,12 @@ OPTION
     -e, --extra      extra custom "go build" options
     -m, --mod        like "-mod" option of "go build", use "-m none" to disable go module
     -c, --cgo        enable or disable cgo feature, it's disabled in default
-    --pack           pack specified folders into temporary go file before building and removes it after built.
+    --pack           pack specified folder into temporary go file before building and removes it after built.
+    --swagger        auto parsing swagger into swagger.json before building.
 
 EXAMPLES
     gf build main.go
-    gf build main.go --pack public,template,swagger
+    gf build main.go --pack public,template,swagger  --swagger
     gf build main.go --cgo
     gf build main.go -m none 
     gf build main.go -n my-app -a all -s all
@@ -119,6 +120,7 @@ func Run() {
 		"m,mod":     true,
 		"pack":      true,
 		"c,cgo":     false,
+		"swagger":   false,
 	})
 	if err != nil {
 		mlog.Fatal(err)
@@ -185,6 +187,12 @@ func Run() {
 			platformMap[system] = make(map[string]bool)
 		}
 		platformMap[system][arch] = true
+	}
+	// Auto swagger.
+	if containsOption(parser, "swagger") {
+		if err := gproc.ShellRun(`gf swagger`); err != nil {
+			return
+		}
 	}
 
 	// Auto packing.

@@ -2,7 +2,6 @@ package run
 
 import (
 	"fmt"
-	"github.com/gogf/gf-cli/command/swagger"
 	"github.com/gogf/gf-cli/library/mlog"
 	"github.com/gogf/gf/container/garray"
 	"github.com/gogf/gf/container/gtype"
@@ -29,7 +28,7 @@ type App struct {
 }
 
 const (
-	gPROXY_CHECK_TIMEOUT = time.Second
+	proxyCheckTimeout = time.Second
 )
 
 var (
@@ -38,7 +37,7 @@ var (
 )
 
 func init() {
-	httpClient.SetTimeout(gPROXY_CHECK_TIMEOUT)
+	httpClient.SetTimeout(proxyCheckTimeout)
 }
 
 func Help() {
@@ -52,7 +51,7 @@ ARGUMENT
 
 OPTION
     -/--args     custom process arguments.
-    -/--swagger  auto parse and pack swagger into packed/data-swagger.go before running. 
+    -/--swagger  auto parsing swagger into swagger.json before running. 
 
 EXAMPLES
     gf run main.go
@@ -129,10 +128,6 @@ func Run() {
 		if gfile.ExtName(event.Path) != "go" {
 			return
 		}
-		// Ignore swagger file.
-		if gfile.Basename(event.Path) == "data-swagger.go" {
-			return
-		}
 		// Variable `dirty` is used for running the changes only one in one second.
 		if !dirty.Cas(false, true) {
 			return
@@ -169,13 +164,6 @@ func (app *App) Run() {
 	if app.Swagger {
 		if err := gproc.ShellRun(`gf swagger`); err != nil {
 			return
-		}
-		if gfile.Exists("swagger") {
-			packCmd := fmt.Sprintf(`gf pack %s packed/%s -n packed -y`, "swagger", swagger.PackedGoFileName)
-			mlog.Print(packCmd)
-			if err := gproc.ShellRun(packCmd); err != nil {
-				return
-			}
 		}
 	}
 	// In case of `pipe: too many open files` error.

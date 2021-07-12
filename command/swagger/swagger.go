@@ -32,7 +32,7 @@ OPTION
                   produced
     -o, --output  the output directory for storage parsed swagger files,
                   the default output directory is "./swagger"
-    -/--pack      auto parses and packs swagger into packed/swagger.go. 
+    -/--pack      auto parses and packs swagger into packed/swagger.go (not suggested). 
 
 EXAMPLES
     gf swagger
