@@ -75,7 +75,7 @@ OPTION
                          | Kebab           | any-kind-of-string |
                          | KebabScreaming  | ANY-KIND-OF-STRING |
     -/--stdTime          use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
-    -/--gJsonSupport      use gJsonSupport to use *gjson.Json instead of string for generated json fields of tables.
+    -/--gJsonSupport     use gJsonSupport to use *gjson.Json instead of string for generated json fields of tables.
     -/--modelFile        custom file name for storing generated model content.
     -/--tplDaoIndex      template content for Dao index files generating.
     -/--tplDaoInternal   template content for Dao internal files generating.
