@@ -59,6 +59,7 @@ OPTION
     -l, --link           database configuration, the same as the ORM configuration of GoFrame.
     -t, --tables         generate models only for given tables, multiple table names separated with ',' 
     -e, --tablesEx       generate models excluding given tables, multiple table names separated with ',' 
+	-c, --config         used to specify the configuration file for database, it's commonly not necessary.
     -g, --group          specifying the configuration group name of database for generated ORM instance,
                          it's not necessary and the default value is "default"
     -p, --prefix         add prefix for all table of specified link/database tables.
