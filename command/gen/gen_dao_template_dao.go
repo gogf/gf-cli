@@ -19,14 +19,10 @@ type {TplTableNameCamelLowerCase}Dao struct {
 
 var (
 	// {TplTableNameCamelCase} is globally public accessible object for table {TplTableName} operations.
-	{TplTableNameCamelCase} {TplTableNameCamelLowerCase}Dao
-)
-
-func init() {
 	{TplTableNameCamelCase} = {TplTableNameCamelLowerCase}Dao{
 		internal.New{TplTableNameCamelCase}Dao(),
 	}
-}
+)
 
 // Fill with you ideas below.
 
@@ -40,34 +36,54 @@ const templateDaoDaoInternalContent = `
 package internal
 
 import (
+	"context"
 	"github.com/gogf/gf/database/gdb"
 	"github.com/gogf/gf/frame/g"
-	"github.com/gogf/gf/frame/gmvc"
 )
 
 // {TplTableNameCamelCase}Dao is the manager for logic model data accessing and custom defined data operations functions management.
 type {TplTableNameCamelCase}Dao struct {
-	gmvc.M                                      // M is the core and embedded struct that inherits all chaining operations from gdb.Model.
-	C       {TplTableNameCamelLowerCase}Columns // C is the short type for Columns, which contains all the column names of Table for convenient usage.	
-	DB      gdb.DB                              // DB is the raw underlying database management object.
-	Table   string                              // Table is the underlying table name of the DAO.
+	Table   string          // Table is the underlying table name of the DAO.
+	Group   string          // Group is the database configuration group name of current DAO.
+	Columns CategoryColumns // Columns is the short type for Columns, which contains all the column names of Table for convenient usage.
 }
 
 // {TplTableNameCamelCase}Columns defines and stores column names for table {TplTableName}.
-type {TplTableNameCamelLowerCase}Columns struct {
+type {TplTableNameCamelCase}Columns struct {
 	{TplColumnDefine}
+}
+
+//  {TplTableNameCamelLowerCase}Columns holds the columns for table {TplTableName}.
+var {TplTableNameCamelLowerCase}Columns = {TplTableNameCamelCase}Columns{
+	{TplColumnNames}
 }
 
 // New{TplTableNameCamelCase}Dao creates and returns a new DAO object for table data access.
 func New{TplTableNameCamelCase}Dao() *{TplTableNameCamelCase}Dao {
-    columns := {TplTableNameCamelLowerCase}Columns{
-		{TplColumnNames}
-	}
 	return &{TplTableNameCamelCase}Dao{
-		C: 	   columns,
-		M:     g.DB("{TplGroupName}").Model("{TplTableName}").Safe(),
-		DB:    g.DB("{TplGroupName}"),
-		Table: "{TplTableName}",
+		Group:   "{TplGroupName}",
+		Table:   "{TplTableName}",
+		Columns: categoryColumns,
 	}
+}
+
+// DB retrieves and returns the underlying raw database management object of current DAO.
+func (dao *{TplTableNameCamelCase}Dao) DB() gdb.DB {
+	return g.DB(dao.Group)
+}
+
+// Ctx creates and returns the Model for current DAO, It automatically sets the context for current operation.
+func (dao *{TplTableNameCamelCase}Dao) Ctx(ctx context.Context) *gdb.Model {
+	return dao.DB().Model(dao.Table).Safe().Ctx(ctx)
+}
+
+// Transaction wraps the transaction logic using function f.
+// It rollbacks the transaction and returns the error from function f if it returns non-nil error.
+// It commits the transaction and returns nil if function f returns nil.
+//
+// Note that, you should not Commit or Rollback the transaction in function f
+// as it is automatically handled by this function.
+func (dao *{TplTableNameCamelCase}Dao) Transaction(ctx context.Context, f func(ctx context.Context, tx *gdb.TX) error) (err error) {
+	return dao.Ctx(ctx).Transaction(ctx, f)
 }
 `
