@@ -45,7 +45,7 @@ import (
 type {TplTableNameCamelCase}Dao struct {
 	Table   string          // Table is the underlying table name of the DAO.
 	Group   string          // Group is the database configuration group name of current DAO.
-	Columns CategoryColumns // Columns is the short type for Columns, which contains all the column names of Table for convenient usage.
+	Columns {TplTableNameCamelCase}Columns // Columns is the short type for Columns, which contains all the column names of Table for convenient usage.
 }
 
 // {TplTableNameCamelCase}Columns defines and stores column names for table {TplTableName}.
@@ -63,7 +63,7 @@ func New{TplTableNameCamelCase}Dao() *{TplTableNameCamelCase}Dao {
 	return &{TplTableNameCamelCase}Dao{
 		Group:   "{TplGroupName}",
 		Table:   "{TplTableName}",
-		Columns: categoryColumns,
+		Columns: {TplTableNameCamelLowerCase}Columns,
 	}
 }
 
