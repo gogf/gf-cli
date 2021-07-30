@@ -22,3 +22,5 @@ go.sum
 buildgf.bat
 *.exe
 *.exe~
+app/
+gf-cli

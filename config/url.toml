@@ -1,4 +1,4 @@
-# gf pack config boot/data-config.go -n boot
+# gf pack config packed/config.go
 
 
 # gf home site cdn.

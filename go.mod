@@ -1,12 +1,15 @@
 module github.com/gogf/gf-cli
 
-require (
-	github.com/denisenkom/go-mssqldb v0.0.0-20191001013358-cfbb681360f0
-	github.com/gogf/gf v1.12.1
-	github.com/gogf/gf-swagger v1.0.3
-	github.com/lib/pq v1.2.0
-	github.com/mattn/go-sqlite3 v2.0.2+incompatible
-	github.com/olekukonko/tablewriter v0.0.4
-)
+go 1.14
 
-go 1.12
+require (
+	github.com/denisenkom/go-mssqldb v0.0.0-20200206145737-bbfc9a55622e
+	github.com/gogf/gf v1.16.4
+	github.com/gogf/swagger v1.3.0
+	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/grokify/html-strip-tags-go v0.0.0-20200322061010-ea0c1cf2f119 // indirect
+	github.com/lib/pq v1.2.0
+	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
+	github.com/olekukonko/tablewriter v0.0.5
+	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
+)
