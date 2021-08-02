@@ -166,10 +166,10 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		configGroup         = getOptionOrConfigForDao(index, parser, "group", "default")                     // Group name of database configuration node for generated DAO.
 		removePrefix        = getOptionOrConfigForDao(index, parser, "removePrefix")                         // Remove prefix from table name.
 		jsonCase            = getOptionOrConfigForDao(index, parser, "jsonCase", "CamelLower")               // Case configuration for 'json' tag.
-		stdTime             = getOptionOrConfigForDao(index, parser, "stdTime", "false")                     // Use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
-		gJsonSupport        = getOptionOrConfigForDao(index, parser, "gJsonSupport", "false")                // use gJsonSupport to use *gjson.Json instead of string for generated json fields of tables.
+		stdTime             = containsOptionOrConfigForDao(index, parser, "stdTime", false)                  // Use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
+		gJsonSupport        = containsOptionOrConfigForDao(index, parser, "gJsonSupport", false)             // use gJsonSupport to use *gjson.Json instead of string for generated json fields of tables.
 		modelFileName       = getOptionOrConfigForDao(index, parser, "modelFile", defaultModelIndexFileName) // Custom file name for storing generated model content.
-		generateModelForDao = getOptionOrConfigForDao(index, parser, "modelForDao", "false")                 // Whether generating model for DAO operations like Where/Data. It's false in default.
+		generateModelForDao = containsOptionOrConfigForDao(index, parser, "modelForDao", false)              // Whether generating model for DAO operations like Where/Data. It's false in default.
 		tplDaoIndexPath     = getOptionOrConfigForDao(index, parser, "tplDaoIndex")                          // Template file path for generating dao index files.
 		tplDaoInternalPath  = getOptionOrConfigForDao(index, parser, "tplDaoInternal")                       // Template file path for generating dao internal files.
 		tplModelIndexPath   = getOptionOrConfigForDao(index, parser, "tplModelIndex")                        // Template file path for generating model index files.
@@ -269,6 +269,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 			JsonCase:           jsonCase,
 			DirPath:            dirPath,
 			StdTime:            gconv.Bool(stdTime),
+			GJsonSupport:       gJsonSupport,
 			TplDaoIndexPath:    tplDaoIndexPath,
 			TplDaoInternalPath: tplDaoInternalPath,
 			TplModelIndexPath:  tplModelIndexPath,
@@ -769,6 +770,24 @@ func getOptionOrConfigForDao(index int, parser *gcmd.Parser, name string, defaul
 		}
 	}
 	if result == "" && len(defaultValue) > 0 {
+		result = defaultValue[0]
+	}
+	return
+}
+
+// containsOptionOrConfigForDao checks option value from parser and configuration file.
+// It returns true if given `name` is in command option or configured `true` in configuration file.
+func containsOptionOrConfigForDao(index int, parser *gcmd.Parser, name string, defaultValue ...bool) (result bool) {
+	result = parser.ContainsOpt(name)
+	if !result && g.Config().Available() {
+		g.Cfg().SetViolenceCheck(true)
+		if index >= 0 {
+			result = g.Cfg().GetBool(fmt.Sprintf(`%s.%d.%s`, nodeNameGenDaoInConfigFile, index, name))
+		} else {
+			result = g.Cfg().GetBool(fmt.Sprintf(`%s.%s`, nodeNameGenDaoInConfigFile, name))
+		}
+	}
+	if !result && len(defaultValue) > 0 {
 		result = defaultValue[0]
 	}
 	return
