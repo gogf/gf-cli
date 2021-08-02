@@ -29,7 +29,6 @@ import (
 type generateDaoReq struct {
 	TableName          string // TableName specifies the table name of the table.
 	NewTableName       string // NewTableName specifies the prefix-stripped name of the table.
-	PrefixName         string // PrefixName specifies the custom prefix name for generated dao and model struct.
 	GroupName          string // GroupName specifies the group name of database configuration node for generated DAO.
 	ModName            string // ModName specifies the module name of current golang project, which is used for import purpose.
 	JsonCase           string // JsonCase specifies the case of generated 'json' tag for model struct, value from gstr.Case* function names.
@@ -256,15 +255,14 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 	// Generating dao & model go files one by one according to given table name.
 	newTableNames := make([]string, len(tableNames))
 	for i, tableName := range tableNames {
-		newTableName := tableName
 		for _, v := range removePrefixArray {
-			newTableName = gstr.TrimLeftStr(newTableName, v, 1)
+			tableName = gstr.TrimLeftStr(tableName, v, 1)
 		}
+		newTableName := prefixName + tableName
 		newTableNames[i] = newTableName
 		generateDaoContentFile(db, generateDaoReq{
 			TableName:          tableName,
 			NewTableName:       newTableName,
-			PrefixName:         prefixName,
 			GroupName:          configGroup,
 			ModName:            modName,
 			JsonCase:           jsonCase,
@@ -305,13 +303,11 @@ func generateDaoContentFile(db gdb.DB, req generateDaoReq) {
 	if err != nil {
 		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", req.TableName, err)
 	}
-	// Change the `newTableName` if `prefixName` is given.
-	newTableName := req.PrefixName + req.NewTableName
 	var (
 		dirPathDao              = gstr.Trim(gfile.Join(req.DirPath, "dao"), "./")
-		tableNameCamelCase      = gstr.CaseCamel(newTableName)
-		tableNameCamelLowerCase = gstr.CaseCamelLower(newTableName)
-		tableNameSnakeCase      = gstr.CaseSnake(newTableName)
+		tableNameCamelCase      = gstr.CaseCamel(req.NewTableName)
+		tableNameCamelLowerCase = gstr.CaseCamelLower(req.NewTableName)
+		tableNameSnakeCase      = gstr.CaseSnake(req.NewTableName)
 		importPrefix            = ""
 		dirRealPath             = gfile.RealPath(req.DirPath)
 	)
@@ -353,11 +349,12 @@ func generateDaoModelContentFile(db gdb.DB, tableNames, newTableNames []string, 
 		if err != nil {
 			mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", req.TableName, err)
 		}
+		newTableName := newTableNames[i]
 		modelContent += generateDaoModelStructContent(
-			tableName,
-			gstr.CaseCamel(newTableNames[i]),
+			newTableName,
+			gstr.CaseCamel(newTableName),
 			req.TplModelStructPath,
-			generateStructDefinitionForModel(gstr.CaseCamel(newTableNames[i]), fieldMap, req),
+			generateStructDefinitionForModel(gstr.CaseCamel(newTableName), fieldMap, req),
 		)
 		modelContent += "\n"
 	}
@@ -403,8 +400,9 @@ func generateModelForDaoContentFile(db gdb.DB, tableNames, newTableNames []strin
 		if err != nil {
 			mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", req.TableName, err)
 		}
+		newTableName := newTableNames[i]
 
-		modelForDaoStructContent := generateStructDefinitionForModel(gstr.CaseCamel(newTableNames[i]), fieldMap, req)
+		modelForDaoStructContent := generateStructDefinitionForModel(gstr.CaseCamel(newTableName), fieldMap, req)
 		// replace struct types from "Xxx" to "XxxForDao".
 		modelForDaoStructContent, _ = gregex.ReplaceStringFuncMatch(`(type)\s+([A-Z]\w*?)\s+(struct\s+{)`, modelForDaoStructContent, func(match []string) string {
 			return fmt.Sprintf(`%s %sForDao %s`, match[1], match[2], match[3])
@@ -416,7 +414,7 @@ func generateModelForDaoContentFile(db gdb.DB, tableNames, newTableNames []strin
 
 		modelContent += generateModelForDaoStructContent(
 			tableName,
-			gstr.CaseCamel(newTableNames[i]),
+			gstr.CaseCamel(newTableName),
 			modelForDaoStructContent,
 		)
 		modelContent += "\n"
