@@ -31,6 +31,7 @@ type generateDaoReq struct {
 	NewTableName       string // NewTableName specifies the prefix-stripped name of the table.
 	GroupName          string // GroupName specifies the group name of database configuration node for generated DAO.
 	ModName            string // ModName specifies the module name of current golang project, which is used for import purpose.
+	ImportPrefix       string // ImportPrefix is the custom import prefix for generated go files.
 	JsonCase           string // JsonCase specifies the case of generated 'json' tag for model struct, value from gstr.Case* function names.
 	DirPath            string // DirPath specifies the directory path for generated files.
 	StdTime            bool   // StdTime defines using time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
@@ -63,8 +64,7 @@ OPTION
     -g, --group          specifying the configuration group name of database for generated ORM instance,
                          it's not necessary and the default value is "default"
     -p, --prefix         add prefix for all table of specified link/database tables.
-    -r, --removePrefix   remove specified prefix of the table, multiple prefix separated with ',' 
-    -m, --mod            module name for generated golang file imports.
+    -r, --removePrefix   remove specified prefix of the table, multiple prefix separated with ','
     -j, --jsonCase       generated json tag case for model struct, cases are as follows:
                          | Case            | Example            |
                          |---------------- |--------------------|
@@ -77,6 +77,7 @@ OPTION
                          | KebabScreaming  | ANY-KIND-OF-STRING |
     -/--stdTime          use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
     -/--gJsonSupport     use gJsonSupport to use *gjson.Json instead of string for generated json fields of tables.
+    -/--importPrefix     custom import prefix for generated go files.
     -/--modelFile        custom file name for storing generated model content.
     -/--modelForDao      generate model for DAO operations like Where/Data. It's false in default.
     -/--tplDaoIndex      template content for Dao index files generating.
@@ -156,7 +157,8 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 	var (
 		err                 error
 		db                  gdb.DB
-		modName             = getOptionOrConfigForDao(index, parser, "mod")                                  // Go module name, eg: github.com/gogf/gf.
+		modName             string                                                                           // Go module name, eg: github.com/gogf/gf.
+		importPrefix        = getOptionOrConfigForDao(index, parser, "importPrefix")                         // The import prefix for generated go files.
 		dirPath             = getOptionOrConfigForDao(index, parser, "path", genDaoDefaultPath)              // Generated directory path.
 		tablesStr           = getOptionOrConfigForDao(index, parser, "tables")                               // Tables that will be generated.
 		tablesEx            = getOptionOrConfigForDao(index, parser, "tablesEx")                             // Tables that will be excluded for generating.
@@ -175,6 +177,9 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		tplModelIndexPath   = getOptionOrConfigForDao(index, parser, "tplModelIndex")                        // Template file path for generating model index files.
 		tplModelStructPath  = getOptionOrConfigForDao(index, parser, "tplModelStruct")                       // Template file path for generating model internal files.
 	)
+	if dirRealPath := gfile.RealPath(dirPath); dirRealPath == "" {
+		mlog.Fatalf(`path "%s" does not exist`, dirPath)
+	}
 	if tplDaoIndexPath != "" && (!gfile.Exists(tplDaoIndexPath) || !gfile.IsReadable(tplDaoIndexPath)) {
 		mlog.Fatalf("template file for dao index files generating does not exist or is not readable: %s", tplDaoIndexPath)
 	}
@@ -192,7 +197,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		removePrefix = getOptionOrConfigForDao(index, parser, "remove-prefix")
 	}
 	removePrefixArray := gstr.SplitAndTrim(removePrefix, ",")
-	if modName == "" {
+	if importPrefix == "" {
 		if !gfile.Exists("go.mod") {
 			mlog.Fatal("go.mod does not exist in current working directory")
 		}
@@ -266,6 +271,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 			NewTableName:       newTableName,
 			GroupName:          configGroup,
 			ModName:            modName,
+			ImportPrefix:       importPrefix,
 			JsonCase:           jsonCase,
 			DirPath:            dirPath,
 			StdTime:            gconv.Bool(stdTime),
@@ -306,23 +312,25 @@ func generateDaoContentFile(db gdb.DB, req generateDaoReq) {
 		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", req.TableName, err)
 	}
 	var (
-		dirPathDao              = gstr.Trim(gfile.Join(req.DirPath, "dao"), "./")
+		dirRealPath             = gfile.RealPath(req.DirPath)
+		dirPathDao              = gfile.Join(req.DirPath, "dao")
 		tableNameCamelCase      = gstr.CaseCamel(req.NewTableName)
 		tableNameCamelLowerCase = gstr.CaseCamelLower(req.NewTableName)
 		tableNameSnakeCase      = gstr.CaseSnake(req.NewTableName)
-		importPrefix            = ""
-		dirRealPath             = gfile.RealPath(req.DirPath)
+		importPrefix            = req.ImportPrefix
 	)
-	if dirRealPath == "" {
-		dirRealPath = req.DirPath
-		importPrefix = dirRealPath
-		importPrefix = gstr.Trim(dirRealPath, "./")
-	} else {
-		importPrefix = gstr.Replace(dirRealPath, gfile.Pwd(), "")
+	if importPrefix == "" {
+		if dirRealPath == "" {
+			dirRealPath = req.DirPath
+			importPrefix = dirRealPath
+			importPrefix = gstr.Trim(dirRealPath, "./")
+		} else {
+			importPrefix = gstr.Replace(dirRealPath, gfile.Pwd(), "")
+		}
+		importPrefix = gstr.Replace(importPrefix, gfile.Separator, "/")
+		importPrefix = gstr.Join(g.SliceStr{req.ModName, importPrefix}, "/")
+		importPrefix, _ = gregex.ReplaceString(`\/{2,}`, `/`, gstr.Trim(importPrefix, "/"))
 	}
-	importPrefix = gstr.Replace(importPrefix, gfile.Separator, "/")
-	importPrefix = gstr.Join(g.SliceStr{req.ModName, importPrefix}, "/")
-	importPrefix, _ = gregex.ReplaceString(`\/{2,}`, `/`, gstr.Trim(importPrefix, "/"))
 
 	fileName := gstr.Trim(tableNameSnakeCase, "-_.")
 	if len(fileName) > 5 && fileName[len(fileName)-5:] == "_test" {
@@ -342,7 +350,7 @@ func generateDaoModelContentFile(db gdb.DB, tableNames, newTableNames []string, 
 	var (
 		modelContent        string
 		packageImportsArray = garray.NewStrArray()
-		dirPathModel        = gstr.Trim(gfile.Join(req.DirPath, "model"), "./")
+		dirPathModel        = gfile.Join(req.DirPath, "model")
 	)
 
 	// Model content.
@@ -393,7 +401,7 @@ func generateDaoModelContentFile(db gdb.DB, tableNames, newTableNames []string, 
 func generateModelForDaoContentFile(db gdb.DB, tableNames, newTableNames []string, req generateDaoReq) {
 	var (
 		modelContent string
-		dirPathModel = gstr.Trim(gfile.Join(req.DirPath, "model"), "./")
+		dirPathModel = gfile.Join(req.DirPath, "model")
 	)
 
 	// Model content.
