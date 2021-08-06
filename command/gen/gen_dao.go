@@ -36,6 +36,8 @@ type generateDaoReq struct {
 	DirPath            string // DirPath specifies the directory path for generated files.
 	StdTime            bool   // StdTime defines using time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
 	GJsonSupport       bool   // GJsonSupport defines using *gjson.Json instead of string for generated json fields of tables.
+	DescriptionTag     bool   // Add comment to description tag for each field.
+	NoModelComment     bool   // No model comment will be added for each field.
 	ModelIndexFileName string // Custom name for storing generated model content.
 	TplDaoIndexPath    string // TplDaoIndexPath specifies the file path for generating dao index files.
 	TplDaoInternalPath string // TplDaoInternalPath specifies the file path for generating dao internal files.
@@ -80,6 +82,8 @@ OPTION
     -/--importPrefix     custom import prefix for generated go files.
     -/--modelFile        custom file name for storing generated model content.
     -/--modelForDao      generate model for DAO operations like Where/Data. It's false in default.
+    -/--descriptionTag   add comment to description tag for each field.
+    -/--noModelComment   no model comment will be added for each field.
     -/--tplDaoIndex      template content for Dao index files generating.
     -/--tplDaoInternal   template content for Dao internal files generating.
     -/--tplModelIndex    template content for Model index files generating.
@@ -125,6 +129,8 @@ func doGenDao() {
 		"gJsonSupport":   false,
 		"modelFile":      true,
 		"modelForDao":    false,
+		"descriptionTag": false,
+		"noModelComment": false,
 		"tplDaoIndex":    true,
 		"tplDaoInternal": true,
 		"tplModelIndex":  true,
@@ -169,9 +175,11 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		removePrefix        = getOptionOrConfigForDao(index, parser, "removePrefix")                         // Remove prefix from table name.
 		jsonCase            = getOptionOrConfigForDao(index, parser, "jsonCase", "CamelLower")               // Case configuration for 'json' tag.
 		stdTime             = containsOptionOrConfigForDao(index, parser, "stdTime", false)                  // Use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
-		gJsonSupport        = containsOptionOrConfigForDao(index, parser, "gJsonSupport", false)             // use gJsonSupport to use *gjson.Json instead of string for generated json fields of tables.
+		gJsonSupport        = containsOptionOrConfigForDao(index, parser, "gJsonSupport", false)             // Use gJsonSupport to use *gjson.Json instead of string for generated json fields of tables.
 		modelFileName       = getOptionOrConfigForDao(index, parser, "modelFile", defaultModelIndexFileName) // Custom file name for storing generated model content.
 		generateModelForDao = containsOptionOrConfigForDao(index, parser, "modelForDao", false)              // Whether generating model for DAO operations like Where/Data. It's false in default.
+		descriptionTag      = containsOptionOrConfigForDao(index, parser, "descriptionTag", false)           // Add comment to description tag for each field.
+		noModelComment      = containsOptionOrConfigForDao(index, parser, "noModelComment", false)           // No model comment will be added for each field.
 		tplDaoIndexPath     = getOptionOrConfigForDao(index, parser, "tplDaoIndex")                          // Template file path for generating dao index files.
 		tplDaoInternalPath  = getOptionOrConfigForDao(index, parser, "tplDaoInternal")                       // Template file path for generating dao internal files.
 		tplModelIndexPath   = getOptionOrConfigForDao(index, parser, "tplModelIndex")                        // Template file path for generating model index files.
@@ -276,6 +284,8 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 			DirPath:            dirPath,
 			StdTime:            gconv.Bool(stdTime),
 			GJsonSupport:       gJsonSupport,
+			DescriptionTag:     descriptionTag,
+			NoModelComment:     noModelComment,
 			TplDaoIndexPath:    tplDaoIndexPath,
 			TplDaoInternalPath: tplDaoInternalPath,
 			TplModelIndexPath:  tplModelIndexPath,
@@ -287,7 +297,10 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		DirPath:            dirPath,
 		StdTime:            gconv.Bool(stdTime),
 		GJsonSupport:       gconv.Bool(gJsonSupport),
+		DescriptionTag:     descriptionTag,
+		NoModelComment:     noModelComment,
 		ModelIndexFileName: modelFileName,
+		TplDaoInternalPath: tplDaoInternalPath,
 		TplModelIndexPath:  tplModelIndexPath,
 		TplModelStructPath: tplModelStructPath,
 	})
@@ -297,7 +310,10 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 			DirPath:            dirPath,
 			StdTime:            gconv.Bool(stdTime),
 			GJsonSupport:       gconv.Bool(gJsonSupport),
+			DescriptionTag:     descriptionTag,
+			NoModelComment:     noModelComment,
 			ModelIndexFileName: modelFileName,
+			TplDaoInternalPath: tplDaoInternalPath,
 			TplModelIndexPath:  tplModelIndexPath,
 			TplModelStructPath: tplModelStructPath,
 		})
@@ -572,7 +588,7 @@ func generateStructFieldForModel(field *gdb.TableField, req generateDaoReq) []st
 			typeName = "string"
 		}
 	default:
-		// Auto detecting type.
+		// Automatically detect its data type.
 		switch {
 		case strings.Contains(t, "int"):
 			typeName = "int"
@@ -602,13 +618,25 @@ func generateStructFieldForModel(field *gdb.TableField, req generateDaoReq) []st
 	if gstr.ContainsI(field.Key, "uni") {
 		ormTag += ",unique"
 	}
-	return []string{
+	tagKey := "`"
+	result := []string{
 		"    #" + gstr.CaseCamel(field.Name),
 		" #" + typeName,
-		" #" + fmt.Sprintf("`"+`orm:"%s"`, ormTag),
-		" #" + fmt.Sprintf(`json:"%s"`+"`", jsonTag),
-		" #" + fmt.Sprintf(`// %s`, formatComment(field.Comment)),
+		" #" + fmt.Sprintf(tagKey+`orm:"%s"`, ormTag),
 	}
+	if req.DescriptionTag {
+		result = append(result, " #"+fmt.Sprintf(`json:"%s"`, jsonTag))
+		result = append(result, " #"+fmt.Sprintf(
+			`description:"%s"`+tagKey,
+			gstr.Replace(formatComment(field.Comment), `"`, `\"`),
+		))
+	} else {
+		result = append(result, " #"+fmt.Sprintf(`json:"%s"`+tagKey, jsonTag))
+	}
+	if !req.NoModelComment {
+		result = append(result, " #"+fmt.Sprintf(`// %s`, formatComment(field.Comment)))
+	}
+	return result
 }
 
 // formatComment formats the comment string to fit the golang code without any lines.
@@ -617,8 +645,8 @@ func formatComment(comment string) string {
 		"\n", " ",
 		"\r", " ",
 	})
-	comment = gstr.Trim(comment)
 	comment = gstr.Replace(comment, `\n`, " ")
+	comment = gstr.Trim(comment)
 	return comment
 }
 
