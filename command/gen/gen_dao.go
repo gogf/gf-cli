@@ -37,6 +37,7 @@ type generateDaoReq struct {
 	StdTime             bool   // StdTime defines using time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
 	GJsonSupport        bool   // GJsonSupport defines using *gjson.Json instead of string for generated json fields of tables.
 	DescriptionTag      bool   // Add comment to description tag for each field.
+	NoJsonTag           bool   // No jso tag will be created for each field.
 	NoModelComment      bool   // No model comment will be added for each field.
 	ModelFileName       string // Custom name for storing generated model content.
 	ModelFileNameForDao string // Custom file name generating model for DAO operations like Where/Data
@@ -269,10 +270,11 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 	// Generating dao & model go files one by one according to given table name.
 	newTableNames := make([]string, len(tableNames))
 	for i, tableName := range tableNames {
+		newTableName := tableName
 		for _, v := range removePrefixArray {
-			tableName = gstr.TrimLeftStr(tableName, v, 1)
+			newTableName = gstr.TrimLeftStr(newTableName, v, 1)
 		}
-		newTableName := prefixName + tableName
+		newTableName = prefixName + newTableName
 		newTableNames[i] = newTableName
 		generateDaoContentFile(db, generateDaoReq{
 			TableName:          tableName,
@@ -420,7 +422,9 @@ func generateModelForDaoContentFile(db gdb.DB, tableNames, newTableNames []strin
 		modelContent string
 		dirPathModel = gfile.Join(req.DirPath, "model")
 	)
-
+	req.NoJsonTag = true
+	req.DescriptionTag = false
+	req.NoModelComment = false
 	// Model content.
 	for i, tableName := range tableNames {
 		fieldMap, err := db.TableFields(context.TODO(), tableName)
@@ -436,8 +440,6 @@ func generateModelForDaoContentFile(db gdb.DB, tableNames, newTableNames []strin
 		})
 		// replace all types to interface{}.
 		modelForDaoStructContent, _ = gregex.ReplaceString("([A-Z]\\w*?)\\s+([\\w\\*\\.]+?)\\s+(`orm)", "$1 interface{} $3", modelForDaoStructContent)
-		// remove json tag.
-		modelForDaoStructContent, _ = gregex.ReplaceString(`json:".+?"`, ``, modelForDaoStructContent)
 
 		modelContent += generateModelForDaoStructContent(
 			tableName,
@@ -619,21 +621,28 @@ func generateStructFieldForModel(field *gdb.TableField, req generateDaoReq) []st
 	if gstr.ContainsI(field.Key, "uni") {
 		ormTag += ",unique"
 	}
+
 	tagKey := "`"
 	result := []string{
 		"    #" + gstr.CaseCamel(field.Name),
 		" #" + typeName,
-		" #" + fmt.Sprintf(tagKey+`orm:"%s"`, ormTag),
 	}
 	if req.DescriptionTag {
-		result = append(result, " #"+fmt.Sprintf(`json:"%s"`, jsonTag))
+		result = append(result, " #"+fmt.Sprintf(tagKey+`orm:"%s"`, ormTag))
+		if !req.NoJsonTag {
+			result = append(result, " #"+fmt.Sprintf(`json:"%s"`, jsonTag))
+		}
 		result = append(result, " #"+fmt.Sprintf(
 			`description:"%s"`+tagKey,
 			gstr.Replace(formatComment(field.Comment), `"`, `\"`),
 		))
-	} else {
+	} else if !req.NoJsonTag {
+		result = append(result, " #"+fmt.Sprintf(tagKey+`orm:"%s"`, ormTag))
 		result = append(result, " #"+fmt.Sprintf(`json:"%s"`+tagKey, jsonTag))
+	} else {
+		result = append(result, " #"+fmt.Sprintf(tagKey+`orm:"%s"`+tagKey, ormTag))
 	}
+
 	if !req.NoModelComment {
 		result = append(result, " #"+fmt.Sprintf(`// %s`, formatComment(field.Comment)))
 	}
