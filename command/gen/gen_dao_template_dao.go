@@ -11,7 +11,7 @@ import (
 	"{TplImportPrefix}/dao/internal"
 )
 
-// {TplTableNameCamelLowerCase}Dao is the manager for logic model data accessing and custom defined data operations functions management. 
+// {TplTableNameCamelLowerCase}Dao is the data access object for table {TplTableName}.
 // You can define custom methods on it to extend its functionality as you wish.
 type {TplTableNameCamelLowerCase}Dao struct {
 	*internal.{TplTableNameCamelCase}Dao
@@ -41,7 +41,7 @@ import (
 	"github.com/gogf/gf/frame/g"
 )
 
-// {TplTableNameCamelCase}Dao is the data access object for table {TplTableName}..
+// {TplTableNameCamelCase}Dao is the data access object for table {TplTableName}.
 type {TplTableNameCamelCase}Dao struct {
 	Table   string          // Table is the underlying table name of the DAO.
 	Group   string          // Group is the database configuration group name of current DAO.
