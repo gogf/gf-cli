@@ -41,11 +41,11 @@ import (
 	"github.com/gogf/gf/frame/g"
 )
 
-// {TplTableNameCamelCase}Dao is the manager for logic model data accessing and custom defined data operations functions management.
+// {TplTableNameCamelCase}Dao is the data access object for table {TplTableName}..
 type {TplTableNameCamelCase}Dao struct {
 	Table   string          // Table is the underlying table name of the DAO.
 	Group   string          // Group is the database configuration group name of current DAO.
-	Columns {TplTableNameCamelCase}Columns // Columns is the short type for Columns, which contains all the column names of Table for convenient usage.
+	Columns {TplTableNameCamelCase}Columns // Columns contains all the column names of Table for convenient usage.
 }
 
 // {TplTableNameCamelCase}Columns defines and stores column names for table {TplTableName}.
