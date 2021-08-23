@@ -27,7 +27,6 @@ import (
 
 // generateDaoReq is the input parameter for generating dao.
 type generateDaoReq struct {
-	ConfigIndex         int    // Configuration item index.
 	TableName           string // TableName specifies the table name of the table.
 	NewTableName        string // NewTableName specifies the prefix-stripped name of the table.
 	GroupName           string // GroupName specifies the group name of database configuration node for generated DAO.
@@ -283,7 +282,6 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		newTableNames[i] = newTableName
 		// Dao.
 		generateDaoContentFile(db, generateDaoReq{
-			ConfigIndex:        index,
 			TableName:          tableName,
 			NewTableName:       newTableName,
 			GroupName:          configGroup,
@@ -304,7 +302,6 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 	}
 	// Model.
 	generateDaoModelContentFile(db, tableNames, newTableNames, generateDaoReq{
-		ConfigIndex:        index,
 		JsonCase:           jsonCase,
 		DirPath:            dirPath,
 		StdTime:            gconv.Bool(stdTime),
@@ -319,7 +316,6 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 	// Model for dao.
 	if modelFileNameForDao != "" {
 		generateModelForDaoContentFile(db, tableNames, newTableNames, generateDaoReq{
-			ConfigIndex:         index,
 			JsonCase:            jsonCase,
 			DirPath:             dirPath,
 			StdTime:             gconv.Bool(stdTime),
@@ -423,11 +419,7 @@ func generateDaoModelContentFile(db gdb.DB, tableNames, newTableNames []string, 
 		err  error
 		path = gfile.Join(dirPathModel, req.ModelFileName)
 	)
-	if req.ConfigIndex == 0 {
-		err = gfile.PutContents(path, strings.TrimSpace(modelContent))
-	} else {
-		err = gfile.PutContentsAppend(path, strings.TrimSpace(modelContent))
-	}
+	err = gfile.PutContents(path, strings.TrimSpace(modelContent))
 	if err != nil {
 		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
 	} else {
@@ -476,11 +468,7 @@ func generateModelForDaoContentFile(db gdb.DB, tableNames, newTableNames []strin
 		err  error
 		path = gfile.Join(dirPathModel, req.ModelFileNameForDao)
 	)
-	if req.ConfigIndex == 0 {
-		err = gfile.PutContents(path, strings.TrimSpace(modelContent))
-	} else {
-		err = gfile.PutContentsAppend(path, strings.TrimSpace(modelContent))
-	}
+	err = gfile.PutContents(path, strings.TrimSpace(modelContent))
 	if err != nil {
 		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
 	} else {
