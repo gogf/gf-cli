@@ -28,11 +28,12 @@ USAGE
     gf swagger [OPTION]
 
 OPTION
-    -s, --server  start a swagger server at specified address after swagger files
-                  produced
-    -o, --output  the output directory for storage parsed swagger files,
-                  the default output directory is "./swagger"
-    -/--pack      auto parses and packs swagger into packed/swagger.go (not suggested). 
+    -s, --server    start a swagger server at specified address after swagger files
+                    produced
+    -o, --output    the output directory for storage parsed swagger files,
+                    the default output directory is "./swagger"
+    -/--pack        auto parses and packs swagger into packed/swagger.go (not suggested). 
+    -/--swagOptions options for command swag: https://github.com/swaggo/swag
 
 EXAMPLES
     gf swagger
@@ -40,6 +41,7 @@ EXAMPLES
     gf swagger -s 8080
     gf swagger -s 127.0.0.1:8080
     gf swagger -o ./document/swagger
+    gf swagger -o ./document/swagger -swagOptions "-p pascalcase" 
 
 
 DESCRIPTION
@@ -56,9 +58,10 @@ DESCRIPTION
 func Run() {
 	mlog.SetHeaderPrint(true)
 	parser, err := gcmd.Parse(g.MapStrBool{
-		"s,server": true,
-		"o,output": true,
-		"pack":     false,
+		"s,server":    true,
+		"o,output":    true,
+		"swagOptions": true,
+		"pack":        false,
 	})
 	if err != nil {
 		mlog.Fatal(err)
@@ -66,7 +69,11 @@ func Run() {
 	server := parser.GetOpt("server")
 	output := parser.GetOpt("output", defaultOutput)
 	// Generate swagger files.
-	if err := generateSwaggerFiles(output, parser.ContainsOpt("pack")); err != nil {
+	if err := generateSwaggerFiles(
+		output,
+		parser.ContainsOpt("pack"),
+		parser.GetOpt("swagOptions"),
+	); err != nil {
 		mlog.Print(err)
 	}
 	// Watch the go file changes and regenerate the swagger files.
@@ -83,7 +90,11 @@ func Run() {
 		gtimer.SetTimeout(1500*gtime.MS, func() {
 			mlog.Printf(`go file changes: %s`, event.String())
 			mlog.Print(`reproducing swagger files...`)
-			if err := generateSwaggerFiles(output, parser.ContainsOpt("pack")); err != nil {
+			if err := generateSwaggerFiles(
+				output,
+				parser.ContainsOpt("pack"),
+				parser.GetOpt("swagOptions"),
+			); err != nil {
 				mlog.Print(err)
 			} else {
 				mlog.Print(`done!`)
@@ -107,7 +118,7 @@ func Run() {
 }
 
 // generateSwaggerFiles generates necessary swagger files.
-func generateSwaggerFiles(output string, pack bool) error {
+func generateSwaggerFiles(output string, pack bool, swagOptions string) error {
 	mlog.Print(`producing swagger files...`)
 	// Temporary storing swagger files directory.
 	tempOutputPath := gfile.Join(gfile.TempDir(), "swagger")
@@ -125,6 +136,9 @@ func generateSwaggerFiles(output string, pack bool) error {
 	}
 	// Generate swagger files using swag.
 	command := fmt.Sprintf(`swag init -o %s`, tempOutputPath)
+	if swagOptions != "" {
+		command += " " + swagOptions
+	}
 	result, err := gproc.ShellExec(command)
 	if err != nil {
 		return errors.New(result + err.Error())

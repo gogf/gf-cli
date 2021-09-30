@@ -36,6 +36,7 @@ type generateDaoReq struct {
 	DirPath             string // DirPath specifies the directory path for generated files.
 	StdTime             bool   // StdTime defines using time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
 	GJsonSupport        bool   // GJsonSupport defines using *gjson.Json instead of string for generated json fields of tables.
+	OverwriteDao        bool   // Overwrite all dao files both inside/outside internal folder.
 	DescriptionTag      bool   // Add comment to description tag for each field.
 	NoJsonTag           bool   // No jso tag will be created for each field.
 	NoModelComment      bool   // No model comment will be added for each field.
@@ -81,6 +82,7 @@ OPTION
     -/--stdTime          use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
     -/--gJsonSupport     use gJsonSupport to use *gjson.Json instead of string for generated json fields of tables.
     -/--importPrefix     custom import prefix for generated go files.
+    -/--overwriteDao     overwrite all dao files both inside/outside internal folder
     -/--modelFile        custom file name for storing generated model content.
     -/--modelFileForDao  custom file name generating model for DAO operations like Where/Data. It's empty in default.
     -/--descriptionTag   add comment to description tag for each field.
@@ -128,6 +130,7 @@ func doGenDao() {
 		"j,jsonCase":     true,
 		"stdTime":        false,
 		"gJsonSupport":   false,
+		"overwriteDao":   false,
 		"modelFile":      true,
 		"modelForDao":    false,
 		"descriptionTag": false,
@@ -177,6 +180,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		jsonCase            = getOptionOrConfigForDao(index, parser, "jsonCase", "CamelLower")               // Case configuration for 'json' tag.
 		stdTime             = containsOptionOrConfigForDao(index, parser, "stdTime", false)                  // Use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables.
 		gJsonSupport        = containsOptionOrConfigForDao(index, parser, "gJsonSupport", false)             // Use gJsonSupport to use *gjson.Json instead of string for generated json fields of tables.
+		overwriteDao        = containsOptionOrConfigForDao(index, parser, "overwriteDao", false)             // Overwrite all dao files both inside/outside internal folder
 		modelFileName       = getOptionOrConfigForDao(index, parser, "modelFile", defaultModelIndexFileName) // Custom file name for storing generated model content.
 		modelFileNameForDao = getOptionOrConfigForDao(index, parser, "modelFileForDao")                      // Custom file name generating model for DAO operations like Where/Data. It's empty in default.
 		descriptionTag      = containsOptionOrConfigForDao(index, parser, "descriptionTag", false)           // Add comment to description tag for each field.
@@ -276,6 +280,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		}
 		newTableName = prefixName + newTableName
 		newTableNames[i] = newTableName
+		// Dao.
 		generateDaoContentFile(db, generateDaoReq{
 			TableName:          tableName,
 			NewTableName:       newTableName,
@@ -286,6 +291,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 			DirPath:            dirPath,
 			StdTime:            gconv.Bool(stdTime),
 			GJsonSupport:       gJsonSupport,
+			OverwriteDao:       overwriteDao,
 			DescriptionTag:     descriptionTag,
 			NoModelComment:     noModelComment,
 			TplDaoIndexPath:    tplDaoIndexPath,
@@ -294,6 +300,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 			TplModelStructPath: tplModelStructPath,
 		})
 	}
+	// Model.
 	generateDaoModelContentFile(db, tableNames, newTableNames, generateDaoReq{
 		JsonCase:           jsonCase,
 		DirPath:            dirPath,
@@ -306,6 +313,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		TplModelIndexPath:  tplModelIndexPath,
 		TplModelStructPath: tplModelStructPath,
 	})
+	// Model for dao.
 	if modelFileNameForDao != "" {
 		generateModelForDaoContentFile(db, tableNames, newTableNames, generateDaoReq{
 			JsonCase:            jsonCase,
@@ -407,8 +415,12 @@ func generateDaoModelContentFile(db gdb.DB, tableNames, newTableNames []string, 
 		"{TplPackageImports}": packageImportsStr,
 		"{TplModelStructs}":   modelContent,
 	})
-	path := gfile.Join(dirPathModel, req.ModelFileName)
-	if err := gfile.PutContents(path, strings.TrimSpace(modelContent)); err != nil {
+	var (
+		err  error
+		path = gfile.Join(dirPathModel, req.ModelFileName)
+	)
+	err = gfile.PutContents(path, strings.TrimSpace(modelContent))
+	if err != nil {
 		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
 	} else {
 		utils.GoFmt(path)
@@ -452,8 +464,12 @@ func generateModelForDaoContentFile(db gdb.DB, tableNames, newTableNames []strin
 	modelContent = gstr.ReplaceByMap(templateModelForDaoIndexContent, g.MapStrStr{
 		"{TplModelStructs}": modelContent,
 	})
-	path := gfile.Join(dirPathModel, req.ModelFileNameForDao)
-	if err := gfile.PutContents(path, strings.TrimSpace(modelContent)); err != nil {
+	var (
+		err  error
+		path = gfile.Join(dirPathModel, req.ModelFileNameForDao)
+	)
+	err = gfile.PutContents(path, strings.TrimSpace(modelContent))
+	if err != nil {
 		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
 	} else {
 		utils.GoFmt(path)
@@ -479,7 +495,7 @@ func generateModelForDaoStructContent(tableName, tableNameCamelCase, structDefin
 
 func generateDaoIndex(tableNameCamelCase, tableNameCamelLowerCase, importPrefix, dirPathDao, fileName string, req generateDaoReq) {
 	path := gfile.Join(dirPathDao, fileName+".go")
-	if !gfile.Exists(path) {
+	if req.OverwriteDao || !gfile.Exists(path) {
 		indexContent := gstr.ReplaceByMap(getTplDaoIndexContent(req.TplDaoIndexPath), g.MapStrStr{
 			"{TplImportPrefix}":            importPrefix,
 			"{TplTableName}":               req.TableName,
