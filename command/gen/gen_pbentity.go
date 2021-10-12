@@ -5,15 +5,16 @@ import (
 	"context"
 	"fmt"
 	_ "github.com/denisenkom/go-mssqldb"
-	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf/database/gdb"
-	"github.com/gogf/gf/frame/g"
-	"github.com/gogf/gf/os/gcmd"
-	"github.com/gogf/gf/os/gfile"
-	"github.com/gogf/gf/os/gtime"
-	"github.com/gogf/gf/text/gregex"
-	"github.com/gogf/gf/text/gstr"
-	"github.com/gogf/gf/util/gconv"
+	"github.com/gogf/gf-cli/v2/library/mlog"
+	"github.com/gogf/gf/v2/database/gdb"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gcfg"
+	"github.com/gogf/gf/v2/os/gcmd"
+	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/text/gregex"
+	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	_ "github.com/lib/pq"
 	//_ "github.com/mattn/go-oci8"
 	//_ "github.com/mattn/go-sqlite3"
@@ -117,9 +118,12 @@ func doGenPbEntity() {
 	if err != nil {
 		mlog.Fatal(err)
 	}
-	config := g.Cfg()
+	var (
+		ctx    = context.TODO()
+		config = g.Cfg().GetAdapter().(*gcfg.AdapterFile)
+	)
 	if config.Available() {
-		v := config.GetVar(nodeNameGenPbEntityInConfigFile)
+		v := config.MustGet(ctx, nodeNameGenPbEntityInConfigFile)
 		if v.IsEmpty() && g.IsEmpty(parser.GetOptAll()) {
 			mlog.Fatal(`command arguments and configurations not found for generating protobuf entity files`)
 		}
@@ -167,14 +171,17 @@ func doGenPbEntityForArray(index int, parser *gcmd.Parser) {
 	}
 	// It reads database configuration from project configuration file.
 	if configPath != "" {
+		var (
+			config = g.Cfg().GetAdapter().(*gcfg.AdapterFile)
+		)
 		path, err := gfile.Search(configPath)
 		if err != nil {
 			mlog.Fatalf("search configuration file '%s' failed: %v", configPath, err)
 		}
-		if err := g.Cfg().SetPath(gfile.Dir(path)); err != nil {
+		if err := config.SetPath(gfile.Dir(path)); err != nil {
 			mlog.Fatalf("set configuration path '%s' failed: %v", path, err)
 		}
-		g.Cfg().SetFileName(gfile.Basename(path))
+		config.SetFileName(gfile.Basename(path))
 	}
 	// It uses user passed database configuration.
 	if linkInfo != "" {
@@ -407,13 +414,17 @@ func formatCase(str, caseStr string) string {
 // getOptionOrConfigForPbEntity retrieves option value from parser and configuration file.
 // It returns the default value specified by parameter `value` is no value found.
 func getOptionOrConfigForPbEntity(index int, parser *gcmd.Parser, name string, defaultValue ...string) (result string) {
+	var (
+		ctx    = context.TODO()
+		config = g.Cfg().GetAdapter().(*gcfg.AdapterFile)
+	)
 	result = parser.GetOpt(name)
-	if result == "" && g.Config().Available() {
-		g.Cfg().SetViolenceCheck(true)
+	if result == "" && config.Available() {
+		config.SetViolenceCheck(true)
 		if index >= 0 {
-			result = g.Cfg().GetString(fmt.Sprintf(`%s.%d.%s`, nodeNameGenPbEntityInConfigFile, index, name))
+			result = config.MustGet(ctx, fmt.Sprintf(`%s.%d.%s`, nodeNameGenPbEntityInConfigFile, index, name)).String()
 		} else {
-			result = g.Cfg().GetString(fmt.Sprintf(`%s.%s`, nodeNameGenPbEntityInConfigFile, name))
+			result = config.MustGet(ctx, fmt.Sprintf(`%s.%s`, nodeNameGenPbEntityInConfigFile, name)).String()
 		}
 	}
 	if result == "" && len(defaultValue) > 0 {

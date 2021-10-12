@@ -1,16 +1,16 @@
 package install
 
 import (
-	"github.com/gogf/gf-cli/library/allyes"
-	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf/container/garray"
-	"github.com/gogf/gf/container/gset"
-	"github.com/gogf/gf/frame/g"
-	"github.com/gogf/gf/os/gcmd"
-	"github.com/gogf/gf/os/genv"
-	"github.com/gogf/gf/os/gfile"
-	"github.com/gogf/gf/text/gstr"
-	"github.com/gogf/gf/util/gconv"
+	"github.com/gogf/gf-cli/v2/library/allyes"
+	"github.com/gogf/gf-cli/v2/library/mlog"
+	"github.com/gogf/gf/v2/container/garray"
+	"github.com/gogf/gf/v2/container/gset"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gcmd"
+	"github.com/gogf/gf/v2/os/genv"
+	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"runtime"
 	"strings"
 )

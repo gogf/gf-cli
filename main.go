@@ -1,36 +1,35 @@
 package main
 
 import (
-	_ "github.com/gogf/gf-cli/boot"
+	_ "github.com/gogf/gf-cli/v2/boot"
 
 	"fmt"
-	"github.com/gogf/gf-cli/command/build"
-	"github.com/gogf/gf-cli/command/docker"
-	"github.com/gogf/gf-cli/command/env"
-	"github.com/gogf/gf-cli/command/fix"
-	"github.com/gogf/gf-cli/command/gen"
-	"github.com/gogf/gf-cli/command/get"
-	"github.com/gogf/gf-cli/command/initialize"
-	"github.com/gogf/gf-cli/command/install"
-	"github.com/gogf/gf-cli/command/mod"
-	"github.com/gogf/gf-cli/command/pack"
-	"github.com/gogf/gf-cli/command/run"
-	"github.com/gogf/gf-cli/command/swagger"
-	"github.com/gogf/gf-cli/command/update"
-	"github.com/gogf/gf-cli/library/allyes"
-	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf-cli/library/proxy"
-	"github.com/gogf/gf/errors/gerror"
-	"github.com/gogf/gf/os/gbuild"
-	"github.com/gogf/gf/os/gcmd"
-	"github.com/gogf/gf/os/gfile"
-	"github.com/gogf/gf/text/gregex"
-	"github.com/gogf/gf/text/gstr"
+	"github.com/gogf/gf-cli/v2/command/build"
+	"github.com/gogf/gf-cli/v2/command/docker"
+	"github.com/gogf/gf-cli/v2/command/env"
+	"github.com/gogf/gf-cli/v2/command/fix"
+	"github.com/gogf/gf-cli/v2/command/gen"
+	"github.com/gogf/gf-cli/v2/command/get"
+	"github.com/gogf/gf-cli/v2/command/initialize"
+	"github.com/gogf/gf-cli/v2/command/install"
+	"github.com/gogf/gf-cli/v2/command/mod"
+	"github.com/gogf/gf-cli/v2/command/pack"
+	"github.com/gogf/gf-cli/v2/command/run"
+	"github.com/gogf/gf-cli/v2/command/update"
+	"github.com/gogf/gf-cli/v2/library/allyes"
+	"github.com/gogf/gf-cli/v2/library/mlog"
+	"github.com/gogf/gf-cli/v2/library/proxy"
+	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/os/gbuild"
+	"github.com/gogf/gf/v2/os/gcmd"
+	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/text/gregex"
+	"github.com/gogf/gf/v2/text/gstr"
 	"strings"
 )
 
 const (
-	VERSION = "v1.17.0"
+	VERSION = "v2.0.0"
 )
 
 func init() {
@@ -54,7 +53,6 @@ COMMAND
     pack       packing any file/directory to a resource file, or a go file...
     build      cross-building go project for lots of platforms...
     docker     create a docker image for current GF project...
-    swagger    swagger feature for current project...
     update     update current gf binary to latest one (might need root/admin permission)
     install    install gf binary to system (might need root/admin permission)
     version    show current binary version info
@@ -111,8 +109,6 @@ func main() {
 		pack.Run()
 	case "docker":
 		docker.Run()
-	case "swagger":
-		swagger.Run()
 	case "update":
 		update.Run()
 	case "install":
@@ -157,8 +153,6 @@ func help(command string) {
 		initialize.Help()
 	case "docker":
 		docker.Help()
-	case "swagger":
-		swagger.Help()
 	case "build":
 		build.Help()
 	case "pack":

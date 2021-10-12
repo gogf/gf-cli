@@ -2,12 +2,12 @@ package gen
 
 import (
 	"fmt"
-	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf/container/gset"
-	"github.com/gogf/gf/os/genv"
-	"github.com/gogf/gf/os/gfile"
-	"github.com/gogf/gf/os/gproc"
-	"github.com/gogf/gf/text/gstr"
+	"github.com/gogf/gf-cli/v2/library/mlog"
+	"github.com/gogf/gf/v2/container/gset"
+	"github.com/gogf/gf/v2/os/genv"
+	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/gproc"
+	"github.com/gogf/gf/v2/text/gstr"
 )
 
 func HelpPb() {
@@ -67,7 +67,7 @@ func doGenPb() {
 	//_, _ = gfile.ScanDirFileFunc(pbFolder, "*.go", true, func(path string) string {
 	//	content := gfile.GetContents(path)
 	//	content = gstr.ReplaceByArray(content, g.SliceStr{
-	//		`gtime "gtime"`, `gtime "github.com/gogf/gf/os/gtime"`,
+	//		`gtime "gtime"`, `gtime "github.com/gogf/gf/v2/os/gtime"`,
 	//	})
 	//	_ = gfile.PutContents(path, content)
 	//	utils.GoFmt(path)

@@ -2,13 +2,13 @@ package docker
 
 import (
 	"fmt"
-	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf/container/garray"
-	"github.com/gogf/gf/frame/g"
-	"github.com/gogf/gf/os/gcmd"
-	"github.com/gogf/gf/os/gfile"
-	"github.com/gogf/gf/os/gproc"
-	"github.com/gogf/gf/text/gstr"
+	"github.com/gogf/gf-cli/v2/library/mlog"
+	"github.com/gogf/gf/v2/container/garray"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gcmd"
+	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/gproc"
+	"github.com/gogf/gf/v2/text/gstr"
 	"os"
 	"strings"
 )

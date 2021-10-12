@@ -1,20 +1,22 @@
 package build
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf/encoding/gbase64"
-	"github.com/gogf/gf/frame/g"
-	"github.com/gogf/gf/os/gcmd"
-	"github.com/gogf/gf/os/genv"
-	"github.com/gogf/gf/os/gfile"
-	"github.com/gogf/gf/os/gproc"
-	"github.com/gogf/gf/os/gtime"
-	"github.com/gogf/gf/text/gregex"
-	"github.com/gogf/gf/text/gstr"
-	"github.com/gogf/gf/util/gconv"
-	"github.com/gogf/gf/util/gutil"
+	"github.com/gogf/gf-cli/v2/library/mlog"
+	"github.com/gogf/gf/v2/encoding/gbase64"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gcfg"
+	"github.com/gogf/gf/v2/os/gcmd"
+	"github.com/gogf/gf/v2/os/genv"
+	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/gproc"
+	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/text/gregex"
+	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/gogf/gf/v2/util/gutil"
 	"regexp"
 	"runtime"
 	"strings"
@@ -78,11 +80,10 @@ OPTION
     -m, --mod        like "-mod" option of "go build", use "-m none" to disable go module
     -c, --cgo        enable or disable cgo feature, it's disabled in default
     --pack           pack specified folder into temporary go file before building and removes it after built.
-    --swagger        auto parsing swagger into swagger.json before building.
 
 EXAMPLES
     gf build main.go
-    gf build main.go --pack public,template,swagger  --swagger
+    gf build main.go --pack public,template
     gf build main.go --cgo
     gf build main.go -m none 
     gf build main.go -n my-app -a all -s all
@@ -120,7 +121,6 @@ func Run() {
 		"m,mod":     true,
 		"pack":      true,
 		"c,cgo":     false,
-		"swagger":   false,
 	})
 	if err != nil {
 		mlog.Fatal(err)
@@ -188,13 +188,6 @@ func Run() {
 		}
 		platformMap[system][arch] = true
 	}
-	// Auto swagger.
-	if containsOption(parser, "swagger") {
-		if err := gproc.ShellRun(`gf swagger`); err != nil {
-			return
-		}
-	}
-
 	// Auto packing.
 	if len(packStr) > 0 {
 		dataFilePath := fmt.Sprintf(`packed/%s`, packedGoFileName)
@@ -278,9 +271,13 @@ buildDone:
 // getOption retrieves option value from parser and configuration file.
 // It returns the default value specified by parameter `value` is no value found.
 func getOption(parser *gcmd.Parser, name string, value ...string) (result string) {
+	var (
+		ctx    = context.TODO()
+		config = g.Cfg().GetAdapter().(*gcfg.AdapterFile)
+	)
 	result = parser.GetOpt(name)
-	if result == "" && g.Config().Available() {
-		result = g.Config().GetString(nodeNameInConfigFile + "." + name)
+	if result == "" && config.Available() {
+		result = config.MustGet(ctx, nodeNameInConfigFile+"."+name).String()
 	}
 	if result == "" && len(value) > 0 {
 		result = value[0]
@@ -288,22 +285,16 @@ func getOption(parser *gcmd.Parser, name string, value ...string) (result string
 	return
 }
 
-// containsOption checks whether the command option or the configuration file containing
-// given option name.
-func containsOption(parser *gcmd.Parser, name string) bool {
-	result := parser.ContainsOpt(name)
-	if !result && g.Config().Available() {
-		result = g.Config().Contains(nodeNameInConfigFile + "." + name)
-	}
-	return result
-}
-
 // getBuildInVarMapJson retrieves and returns the custom build-in variables in configuration
 // file as json.
 func getBuildInVarStr() string {
-	buildInVarMap := g.Map{}
-	if g.Config().Available() {
-		configMap := g.Config().GetMap(nodeNameInConfigFile)
+	var (
+		ctx           = context.TODO()
+		config        = g.Cfg().GetAdapter().(*gcfg.AdapterFile)
+		buildInVarMap = g.Map{}
+	)
+	if config.Available() {
+		configMap := config.MustGet(ctx, nodeNameInConfigFile).Map()
 		if len(configMap) > 0 {
 			_, v := gutil.MapPossibleItemByKey(configMap, "VarMap")
 			if v != nil {

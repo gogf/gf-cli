@@ -1,10 +1,11 @@
 package mlog
 
 import (
-	"github.com/gogf/gf/frame/g"
-	"github.com/gogf/gf/os/gcmd"
-	"github.com/gogf/gf/os/genv"
-	"github.com/gogf/gf/os/glog"
+	"context"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gcmd"
+	"github.com/gogf/gf/v2/os/genv"
+	"github.com/gogf/gf/v2/os/glog"
 )
 
 const (
@@ -12,6 +13,7 @@ const (
 )
 
 var (
+	ctx    = context.TODO()
 	logger = glog.New()
 )
 
@@ -40,25 +42,25 @@ func SetHeaderPrint(enabled bool) {
 }
 
 func Print(v ...interface{}) {
-	logger.Print(v...)
+	logger.Print(ctx, v...)
 }
 
 func Printf(format string, v ...interface{}) {
-	logger.Printf(format, v...)
+	logger.Printf(ctx, format, v...)
 }
 
 func Fatal(v ...interface{}) {
-	logger.Fatal(append(g.Slice{"Error:"}, v...)...)
+	logger.Fatal(ctx, append(g.Slice{"Error:"}, v...)...)
 }
 
 func Fatalf(format string, v ...interface{}) {
-	logger.Fatalf("Error: "+format, v...)
+	logger.Fatalf(ctx, "Error: "+format, v...)
 }
 
 func Debug(v ...interface{}) {
-	logger.Debug(append(g.Slice{"Debug:"}, v...)...)
+	logger.Debug(ctx, append(g.Slice{"Debug:"}, v...)...)
 }
 
 func Debugf(format string, v ...interface{}) {
-	logger.Debugf("Debug: "+format, v...)
+	logger.Debugf(ctx, "Debug: "+format, v...)
 }

@@ -2,12 +2,12 @@ package mod
 
 import (
 	"fmt"
-	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf/container/gmap"
-	"github.com/gogf/gf/os/gcmd"
-	"github.com/gogf/gf/os/genv"
-	"github.com/gogf/gf/os/gfile"
-	"github.com/gogf/gf/text/gstr"
+	"github.com/gogf/gf-cli/v2/library/mlog"
+	"github.com/gogf/gf/v2/container/gmap"
+	"github.com/gogf/gf/v2/os/gcmd"
+	"github.com/gogf/gf/v2/os/genv"
+	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/text/gstr"
 )
 
 func Help() {

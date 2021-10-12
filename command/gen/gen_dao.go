@@ -4,19 +4,20 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/gogf/gf/v2/os/gcfg"
 	"strings"
 
-	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf-cli/library/utils"
-	"github.com/gogf/gf/container/garray"
-	"github.com/gogf/gf/database/gdb"
-	"github.com/gogf/gf/frame/g"
-	"github.com/gogf/gf/os/gcmd"
-	"github.com/gogf/gf/os/gfile"
-	"github.com/gogf/gf/os/gtime"
-	"github.com/gogf/gf/text/gregex"
-	"github.com/gogf/gf/text/gstr"
-	"github.com/gogf/gf/util/gconv"
+	"github.com/gogf/gf-cli/v2/library/mlog"
+	"github.com/gogf/gf-cli/v2/library/utils"
+	"github.com/gogf/gf/v2/container/garray"
+	"github.com/gogf/gf/v2/database/gdb"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gcmd"
+	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/text/gregex"
+	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/olekukonko/tablewriter"
 
 	_ "github.com/denisenkom/go-mssqldb"
@@ -143,9 +144,12 @@ func doGenDao() {
 	if err != nil {
 		mlog.Fatal(err)
 	}
-	config := g.Cfg()
+	var (
+		ctx    = context.TODO()
+		config = g.Cfg().GetAdapter().(*gcfg.AdapterFile)
+	)
 	if config.Available() {
-		v := config.GetVar(nodeNameGenDaoInConfigFile)
+		v := config.MustGet(ctx, nodeNameGenDaoInConfigFile)
 		if v.IsEmpty() && g.IsEmpty(parser.GetOptAll()) {
 			mlog.Fatal(`command arguments and configurations not found for generating dao files`)
 		}
@@ -226,14 +230,17 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 	}
 	// It reads database configuration from project configuration file.
 	if configPath != "" {
+		var (
+			config = g.Cfg().GetAdapter().(*gcfg.AdapterFile)
+		)
 		path, err := gfile.Search(configPath)
 		if err != nil {
 			mlog.Fatalf("search configuration file '%s' failed: %v", configPath, err)
 		}
-		if err := g.Cfg().SetPath(gfile.Dir(path)); err != nil {
+		if err := config.SetPath(gfile.Dir(path)); err != nil {
 			mlog.Fatalf("set configuration path '%s' failed: %v", path, err)
 		}
-		g.Cfg().SetFileName(gfile.Basename(path))
+		config.SetFileName(gfile.Basename(path))
 	}
 	// It uses user passed database configuration.
 	if linkInfo != "" {
@@ -397,13 +404,13 @@ func generateDaoModelContentFile(db gdb.DB, tableNames, newTableNames []string, 
 	}
 	// Time package recognition.
 	if strings.Contains(modelContent, "gtime.Time") {
-		packageImportsArray.Append(`"github.com/gogf/gf/os/gtime"`)
+		packageImportsArray.Append(`"github.com/gogf/gf/v2/os/gtime"`)
 	} else if strings.Contains(modelContent, "time.Time") {
 		packageImportsArray.Append(`"time"`)
 	}
 
 	if strings.Contains(modelContent, "gjson.Json") {
-		packageImportsArray.Append(`"github.com/gogf/gf/encoding/gjson"`)
+		packageImportsArray.Append(`"github.com/gogf/gf/v2/encoding/gjson"`)
 	}
 
 	// Generate and write content to golang file.
@@ -822,13 +829,17 @@ func sortFieldKeyForDao(fieldMap map[string]*gdb.TableField) []string {
 // getOptionOrConfigForDao retrieves option value from parser and configuration file.
 // It returns the default value specified by parameter `value` is no value found.
 func getOptionOrConfigForDao(index int, parser *gcmd.Parser, name string, defaultValue ...string) (result string) {
+	var (
+		ctx    = context.TODO()
+		config = g.Cfg().GetAdapter().(*gcfg.AdapterFile)
+	)
 	result = parser.GetOpt(name)
-	if result == "" && g.Config().Available() {
-		g.Cfg().SetViolenceCheck(true)
+	if result == "" && config.Available() {
+		config.SetViolenceCheck(true)
 		if index >= 0 {
-			result = g.Cfg().GetString(fmt.Sprintf(`%s.%d.%s`, nodeNameGenDaoInConfigFile, index, name))
+			result = config.MustGet(ctx, fmt.Sprintf(`%s.%d.%s`, nodeNameGenDaoInConfigFile, index, name)).String()
 		} else {
-			result = g.Cfg().GetString(fmt.Sprintf(`%s.%s`, nodeNameGenDaoInConfigFile, name))
+			result = g.Cfg().MustGet(ctx, fmt.Sprintf(`%s.%s`, nodeNameGenDaoInConfigFile, name)).String()
 		}
 	}
 	if result == "" && len(defaultValue) > 0 {
@@ -840,13 +851,17 @@ func getOptionOrConfigForDao(index int, parser *gcmd.Parser, name string, defaul
 // containsOptionOrConfigForDao checks option value from parser and configuration file.
 // It returns true if given `name` is in command option or configured `true` in configuration file.
 func containsOptionOrConfigForDao(index int, parser *gcmd.Parser, name string, defaultValue ...bool) (result bool) {
+	var (
+		ctx    = context.TODO()
+		config = g.Cfg().GetAdapter().(*gcfg.AdapterFile)
+	)
 	result = parser.ContainsOpt(name)
-	if !result && g.Config().Available() {
-		g.Cfg().SetViolenceCheck(true)
+	if !result && config.Available() {
+		config.SetViolenceCheck(true)
 		if index >= 0 {
-			result = g.Cfg().GetBool(fmt.Sprintf(`%s.%d.%s`, nodeNameGenDaoInConfigFile, index, name))
+			result = config.MustGet(ctx, fmt.Sprintf(`%s.%d.%s`, nodeNameGenDaoInConfigFile, index, name)).Bool()
 		} else {
-			result = g.Cfg().GetBool(fmt.Sprintf(`%s.%s`, nodeNameGenDaoInConfigFile, name))
+			result = config.MustGet(ctx, fmt.Sprintf(`%s.%s`, nodeNameGenDaoInConfigFile, name)).Bool()
 		}
 	}
 	if !result && len(defaultValue) > 0 {

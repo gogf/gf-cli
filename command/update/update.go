@@ -1,18 +1,19 @@
 package update
 
 import (
+	"context"
 	"fmt"
-	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf/crypto/gmd5"
-	"github.com/gogf/gf/frame/g"
-	"github.com/gogf/gf/net/ghttp"
-	"github.com/gogf/gf/os/gfile"
+	"github.com/gogf/gf-cli/v2/library/mlog"
+	"github.com/gogf/gf/v2/crypto/gmd5"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gfile"
 	"runtime"
 )
 
 var (
-	cdnUrl  = g.Config("url").GetString("cdn.url")
-	homeUrl = g.Config("url").GetString("home.url")
+	ctx     = context.TODO()
+	cdnUrl  = g.Cfg("url").MustGet(ctx, "cdn.url").String()
+	homeUrl = g.Cfg("url").MustGet(ctx, "home.url").String()
 )
 
 func init() {
@@ -26,11 +27,13 @@ func init() {
 
 func Run() {
 	mlog.Print("checking...")
-	md5Url := homeUrl + `/cli/binary/md5`
-	latestMd5 := ghttp.GetContent(md5Url, g.Map{
-		"os":   runtime.GOOS,
-		"arch": runtime.GOARCH,
-	})
+	var (
+		md5Url    = homeUrl + `/cli/binary/md5`
+		latestMd5 = g.Client().GetContent(ctx, md5Url, g.Map{
+			"os":   runtime.GOOS,
+			"arch": runtime.GOARCH,
+		})
+	)
 	if latestMd5 == "" {
 		mlog.Fatal("get the latest binary md5 failed, may be network issue")
 	}
@@ -53,7 +56,7 @@ func Run() {
 			latestMd5,
 		)
 		mlog.Debugf("HTTP GET %s", downloadUrl)
-		res, err := ghttp.Get(downloadUrl)
+		res, err := g.Client().Get(ctx, downloadUrl)
 		if err != nil || res.StatusCode != 200 {
 			mlog.Fatalf(
 				"downloading failed for %s %s, may be network issue:\n%s",

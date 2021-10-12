@@ -1,9 +1,9 @@
 package gen
 
 import (
-	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf/os/gcmd"
-	"github.com/gogf/gf/text/gstr"
+	"github.com/gogf/gf-cli/v2/library/mlog"
+	"github.com/gogf/gf/v2/os/gcmd"
+	"github.com/gogf/gf/v2/text/gstr"
 )
 
 func Help() {

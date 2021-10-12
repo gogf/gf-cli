@@ -1,13 +1,14 @@
 package initialize
 
 import (
-	"github.com/gogf/gf-cli/library/allyes"
-	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf/encoding/gcompress"
-	"github.com/gogf/gf/frame/g"
-	"github.com/gogf/gf/os/gcmd"
-	"github.com/gogf/gf/os/gfile"
-	"github.com/gogf/gf/text/gstr"
+	"context"
+	"github.com/gogf/gf-cli/v2/library/allyes"
+	"github.com/gogf/gf-cli/v2/library/mlog"
+	"github.com/gogf/gf/v2/encoding/gcompress"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gcmd"
+	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/text/gstr"
 	"strings"
 )
 
@@ -17,8 +18,9 @@ const (
 )
 
 var (
-	cdnUrl  = g.Config("url").GetString("cdn.url")
-	homeUrl = g.Config("url").GetString("home.url")
+	ctx     = context.TODO()
+	cdnUrl  = g.Cfg("url").MustGet(ctx, "cdn.url").String()
+	homeUrl = g.Cfg("url").MustGet(ctx, "home.url").String()
 )
 
 func init() {
@@ -63,7 +65,7 @@ func Run() {
 	}
 	mlog.Print("initializing...")
 	// MD5 retrieving.
-	respMd5, err := g.Client().Get(homeUrl + "/cli/project/md5")
+	respMd5, err := g.Client().Get(ctx, homeUrl+"/cli/project/md5")
 	if err != nil {
 		mlog.Fatalf("get the project zip md5 failed: %s", err.Error())
 	}
@@ -77,7 +79,7 @@ func Run() {
 	}
 
 	// Zip data retrieving.
-	respData, err := g.Client().Get(cdnUrl + "/cli/project/zip?" + md5DataStr)
+	respData, err := g.Client().Get(ctx, cdnUrl+"/cli/project/zip?"+md5DataStr)
 	if err != nil {
 		mlog.Fatalf("got the project zip data failed: %s", err.Error())
 	}

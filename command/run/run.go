@@ -2,18 +2,18 @@ package run
 
 import (
 	"fmt"
-	"github.com/gogf/gf-cli/library/mlog"
-	"github.com/gogf/gf/container/garray"
-	"github.com/gogf/gf/container/gtype"
-	"github.com/gogf/gf/frame/g"
-	"github.com/gogf/gf/net/ghttp"
-	"github.com/gogf/gf/os/gcmd"
-	"github.com/gogf/gf/os/gfile"
-	"github.com/gogf/gf/os/gfsnotify"
-	"github.com/gogf/gf/os/gproc"
-	"github.com/gogf/gf/os/gtime"
-	"github.com/gogf/gf/os/gtimer"
-	"github.com/gogf/gf/text/gstr"
+	"github.com/gogf/gf-cli/v2/library/mlog"
+	"github.com/gogf/gf/v2/container/garray"
+	"github.com/gogf/gf/v2/container/gtype"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/os/gcmd"
+	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/gfsnotify"
+	"github.com/gogf/gf/v2/os/gproc"
+	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/os/gtimer"
+	"github.com/gogf/gf/v2/text/gstr"
 	"os"
 	"runtime"
 	"strings"
@@ -23,8 +23,7 @@ import (
 type App struct {
 	File    string // Go run file name/path.
 	Options string // Extra "go run" options.
-	Args    string // Auto parse and pack swagger files.
-	Swagger bool   // Auto parse and pack swagger files.
+	Args    string // Custom arguments.
 }
 
 const (
@@ -51,11 +50,9 @@ ARGUMENT
 
 OPTION
     -/--args     custom process arguments.
-    -/--swagger  auto parsing swagger into swagger.json before running. 
 
 EXAMPLES
     gf run main.go
-    gf run main.go --swagger
     gf run main.go --args "server -p 8080"
     gf run main.go -mod=vendor
 
@@ -87,14 +84,6 @@ func Run() {
 	// ================================================================================
 	// Swagger checks.
 	array := garray.NewStrArrayFrom(os.Args)
-	index := array.Search("--swagger")
-	if index < 0 {
-		index = array.Search("-swagger")
-	}
-	if index != -1 {
-		app.Swagger = true
-		array.Remove(index)
-	}
 	// args checks.
 	args := parser.GetOpt("args")
 	if args != "" {
@@ -158,12 +147,6 @@ func (app *App) Run() {
 			if err := gfile.Rename(outputPath, renamePath); err != nil {
 				mlog.Print(err)
 			}
-		}
-	}
-	// Auto swagger.
-	if app.Swagger {
-		if err := gproc.ShellRun(`gf swagger`); err != nil {
-			return
 		}
 	}
 	// In case of `pipe: too many open files` error.

@@ -1,11 +1,11 @@
 package boot
 
 import (
-	_ "github.com/gogf/gf-cli/packed"
-	"github.com/gogf/gf/os/genv"
+	_ "github.com/gogf/gf-cli/v2/packed"
+	"github.com/gogf/gf/v2/os/genv"
 
-	"github.com/gogf/gf/os/gfile"
-	"github.com/gogf/gf/text/gstr"
+	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/text/gstr"
 )
 
 func init() {
