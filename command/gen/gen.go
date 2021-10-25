@@ -7,7 +7,7 @@ import (
 )
 
 func Help() {
-	switch gcmd.GetArg(2) {
+	switch gcmd.GetArg(2).String() {
 	case "dao":
 		HelpDao()
 
@@ -36,7 +36,7 @@ DESCRIPTION
 }
 
 func Run() {
-	genType := gcmd.GetArg(2)
+	genType := gcmd.GetArg(2).String()
 	if genType == "" {
 		mlog.Print("generating type cannot be empty")
 		return

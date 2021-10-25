@@ -52,7 +52,7 @@ func Run() {
 	if err != nil {
 		mlog.Fatal(err)
 	}
-	projectName := parser.GetArg(2)
+	projectName := parser.GetArg(2).String()
 	if projectName == "" {
 		mlog.Fatal("project name should not be empty")
 	}

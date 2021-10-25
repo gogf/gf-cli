@@ -70,7 +70,7 @@ func Run() {
 		mlog.Fatal(err)
 	}
 	mlog.SetHeaderPrint(true)
-	file := gcmd.GetArg(2)
+	file := gcmd.GetArg(2).String()
 	if len(file) < 1 {
 		mlog.Fatal("file path cannot be empty")
 	}
@@ -85,7 +85,7 @@ func Run() {
 	// Swagger checks.
 	array := garray.NewStrArrayFrom(os.Args)
 	// args checks.
-	args := parser.GetOpt("args")
+	args := parser.GetOpt("args").String()
 	if args != "" {
 		app.Args = args
 		index := -1

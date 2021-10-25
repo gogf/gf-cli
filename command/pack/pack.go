@@ -43,8 +43,8 @@ func Run() {
 	if err != nil {
 		mlog.Fatal(err)
 	}
-	srcPath := parser.GetArg(2)
-	dstPath := parser.GetArg(3)
+	srcPath := parser.GetArg(2).String()
+	dstPath := parser.GetArg(3).String()
 	if srcPath == "" {
 		mlog.Fatal("SRC path cannot be empty")
 	}
@@ -61,8 +61,8 @@ func Run() {
 		}
 	}
 	var (
-		name   = parser.GetOpt("name")
-		prefix = parser.GetOpt("prefix")
+		name   = parser.GetOpt("name").String()
+		prefix = parser.GetOpt("prefix").String()
 	)
 	if name == "" && gfile.ExtName(dstPath) == "go" {
 		name = gfile.Basename(gfile.Dir(dstPath))

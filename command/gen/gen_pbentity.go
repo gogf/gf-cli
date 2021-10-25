@@ -418,7 +418,7 @@ func getOptionOrConfigForPbEntity(index int, parser *gcmd.Parser, name string, d
 		ctx    = context.TODO()
 		config = g.Cfg().GetAdapter().(*gcfg.AdapterFile)
 	)
-	result = parser.GetOpt(name)
+	result = parser.GetOpt(name).String()
 	if result == "" && config.Available() {
 		config.SetViolenceCheck(true)
 		if index >= 0 {

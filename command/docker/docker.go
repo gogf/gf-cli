@@ -88,7 +88,7 @@ func Run() {
 	if err != nil {
 		mlog.Fatal(err)
 	}
-	tag := parser.GetOpt("t")
+	tag := parser.GetOpt("t").String()
 	if tag == "" {
 		return
 	}
