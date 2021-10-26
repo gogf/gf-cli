@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/denisenkom/go-mssqldb v0.0.0-20200206145737-bbfc9a55622e
+	github.com/jinzhu/inflection v1.0.0
 	github.com/gogf/gf/v2 v2.0.0-alpha.0.20211025111756-4717e017087f
 	github.com/lib/pq v1.2.0
 	github.com/mattn/go-runewidth v0.0.10 // indirect

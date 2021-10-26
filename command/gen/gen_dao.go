@@ -18,6 +18,7 @@ import (
 	"github.com/gogf/gf/v2/text/gregex"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/jinzhu/inflection"
 	"github.com/olekukonko/tablewriter"
 
 	_ "github.com/denisenkom/go-mssqldb"
@@ -284,7 +285,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 	// Generating dao & model go files one by one according to given table name.
 	newTableNames := make([]string, len(tableNames))
 	for i, tableName := range tableNames {
-		newTableName := tableName
+		newTableName := inflection.Singular(tableName)
 		for _, v := range removePrefixArray {
 			newTableName = gstr.TrimLeftStr(newTableName, v, 1)
 		}
