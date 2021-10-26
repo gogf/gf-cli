@@ -44,7 +44,7 @@ func doGenPb() {
 	}
 	var (
 		servicePath = gfile.RealPath(".")
-		goPathSrc   = gfile.RealPath(gfile.Join(genv.Get("GOPATH"), "src"))
+		goPathSrc   = gfile.RealPath(gfile.Join(genv.Get("GOPATH").String(), "src"))
 	)
 	dirSet.Iterator(func(protoDirPath string) bool {
 		parsingCommand := fmt.Sprintf(

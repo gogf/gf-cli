@@ -125,7 +125,7 @@ func Run() {
 	if err != nil {
 		mlog.Fatal(err)
 	}
-	file := parser.GetArg(2)
+	file := parser.GetArg(2).String()
 	if len(file) < 1 {
 		// Check and use the main.go file.
 		if gfile.Exists("main.go") {
@@ -275,7 +275,7 @@ func getOption(parser *gcmd.Parser, name string, value ...string) (result string
 		ctx    = context.TODO()
 		config = g.Cfg().GetAdapter().(*gcfg.AdapterFile)
 	)
-	result = parser.GetOpt(name)
+	result = parser.GetOpt(name).String()
 	if result == "" && config.Available() {
 		result = config.MustGet(ctx, nodeNameInConfigFile+"."+name).String()
 	}

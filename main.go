@@ -82,7 +82,7 @@ func main() {
 
 	allyes.Init()
 
-	command := gcmd.GetArg(1)
+	command := gcmd.GetArg(1).String()
 	// Help information
 	if gcmd.ContainsOpt("h") && command != "" {
 		help(command)
@@ -90,7 +90,7 @@ func main() {
 	}
 	switch command {
 	case "help":
-		help(gcmd.GetArg(2))
+		help(gcmd.GetArg(2).String())
 	case "version":
 		version()
 	case "env":

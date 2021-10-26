@@ -88,6 +88,7 @@ OPTION
     -/--modelFile        custom file name for storing generated model content.
     -/--modelFileForDao  custom file name generating model for DAO operations like Where/Data. It's empty in default.
     -/--descriptionTag   add comment to description tag for each field.
+    -/--noJsonTag        no json tag will be added for each field.
     -/--noModelComment   no model comment will be added for each field.
     -/--tplDaoIndex      template content for Dao index files generating.
     -/--tplDaoInternal   template content for Dao internal files generating.
@@ -136,6 +137,7 @@ func doGenDao() {
 		"modelFile":      true,
 		"modelForDao":    false,
 		"descriptionTag": false,
+		"noJsonTag":      false,
 		"noModelComment": false,
 		"tplDaoIndex":    true,
 		"tplDaoInternal": true,
@@ -189,6 +191,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		modelFileName       = getOptionOrConfigForDao(index, parser, "modelFile", defaultModelIndexFileName) // Custom file name for storing generated model content.
 		modelFileNameForDao = getOptionOrConfigForDao(index, parser, "modelFileForDao")                      // Custom file name generating model for DAO operations like Where/Data. It's empty in default.
 		descriptionTag      = containsOptionOrConfigForDao(index, parser, "descriptionTag", false)           // Add comment to description tag for each field.
+		noJsonTag           = containsOptionOrConfigForDao(index, parser, "noJsonTag", false)                // No json tag will be added for each field.
 		noModelComment      = containsOptionOrConfigForDao(index, parser, "noModelComment", false)           // No model comment will be added for each field.
 		tplDaoIndexPath     = getOptionOrConfigForDao(index, parser, "tplDaoIndex")                          // Template file path for generating dao index files.
 		tplDaoInternalPath  = getOptionOrConfigForDao(index, parser, "tplDaoInternal")                       // Template file path for generating dao internal files.
@@ -301,6 +304,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 			GJsonSupport:       gJsonSupport,
 			OverwriteDao:       overwriteDao,
 			DescriptionTag:     descriptionTag,
+			NoJsonTag:          noJsonTag,
 			NoModelComment:     noModelComment,
 			TplDaoIndexPath:    tplDaoIndexPath,
 			TplDaoInternalPath: tplDaoInternalPath,
@@ -315,6 +319,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 		StdTime:            gconv.Bool(stdTime),
 		GJsonSupport:       gconv.Bool(gJsonSupport),
 		DescriptionTag:     descriptionTag,
+		NoJsonTag:          noJsonTag,
 		NoModelComment:     noModelComment,
 		ModelFileName:      modelFileName,
 		TplDaoInternalPath: tplDaoInternalPath,
@@ -329,6 +334,7 @@ func doGenDaoForArray(index int, parser *gcmd.Parser) {
 			StdTime:             gconv.Bool(stdTime),
 			GJsonSupport:        gconv.Bool(gJsonSupport),
 			DescriptionTag:      descriptionTag,
+			NoJsonTag:           noJsonTag,
 			NoModelComment:      noModelComment,
 			ModelFileName:       modelFileName,
 			ModelFileNameForDao: modelFileNameForDao,
@@ -834,7 +840,7 @@ func getOptionOrConfigForDao(index int, parser *gcmd.Parser, name string, defaul
 		ctx    = context.TODO()
 		config = g.Cfg().GetAdapter().(*gcfg.AdapterFile)
 	)
-	result = parser.GetOpt(name)
+	result = parser.GetOpt(name).String()
 	if result == "" && config.Available() {
 		config.SetViolenceCheck(true)
 		if index >= 0 {

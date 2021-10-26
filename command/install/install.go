@@ -153,7 +153,7 @@ func getInstallPathsData() []installFolderPath {
 			folderPaths, gopath, binaryFileName,
 		)
 		// Search and find the writable directory path.
-		envPath := genv.Get("PATH", genv.Get("Path"))
+		envPath := genv.Get("PATH", genv.Get("Path").String()).String()
 		if gstr.Contains(envPath, ";") {
 			for _, v := range gstr.SplitAndTrim(envPath, ";") {
 				folderPaths = checkPathAndAppendToInstallFolderPath(

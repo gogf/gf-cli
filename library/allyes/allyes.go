@@ -18,5 +18,5 @@ func Init() {
 
 // Check checks whether option allow all yes for command.
 func Check() bool {
-	return genv.Get(EnvName) == "1"
+	return genv.Get(EnvName).String() == "1"
 }

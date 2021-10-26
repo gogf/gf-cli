@@ -19,7 +19,7 @@ var (
 
 func init() {
 	logger.SetStack(false)
-	if genv.Get(headerPrintEnvName) == "1" {
+	if genv.Get(headerPrintEnvName).String() == "1" {
 		logger.SetHeaderPrint(true)
 	} else {
 		logger.SetHeaderPrint(false)

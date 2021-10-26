@@ -26,7 +26,7 @@ EXAMPLES
 }
 
 func Run() {
-	argument := gcmd.GetArg(2)
+	argument := gcmd.GetArg(2).String()
 	switch argument {
 	case "path":
 		doPath()
@@ -41,7 +41,7 @@ func Run() {
 // This enables your project using GOPATH building, but you should have GOPATH
 // environment variable configured.
 func doPath() {
-	goPathEnv := genv.Get("GOPATH")
+	goPathEnv := genv.Get("GOPATH").String()
 	if goPathEnv == "" {
 		mlog.Fatal("GOPATH is not found in your environment")
 	}
