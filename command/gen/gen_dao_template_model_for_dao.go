@@ -7,6 +7,8 @@ const templateModelForDaoIndexContent = `
 
 package model
 
+{TplPackageImports}
+
 {TplModelStructs}
 `
 

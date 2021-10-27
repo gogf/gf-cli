@@ -386,11 +386,33 @@ func generateDaoContentFile(db gdb.DB, req generateDaoReq) {
 	generateDaoInternal(tableNameCamelCase, tableNameCamelLowerCase, importPrefix, dirPathDao, fileName, fieldMap, req)
 }
 
+func getImportPartContent(source string) string {
+	var (
+		packageImportsArray = garray.NewStrArray()
+	)
+	// Time package recognition.
+	if strings.Contains(source, "gtime.Time") {
+		packageImportsArray.Append(`"github.com/gogf/gf/v2/os/gtime"`)
+	} else if strings.Contains(source, "time.Time") {
+		packageImportsArray.Append(`"time"`)
+	}
+
+	if strings.Contains(source, "gjson.Json") {
+		packageImportsArray.Append(`"github.com/gogf/gf/v2/encoding/gjson"`)
+	}
+
+	// Generate and write content to golang file.
+	packageImportsStr := ""
+	if packageImportsArray.Len() > 0 {
+		packageImportsStr = fmt.Sprintf("import(\n%s\n)", packageImportsArray.Join("\n"))
+	}
+	return packageImportsStr
+}
+
 func generateDaoModelContentFile(db gdb.DB, tableNames, newTableNames []string, req generateDaoReq) {
 	var (
-		modelContent        string
-		packageImportsArray = garray.NewStrArray()
-		dirPathModel        = gfile.Join(req.DirPath, "model")
+		modelContent string
+		dirPathModel = gfile.Join(req.DirPath, "model")
 	)
 
 	// Model content.
@@ -408,24 +430,10 @@ func generateDaoModelContentFile(db gdb.DB, tableNames, newTableNames []string, 
 		)
 		modelContent += "\n"
 	}
-	// Time package recognition.
-	if strings.Contains(modelContent, "gtime.Time") {
-		packageImportsArray.Append(`"github.com/gogf/gf/v2/os/gtime"`)
-	} else if strings.Contains(modelContent, "time.Time") {
-		packageImportsArray.Append(`"time"`)
-	}
-
-	if strings.Contains(modelContent, "gjson.Json") {
-		packageImportsArray.Append(`"github.com/gogf/gf/v2/encoding/gjson"`)
-	}
 
 	// Generate and write content to golang file.
-	packageImportsStr := ""
-	if packageImportsArray.Len() > 0 {
-		packageImportsStr = fmt.Sprintf("import(\n%s\n)", packageImportsArray.Join("\n"))
-	}
 	modelContent = gstr.ReplaceByMap(getTplModelIndexContent(req.TplModelIndexPath), g.MapStrStr{
-		"{TplPackageImports}": packageImportsStr,
+		"{TplPackageImports}": getImportPartContent(modelContent),
 		"{TplModelStructs}":   modelContent,
 	})
 	var (
@@ -468,7 +476,17 @@ func generateModelForDaoContentFile(db gdb.DB, tableNames, newTableNames []strin
 			},
 		)
 		// replace all types to interface{}.
-		modelForDaoStructContent, _ = gregex.ReplaceString("([A-Z]\\w*?)\\s+([\\w\\*\\.]+?)\\s+(//)", "$1 interface{} $3", modelForDaoStructContent)
+		modelForDaoStructContent, _ = gregex.ReplaceStringFuncMatch(
+			"([A-Z]\\w*?)\\s+([\\w\\*\\.]+?)\\s+(//)",
+			modelForDaoStructContent,
+			func(match []string) string {
+				// If the type is already a pointer/slice/map, it does nothing.
+				if !gstr.HasPrefix(match[2], "*") && !gstr.HasPrefix(match[2], "[]") && !gstr.HasPrefix(match[2], "map") {
+					return fmt.Sprintf(`%s interface{} %s`, match[1], match[3])
+				}
+				return gstr.Join(match, " ")
+			},
+		)
 
 		modelContent += generateModelForDaoStructContent(
 			tableName,
@@ -479,7 +497,8 @@ func generateModelForDaoContentFile(db gdb.DB, tableNames, newTableNames []strin
 	}
 	// Generate and write content to golang file.
 	modelContent = gstr.ReplaceByMap(templateModelForDaoIndexContent, g.MapStrStr{
-		"{TplModelStructs}": modelContent,
+		"{TplPackageImports}": getImportPartContent(modelContent),
+		"{TplModelStructs}":   modelContent,
 	})
 	var (
 		err  error
