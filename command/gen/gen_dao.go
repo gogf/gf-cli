@@ -567,6 +567,8 @@ func generateStructDefinitionForModel(structName string, fieldMap map[string]*gd
 	stContent := buffer.String()
 	// Let's do this hack of table writer for indent!
 	stContent = gstr.Replace(stContent, "  #", "")
+	stContent = gstr.Replace(stContent, "` ", "`")
+	stContent = gstr.Replace(stContent, "``", "")
 	buffer.Reset()
 	buffer.WriteString(fmt.Sprintf("type %s struct {\n", structName))
 	buffer.WriteString(stContent)
@@ -576,7 +578,10 @@ func generateStructDefinitionForModel(structName string, fieldMap map[string]*gd
 
 // generateStructFieldForModel generates and returns the attribute definition for specified field.
 func generateStructFieldForModel(field *gdb.TableField, req generateDaoReq) []string {
-	var typeName, ormTag, jsonTag string
+	var (
+		typeName string
+		jsonTag  = getJsonTagFromCase(field.Name, req.JsonCase)
+	)
 	t, _ := gregex.ReplaceString(`\(.+\)`, "", field.Type)
 	t = gstr.Split(gstr.Trim(t), " ")[0]
 	t = gstr.ToLower(t)
@@ -642,38 +647,31 @@ func generateStructFieldForModel(field *gdb.TableField, req generateDaoReq) []st
 			typeName = "string"
 		}
 	}
-	ormTag = field.Name
-	jsonTag = getJsonTagFromCase(field.Name, req.JsonCase)
-	if gstr.ContainsI(field.Key, "pri") {
-		ormTag += ",primary"
-	}
-	if gstr.ContainsI(field.Key, "uni") {
-		ormTag += ",unique"
-	}
 
-	tagKey := "`"
-	result := []string{
-		"    #" + gstr.CaseCamel(field.Name),
-		" #" + typeName,
-	}
-	if req.DescriptionTag {
-		result = append(result, " #"+fmt.Sprintf(tagKey+`orm:"%s"`, ormTag))
-		if !req.NoJsonTag {
-			result = append(result, " #"+fmt.Sprintf(`json:"%s"`, jsonTag))
+	var (
+		tagKey = "`"
+		result = []string{
+			"    #" + gstr.CaseCamel(field.Name),
+			" #" + typeName,
 		}
-		result = append(result, " #"+fmt.Sprintf(
-			`description:"%s"`+tagKey,
-			gstr.Replace(formatComment(field.Comment), `"`, `\"`),
-		))
-	} else if !req.NoJsonTag {
-		result = append(result, " #"+fmt.Sprintf(tagKey+`orm:"%s"`, ormTag))
-		result = append(result, " #"+fmt.Sprintf(`json:"%s"`+tagKey, jsonTag))
-	} else {
-		result = append(result, " #"+fmt.Sprintf(tagKey+`orm:"%s"`+tagKey, ormTag))
-	}
+		descriptionTag = gstr.Replace(formatComment(field.Comment), `"`, `\"`)
+	)
 
-	if !req.NoModelComment {
-		result = append(result, " #"+fmt.Sprintf(`// %s`, formatComment(field.Comment)))
+	result = append(result, " #"+fmt.Sprintf(tagKey+`json:"%s"`, jsonTag))
+	result = append(result, " #"+fmt.Sprintf(`description:"%s"`+tagKey, descriptionTag))
+	result = append(result, " #"+fmt.Sprintf(`// %s`, formatComment(field.Comment)))
+
+	for k, v := range result {
+		if req.NoJsonTag {
+			v, _ = gregex.ReplaceString(`json:".+"`, ``, v)
+		}
+		if !req.DescriptionTag {
+			v, _ = gregex.ReplaceString(`description:".*"`, ``, v)
+		}
+		if req.NoModelComment {
+			v, _ = gregex.ReplaceString(`//.+`, ``, v)
+		}
+		result[k] = v
 	}
 	return result
 }
