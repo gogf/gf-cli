@@ -460,11 +460,15 @@ func generateModelForDaoContentFile(db gdb.DB, tableNames, newTableNames []strin
 
 		modelForDaoStructContent := generateStructDefinitionForModel(gstr.CaseCamel(newTableName), fieldMap, req)
 		// replace struct types from "Xxx" to "XxxForDao".
-		modelForDaoStructContent, _ = gregex.ReplaceStringFuncMatch(`(type)\s+([A-Z]\w*?)\s+(struct\s+{)`, modelForDaoStructContent, func(match []string) string {
-			return fmt.Sprintf(`%s %sForDao %s`, match[1], match[2], match[3])
-		})
+		modelForDaoStructContent, _ = gregex.ReplaceStringFuncMatch(
+			`(type)\s+([A-Z]\w*?)\s+(struct\s+{)`,
+			modelForDaoStructContent,
+			func(match []string) string {
+				return fmt.Sprintf(`%s %sForDao %s`, match[1], match[2], match[3])
+			},
+		)
 		// replace all types to interface{}.
-		modelForDaoStructContent, _ = gregex.ReplaceString("([A-Z]\\w*?)\\s+([\\w\\*\\.]+?)\\s+(`orm)", "$1 interface{} $3", modelForDaoStructContent)
+		modelForDaoStructContent, _ = gregex.ReplaceString("([A-Z]\\w*?)\\s+([\\w\\*\\.]+?)\\s+(//)", "$1 interface{} $3", modelForDaoStructContent)
 
 		modelContent += generateModelForDaoStructContent(
 			tableName,
