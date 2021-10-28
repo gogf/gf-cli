@@ -190,6 +190,10 @@ func checkPathAndAppendToInstallFolderPath(folderPaths []installFolderPath, path
 	if !writable && !installed {
 		return folderPaths
 	}
+	// Ignore appended path.
+	if isAppended(folderPaths, path) {
+		return folderPaths
+	}
 	return append(
 		folderPaths,
 		installFolderPath{
@@ -203,4 +207,14 @@ func checkPathAndAppendToInstallFolderPath(folderPaths []installFolderPath, path
 // Check if this gf binary path exists.
 func isInstalled(path string) bool {
 	return gfile.Exists(path)
+}
+
+// Check if this gf binary path appended.
+func isAppended(folderPaths []installFolderPath, path string) bool {
+	for _, folderPath := range folderPaths {
+		if folderPath.path == path {
+			return true
+		}
+	}
+	return false
 }
