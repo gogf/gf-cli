@@ -31,7 +31,7 @@ func doGenPb() {
 		mlog.Fatalf(`proto files folder "%s" does not exist`, protoFolder)
 	}
 	// folder scanning.
-	files, err := gfile.ScanDirFile(protoFolder, "*.proto", true)
+	files, err := gfile.ScanDirFile(protoFolder, "*.proto", false)
 	if err != nil {
 		mlog.Fatal(err)
 	}
@@ -40,7 +40,7 @@ func doGenPb() {
 	}
 	dirSet := gset.NewStrSet()
 	for _, file := range files {
-		dirSet.Add(gfile.Dir(file))
+		dirSet.Add(file)
 	}
 	var (
 		servicePath = gfile.RealPath(".")
@@ -48,12 +48,16 @@ func doGenPb() {
 	)
 	dirSet.Iterator(func(protoDirPath string) bool {
 		parsingCommand := fmt.Sprintf(
-			"protoc --gofast_out=plugins=grpc:. %s/*.proto -I%s",
+			"protoc --gofast_out=plugins=grpc:. %s -I%s",
 			protoDirPath,
 			servicePath,
 		)
 		if goPathSrc != "" {
 			parsingCommand += " -I" + goPathSrc
+		}
+		thirdapipath := "protocol/thirdapis"
+		if gfile.Exists(thirdapipath) {
+			parsingCommand += " -I" + thirdapipath
 		}
 		mlog.Print(parsingCommand)
 		if output, err := gproc.ShellExec(parsingCommand); err != nil {
