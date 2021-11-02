@@ -484,7 +484,7 @@ func generateModelForDaoContentFile(db gdb.DB, tableNames, newTableNames []strin
 				if !gstr.HasPrefix(match[2], "*") && !gstr.HasPrefix(match[2], "[]") && !gstr.HasPrefix(match[2], "map") {
 					return fmt.Sprintf(`%s interface{} %s`, match[1], match[3])
 				}
-				return gstr.Join(match, " ")
+				return match[0]
 			},
 		)
 
@@ -718,11 +718,13 @@ func generateColumnDefinitionForDao(fieldMap map[string]*gdb.TableField) string 
 		names  = sortFieldKeyForDao(fieldMap)
 	)
 	for index, name := range names {
-		field := fieldMap[name]
-		comment := gstr.Trim(gstr.ReplaceByArray(field.Comment, g.SliceStr{
-			"\n", " ",
-			"\r", " ",
-		}))
+		var (
+			field   = fieldMap[name]
+			comment = gstr.Trim(gstr.ReplaceByArray(field.Comment, g.SliceStr{
+				"\n", " ",
+				"\r", " ",
+			}))
+		)
 		array[index] = []string{
 			"    #" + gstr.CaseCamel(field.Name),
 			" # " + "string",
