@@ -132,6 +132,7 @@ func doGenDao() {
 		"j,jsonCase":     true,
 		"stdTime":        false,
 		"gJsonSupport":   false,
+		"importPrefix":   true,
 		"overwriteDao":   false,
 		"modelFile":      true,
 		"modelForDao":    false,
