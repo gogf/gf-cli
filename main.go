@@ -199,7 +199,7 @@ CLI Built Detail:
 func getGFVersionOfCurrentProject() (string, error) {
 	goModPath := gfile.Join(gfile.Pwd(), "go.mod")
 	if gfile.Exists(goModPath) {
-		match, err := gregex.MatchString(`github.com/gogf/gf\s+([\w\d\.]+)`, gfile.GetContents(goModPath))
+		match, err := gregex.MatchString(`github.com/gogf/gf(?:/v2)?\s+([\w\d\.-]+)`, gfile.GetContents(goModPath))
 		if err != nil {
 			return "", err
 		}
