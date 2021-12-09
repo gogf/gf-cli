@@ -24,3 +24,4 @@ buildgf.bat
 *.exe~
 app/
 gf-cli
+.example/

@@ -1,8 +1,12 @@
-package install
+package cmd
 
 import (
-	"github.com/gogf/gf-cli/v2/library/allyes"
-	"github.com/gogf/gf-cli/v2/library/mlog"
+	"context"
+	"runtime"
+	"strings"
+
+	"github.com/gogf/gf-cli/v2/utility/allyes"
+	"github.com/gogf/gf-cli/v2/utility/mlog"
 	"github.com/gogf/gf/v2/container/garray"
 	"github.com/gogf/gf/v2/container/gset"
 	"github.com/gogf/gf/v2/frame/g"
@@ -11,9 +15,15 @@ import (
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
-	"runtime"
-	"strings"
 )
+
+var (
+	Install = commandInstall{}
+)
+
+type commandInstall struct {
+	g.Meta `name:"install" root:"install" brief:"install gf binary to system (might need root/admin permission)"`
+}
 
 // installFolderPath contains installFolderPath-related data,
 // such as path, writable, binaryFilePath, and installed.
@@ -24,10 +34,14 @@ type installFolderPath struct {
 	installed      bool
 }
 
-// Run does the installation.
-func Run() {
+type commandInstallInput struct {
+	g.Meta `name:"install"`
+}
+type commandInstallOutput struct{}
+
+func (c commandInstall) Index(ctx context.Context, in commandInstallInput) (out *commandInstallOutput, err error) {
 	// Ask where to install.
-	paths := getInstallPathsData()
+	paths := c.getInstallPathsData()
 	if len(paths) <= 0 {
 		mlog.Printf("no path detected, you can manually install gf by copying the binary to path folder.")
 		return
@@ -101,7 +115,7 @@ func Run() {
 	dstPath := paths[selectedID]
 
 	// Install the new binary.
-	err := gfile.CopyFile(gfile.SelfPath(), dstPath.binaryFilePath)
+	err = gfile.CopyFile(gfile.SelfPath(), dstPath.binaryFilePath)
 	if err != nil {
 		mlog.Printf("install gf binary to '%s' failed: %v", dstPath.path, err)
 		mlog.Printf("you can manually install gf by copying the binary to folder: %s", dstPath.path)
@@ -115,24 +129,25 @@ func Run() {
 		if aPath.binaryFilePath != "" &&
 			aPath.binaryFilePath != dstPath.binaryFilePath &&
 			gfile.SelfPath() != aPath.binaryFilePath {
-			gfile.Remove(aPath.binaryFilePath)
+			_ = gfile.Remove(aPath.binaryFilePath)
 		}
 	}
+	return
 }
 
 // IsInstalled returns whether the binary is installed.
-func IsInstalled() bool {
-	paths := getInstallPathsData()
-	for _, aPath := range paths {
-		if aPath.installed {
-			return true
-		}
-	}
-	return false
-}
+//func (c commandInstall) IsInstalled() bool {
+//	paths := c.getInstallPathsData()
+//	for _, aPath := range paths {
+//		if aPath.installed {
+//			return true
+//		}
+//	}
+//	return false
+//}
 
 // GetInstallPathsData returns the installation paths data for the binary.
-func getInstallPathsData() []installFolderPath {
+func (c commandInstall) getInstallPathsData() []installFolderPath {
 	var folderPaths []installFolderPath
 	// Pre generate binaryFileName.
 	binaryFileName := "gf" + gfile.Ext(gfile.SelfPath())
@@ -140,7 +155,7 @@ func getInstallPathsData() []installFolderPath {
 	case "darwin":
 		darwinInstallationCheckPaths := []string{"/usr/local/bin"}
 		for _, v := range darwinInstallationCheckPaths {
-			folderPaths = checkPathAndAppendToInstallFolderPath(
+			folderPaths = c.checkPathAndAppendToInstallFolderPath(
 				folderPaths, v, binaryFileName,
 			)
 		}
@@ -149,29 +164,29 @@ func getInstallPathsData() []installFolderPath {
 	default:
 		// $GOPATH/bin
 		gopath := gfile.Join(runtime.GOROOT(), "bin")
-		folderPaths = checkPathAndAppendToInstallFolderPath(
+		folderPaths = c.checkPathAndAppendToInstallFolderPath(
 			folderPaths, gopath, binaryFileName,
 		)
 		// Search and find the writable directory path.
 		envPath := genv.Get("PATH", genv.Get("Path").String()).String()
 		if gstr.Contains(envPath, ";") {
 			for _, v := range gstr.SplitAndTrim(envPath, ";") {
-				folderPaths = checkPathAndAppendToInstallFolderPath(
+				folderPaths = c.checkPathAndAppendToInstallFolderPath(
 					folderPaths, v, binaryFileName,
 				)
 			}
 		} else if gstr.Contains(envPath, ":") {
 			for _, v := range gstr.SplitAndTrim(envPath, ":") {
-				folderPaths = checkPathAndAppendToInstallFolderPath(
+				folderPaths = c.checkPathAndAppendToInstallFolderPath(
 					folderPaths, v, binaryFileName,
 				)
 			}
 		} else if envPath != "" {
-			folderPaths = checkPathAndAppendToInstallFolderPath(
+			folderPaths = c.checkPathAndAppendToInstallFolderPath(
 				folderPaths, envPath, binaryFileName,
 			)
 		} else {
-			folderPaths = checkPathAndAppendToInstallFolderPath(
+			folderPaths = c.checkPathAndAppendToInstallFolderPath(
 				folderPaths, "/usr/local/bin", binaryFileName,
 			)
 		}
@@ -181,11 +196,11 @@ func getInstallPathsData() []installFolderPath {
 
 // checkPathAndAppendToInstallFolderPath checks if `path` is writable and already installed.
 // It adds the `path` to `folderPaths` if it is writable or already installed, or else it ignores the `path`.
-func checkPathAndAppendToInstallFolderPath(folderPaths []installFolderPath, path string, binaryFileName string) []installFolderPath {
+func (c commandInstall) checkPathAndAppendToInstallFolderPath(folderPaths []installFolderPath, path string, binaryFileName string) []installFolderPath {
 	var (
 		binaryFilePath = gfile.Join(path, binaryFileName)
 		writable       = gfile.IsWritable(path)
-		installed      = isInstalled(binaryFilePath)
+		installed      = c.isInstalled(binaryFilePath)
 	)
 	if !writable && !installed {
 		return folderPaths
@@ -201,6 +216,6 @@ func checkPathAndAppendToInstallFolderPath(folderPaths []installFolderPath, path
 }
 
 // Check if this gf binary path exists.
-func isInstalled(path string) bool {
+func (c commandInstall) isInstalled(path string) bool {
 	return gfile.Exists(path)
 }

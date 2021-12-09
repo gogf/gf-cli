@@ -1,72 +1,14 @@
 package main
 
 import (
-	_ "github.com/gogf/gf-cli/v2/boot"
-
-	"fmt"
-	"github.com/gogf/gf-cli/v2/command/build"
-	"github.com/gogf/gf-cli/v2/command/docker"
-	"github.com/gogf/gf-cli/v2/command/env"
-	"github.com/gogf/gf-cli/v2/command/fix"
-	"github.com/gogf/gf-cli/v2/command/gen"
-	"github.com/gogf/gf-cli/v2/command/get"
-	"github.com/gogf/gf-cli/v2/command/initialize"
-	"github.com/gogf/gf-cli/v2/command/install"
-	"github.com/gogf/gf-cli/v2/command/mod"
-	"github.com/gogf/gf-cli/v2/command/pack"
-	"github.com/gogf/gf-cli/v2/command/run"
-	"github.com/gogf/gf-cli/v2/command/update"
-	"github.com/gogf/gf-cli/v2/library/allyes"
-	"github.com/gogf/gf-cli/v2/library/mlog"
-	"github.com/gogf/gf-cli/v2/library/proxy"
+	"github.com/gogf/gf-cli/v2/internal/cmd"
+	"github.com/gogf/gf-cli/v2/utility/allyes"
+	"github.com/gogf/gf-cli/v2/utility/mlog"
 	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/gogf/gf/v2/os/gbuild"
 	"github.com/gogf/gf/v2/os/gcmd"
+	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gfile"
-	"github.com/gogf/gf/v2/text/gregex"
 	"github.com/gogf/gf/v2/text/gstr"
-	"strings"
-)
-
-const (
-	VERSION = "v2.0.0"
-)
-
-func init() {
-	// Automatically sets the golang proxy for all commands.
-	proxy.AutoSet()
-}
-
-var (
-	helpContent = gstr.TrimLeft(`
-USAGE
-    gf COMMAND [ARGUMENT] [OPTION]
-
-COMMAND
-    env        show current Golang environment variables
-    get        install or update GF to system in default...
-    gen        automatically generate go files for ORM models...
-    mod        extra features for go modules...
-    run        running go codes with hot-compiled-like feature...
-    init       create and initialize an empty GF project...
-    help       show more information about a specified command
-    pack       packing any file/directory to a resource file, or a go file...
-    build      cross-building go project for lots of platforms...
-    docker     create a docker image for current GF project...
-    update     update current gf binary to latest one (might need root/admin permission)
-    install    install gf binary to system (might need root/admin permission)
-    version    show current binary version info
-
-OPTION
-    -y         all yes for all command without prompt ask 
-    -?,-h      show this help or detail for specified command
-    -v,-i      show version information
-    -debug     show internal detailed debugging information
-
-ADDITIONAL
-    Use 'gf help COMMAND' or 'gf COMMAND -h' for detail about a command, which has '...' 
-    in the tail of their comments.
-`)
 )
 
 func main() {
@@ -79,135 +21,41 @@ func main() {
 			}
 		}
 	}()
-
+	handleZshAlias()
 	allyes.Init()
 
-	command := gcmd.GetArg(1).String()
-	// Help information
-	if gcmd.ContainsOpt("h") && command != "" {
-		help(command)
-		return
-	}
-	switch command {
-	case "help":
-		help(gcmd.GetArg(2).String())
-	case "version":
-		version()
-	case "env":
-		env.Run()
-	case "get":
-		get.Run()
-	case "gen":
-		gen.Run()
-	case "fix":
-		fix.Run()
-	case "mod":
-		mod.Run()
-	case "init":
-		initialize.Run()
-	case "pack":
-		pack.Run()
-	case "docker":
-		docker.Run()
-	case "update":
-		update.Run()
-	case "install":
-		install.Run()
-	case "build":
-		build.Run()
-	case "run":
-		run.Run()
-	default:
-		for k := range gcmd.GetOptAll() {
-			switch k {
-			case "?", "h":
-				mlog.Print(helpContent)
-				return
-			case "i", "v":
-				version()
-				return
-			}
-		}
-		// No argument or option, do installation checks.
-		if !install.IsInstalled() {
-			mlog.Print("hi, it seams it's the first time you installing gf cli.")
-			s := gcmd.Scanf("do you want to install gf binary to your system? [y/n]: ")
-			if strings.EqualFold(s, "y") {
-				install.Run()
-				gcmd.Scan("press `Enter` to exit...")
-				return
-			}
-		}
-		mlog.Print(helpContent)
-	}
-}
-
-// help shows more information for specified command.
-func help(command string) {
-	switch command {
-	case "get":
-		get.Help()
-	case "gen":
-		gen.Help()
-	case "init":
-		initialize.Help()
-	case "docker":
-		docker.Help()
-	case "build":
-		build.Help()
-	case "pack":
-		pack.Help()
-	case "run":
-		run.Help()
-	case "mod":
-		mod.Help()
-	default:
-		mlog.Print(helpContent)
-	}
-}
-
-// version prints the version information of the cli tool.
-func version() {
-	info := gbuild.Info()
-	if info["git"] == "" {
-		info["git"] = "none"
-	}
-	mlog.Printf(`GoFrame CLI Tool %s, https://goframe.org`, VERSION)
-	gfVersion, err := getGFVersionOfCurrentProject()
+	var (
+		ctx = gctx.New()
+	)
+	command, err := gcmd.NewFromObject(cmd.GF)
 	if err != nil {
-		gfVersion = err.Error()
-	} else {
-		gfVersion = gfVersion + " in current go.mod"
+		panic(err)
 	}
-	mlog.Printf(`GoFrame Version: %s`, gfVersion)
-	mlog.Printf(`CLI Installed At: %s`, gfile.SelfPath())
-	if info["gf"] == "" {
-		mlog.Print(`Current is a custom installed version, no installation information.`)
-		return
+	err = command.AddObject(
+		cmd.Build,
+		cmd.Install,
+		cmd.Init,
+	)
+	if err != nil {
+		panic(err)
 	}
-
-	mlog.Print(gstr.Trim(fmt.Sprintf(`
-CLI Built Detail:
-  Go Version:  %s
-  GF Version:  %s
-  Git Commit:  %s
-  Build Time:  %s
-`, info["go"], info["gf"], info["git"], info["time"])))
+	if err = command.Run(ctx); err != nil {
+		panic(err)
+	}
 }
 
-// getGFVersionOfCurrentProject checks and returns the GoFrame version current project using.
-func getGFVersionOfCurrentProject() (string, error) {
-	goModPath := gfile.Join(gfile.Pwd(), "go.mod")
-	if gfile.Exists(goModPath) {
-		match, err := gregex.MatchString(`github.com/gogf/gf\s+([\w\d\.]+)`, gfile.GetContents(goModPath))
-		if err != nil {
-			return "", err
+// zsh alias "git fetch" conflicts checks.
+func handleZshAlias() {
+	if home, err := gfile.Home(); err == nil {
+		zshPath := gfile.Join(home, ".zshrc")
+		if gfile.Exists(zshPath) {
+			var (
+				aliasCommand = `alias gf=gf`
+				content      = gfile.GetContents(zshPath)
+			)
+			if !gstr.Contains(content, aliasCommand) {
+				_ = gfile.PutContentsAppend(zshPath, "\n"+aliasCommand+"\n")
+			}
 		}
-		if len(match) > 1 {
-			return match[1], nil
-		}
-		return "", gerror.New("cannot find goframe requirement in go.mod")
-	} else {
-		return "", gerror.New("cannot find go.mod")
 	}
 }
