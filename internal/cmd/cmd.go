@@ -21,7 +21,22 @@ var (
 )
 
 type commandGF struct {
-	g.Meta `name:"gf" root:"gf" usage:"gf COMMAND [ARGUMENT] [OPTION]" ad:"{commandGFAd}"`
+	g.Meta `name:"gf" usage:"{commandGFUsage}" ad:"{commandGFAd}"`
+}
+
+const (
+	commandGFUsage = `gf COMMAND [ARGUMENT] [OPTION]`
+	commandGFAd    = `
+ADDITIONAL
+    Use "gf COMMAND -h" for details about a command.
+`
+)
+
+func init() {
+	gtag.Sets(g.MapStrStr{
+		`commandGFUsage`: commandGFUsage,
+		`commandGFAd`:    commandGFAd,
+	})
 }
 
 type commandGFInput struct {
@@ -31,20 +46,6 @@ type commandGFInput struct {
 	Debug   bool `short:"d" name:"debug"   brief:"show internal detailed debugging information" orphan:"true"`
 }
 type commandGFOutput struct{}
-
-const (
-	commandGFAd = `
-ADDITIONAL
-    Use 'gf help COMMAND' or 'gf COMMAND -h' for detail about a command, which has '...' 
-    in the tail of their comments.
-`
-)
-
-func init() {
-	gtag.Sets(map[string]string{
-		`commandGFAd`: commandGFAd,
-	})
-}
 
 func (c commandGF) Index(ctx context.Context, in commandGFInput) (out *commandGFOutput, err error) {
 	if in.Version {

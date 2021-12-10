@@ -22,7 +22,7 @@ var (
 )
 
 type commandInstall struct {
-	g.Meta `name:"install" root:"install" brief:"install gf binary to system (might need root/admin permission)"`
+	g.Meta `name:"install" brief:"install gf binary to system (might need root/admin permission)"`
 }
 
 // installFolderPath contains installFolderPath-related data,

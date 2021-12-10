@@ -12,34 +12,34 @@ var (
 )
 
 type commandInit struct {
-	g.Meta `name:"init" root:"init" brief:"{commandInitBrief}" eg:"{commandInitEg}"`
+	g.Meta `name:"init" brief:"{commandInitBrief}" eg:"{commandInitEg}"`
 }
 
 const (
 	commandInitBrief = `
-install gf binary to system (might need root/admin permission)
+create and initialize an empty GoFrame project
 `
 	commandInitEg = `
 gf init my-app
 gf init my-project-name
 `
-	commandInitNameDc = `
+	commandInitNameBrief = `
 name for the project. It will create a folder with NAME in current directory.
 The NAME will also be the module name for the project.
 `
 )
 
 func init() {
-	gtag.Sets(map[string]string{
-		`commandInitBrief`:  commandInitBrief,
-		`commandInitEg`:     commandInitEg,
-		`commandInitNameDc`: commandInitNameDc,
+	gtag.Sets(g.MapStrStr{
+		`commandInitBrief`:     commandInitBrief,
+		`commandInitEg`:        commandInitEg,
+		`commandInitNameBrief`: commandInitNameBrief,
 	})
 }
 
 type commandInitInput struct {
 	g.Meta `name:"init"`
-	Name   string `name:"NAME" arg:"true" v:"required" dc:"{commandInitNameDc}"`
+	Name   string `name:"NAME" arg:"true" v:"required" brief:"{commandInitNameBrief}"`
 }
 type commandInitOutput struct{}
 

@@ -32,9 +32,13 @@ func main() {
 		panic(err)
 	}
 	err = command.AddObject(
-		cmd.Build,
-		cmd.Install,
+		cmd.Env,
+		cmd.Run,
 		cmd.Init,
+		cmd.Pack,
+		cmd.Build,
+		cmd.Docker,
+		cmd.Install,
 	)
 	if err != nil {
 		panic(err)

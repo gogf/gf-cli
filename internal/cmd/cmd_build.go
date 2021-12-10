@@ -32,7 +32,7 @@ var (
 )
 
 type commandBuild struct {
-	g.Meta               `name:"build" root:"build" brief:"{commandBuildBrief}" dc:"{commandBuildDc}" eg:"{commandBuildEg}" ad:"{commandBuildAd}"`
+	g.Meta               `name:"build" brief:"{commandBuildBrief}" dc:"{commandBuildDc}" eg:"{commandBuildEg}" ad:"{commandBuildAd}"`
 	nodeNameInConfigFile string // nodeNameInConfigFile is the node name for compiler configurations in configuration file.
 	packedGoFileName     string // packedGoFileName specifies the file name for packing common folders into one single go file.
 }
@@ -101,7 +101,7 @@ PLATFORMS
 )
 
 func init() {
-	gtag.Sets(map[string]string{
+	gtag.Sets(g.MapStrStr{
 		`commandBuildBrief`: commandBuildBrief,
 		`commandBuildDc`:    commandBuildDc,
 		`commandBuildEg`:    commandBuildEg,
