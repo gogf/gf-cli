@@ -67,36 +67,36 @@ PLATFORMS
 `
 	// https://golang.google.cn/doc/install/source
 	commandBuildPlatforms = `
-    darwin    amd64
-    darwin    arm64
-    ios       amd64
-    ios       arm64
-    freebsd   386
-    freebsd   amd64
-    freebsd   arm
-    linux     386
-    linux     amd64
-    linux     arm
-    linux     arm64
-    linux     ppc64
-    linux     ppc64le
-    linux     mips
-    linux     mipsle
-    linux     mips64
-    linux     mips64le
-    netbsd    386
-    netbsd    amd64
-    netbsd    arm
-    openbsd   386
-    openbsd   amd64
-    openbsd   arm
-    windows   386
-    windows   amd64
-	android   arm
-	dragonfly amd64
-	plan9     386
-	plan9     amd64
-	solaris   amd64
+darwin    amd64
+darwin    arm64
+ios       amd64
+ios       arm64
+freebsd   386
+freebsd   amd64
+freebsd   arm
+linux     386
+linux     amd64
+linux     arm
+linux     arm64
+linux     ppc64
+linux     ppc64le
+linux     mips
+linux     mipsle
+linux     mips64
+linux     mips64le
+netbsd    386
+netbsd    amd64
+netbsd    arm
+openbsd   386
+openbsd   amd64
+openbsd   arm
+windows   386
+windows   amd64
+android   arm
+dragonfly amd64
+plan9     386
+plan9     amd64
+solaris   amd64
 `
 )
 

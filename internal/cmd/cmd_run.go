@@ -21,7 +21,7 @@ var (
 )
 
 type commandRun struct {
-	g.Meta `name:"run" brief:"{commandRunUsage}" brief:"{commandRunBrief}" eg:"{commandRunEg}" eg:"{commandRunDc}"`
+	g.Meta `name:"run" usage:"{commandRunUsage}" brief:"{commandRunBrief}" eg:"{commandRunEg}" dc:"{commandRunDc}"`
 }
 
 type commandRunApp struct {

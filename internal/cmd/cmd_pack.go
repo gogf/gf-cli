@@ -18,7 +18,7 @@ var (
 )
 
 type commandPack struct {
-	g.Meta `name:"pack" brief:"{commandPackUsage}" brief:"{commandPackBrief}" eg:"{commandPackEg}"`
+	g.Meta `name:"pack" usage:"{commandPackUsage}" brief:"{commandPackBrief}" eg:"{commandPackEg}"`
 }
 
 const (
