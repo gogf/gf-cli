@@ -21,12 +21,11 @@ var (
 )
 
 type commandGF struct {
-	g.Meta `name:"gf" usage:"{commandGFUsage}" ad:"{commandGFAd}"`
+	g.Meta `name:"gf" ad:"{commandGFAd}"`
 }
 
 const (
-	commandGFUsage = `gf COMMAND [ARGUMENT] [OPTION]`
-	commandGFAd    = `
+	commandGFAd = `
 ADDITIONAL
     Use "gf COMMAND -h" for details about a command.
 `
@@ -34,8 +33,7 @@ ADDITIONAL
 
 func init() {
 	gtag.Sets(g.MapStrStr{
-		`commandGFUsage`: commandGFUsage,
-		`commandGFAd`:    commandGFAd,
+		`commandGFAd`: commandGFAd,
 	})
 }
 

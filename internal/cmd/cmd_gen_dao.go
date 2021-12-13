@@ -23,7 +23,7 @@ import (
 const (
 	commandGenDaoConfig = `gfcli.gen.dao`
 	commandGenDaoUsage  = `gf gen dao [OPTION]`
-	commandGenDaoBrief  = `automatically generate go files for dao/dto/entity/pb/pbentity`
+	commandGenDaoBrief  = `automatically generate go files for dao/dto/entity`
 	commandGenDaoEg     = `
 gf gen dao
 gf gen dao -l "mysql:root:12345678@tcp(127.0.0.1:3306)/test"
@@ -124,8 +124,8 @@ type (
 		GJsonSupport   bool   `name:"gJsonSupport"    short:"n" brief:"{commandGenDaoBriefGJsonSupport}"    orphan:"true"`
 		OverwriteDao   bool   `name:"overwriteDao"    short:"o" brief:"{commandGenDaoBriefOverwriteDao}"    orphan:"true"`
 		DescriptionTag bool   `name:"descriptionTag"  short:"d" brief:"{commandGenDaoBriefDescriptionTag}"  orphan:"true"`
-		NoJsonTag      bool   `name:"noJsonTag"       short:"h" brief:"{commandGenDaoBriefNoJsonTag"        orphan:"true"`
-		NoModelComment bool   `name:"noModelComment"  short:"k" brief:"{commandGenDaoBriefNoModelComment}"  orphan:"true"`
+		NoJsonTag      bool   `name:"noJsonTag"       short:"k" brief:"{commandGenDaoBriefNoJsonTag"        orphan:"true"`
+		NoModelComment bool   `name:"noModelComment"  short:"m" brief:"{commandGenDaoBriefNoModelComment}"  orphan:"true"`
 	}
 	commandGenDaoOutput struct{}
 
@@ -235,7 +235,7 @@ func doGenDaoForArray(ctx context.Context, index int, in commandGenDaoInput) {
 		newTableName = in.Prefix + newTableName
 		newTableNames[i] = newTableName
 		// Dao.
-		generateDaoContentFile(ctx, db, commandGenDaoInternalInput{
+		generateDao(ctx, db, commandGenDaoInternalInput{
 			commandGenDaoInput: in,
 			TableName:          tableName,
 			NewTableName:       newTableName,
@@ -243,14 +243,14 @@ func doGenDaoForArray(ctx context.Context, index int, in commandGenDaoInput) {
 		})
 	}
 	// Model.
-	generateDaoModelContentFile(ctx, db, tableNames, newTableNames, commandGenDaoInternalInput{
+	generateEntity(ctx, db, tableNames, newTableNames, commandGenDaoInternalInput{
 		commandGenDaoInput: in,
 		ModName:            modName,
 	})
 }
 
 // generateDaoContentFile generates the dao and model content of given table.
-func generateDaoContentFile(ctx context.Context, db gdb.DB, in commandGenDaoInternalInput) {
+func generateDao(ctx context.Context, db gdb.DB, in commandGenDaoInternalInput) {
 	// Generating table data preparing.
 	fieldMap, err := db.TableFields(ctx, in.TableName)
 	if err != nil {
@@ -314,7 +314,7 @@ func getImportPartContent(source string) string {
 	return packageImportsStr
 }
 
-func generateDaoModelContentFile(ctx context.Context, db gdb.DB, tableNames, newTableNames []string, in commandGenDaoInternalInput) {
+func generateEntity(ctx context.Context, db gdb.DB, tableNames, newTableNames []string, in commandGenDaoInternalInput) {
 	var (
 		modelContent string
 		dirPathModel = gfile.Join(in.Path, "model")
@@ -355,7 +355,7 @@ func generateDaoModelContentFile(ctx context.Context, db gdb.DB, tableNames, new
 	}
 }
 
-// model struct for dao.
+// dto.
 //func generateModelForDaoContentFile(ctx context.Context, db gdb.DB, tableNames, newTableNames []string, in commandGenDaoInternalInput) {
 //	var (
 //		modelContent string

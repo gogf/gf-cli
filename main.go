@@ -34,6 +34,7 @@ func main() {
 	err = command.AddObject(
 		cmd.Env,
 		cmd.Run,
+		cmd.Gen,
 		cmd.Init,
 		cmd.Pack,
 		cmd.Build,
