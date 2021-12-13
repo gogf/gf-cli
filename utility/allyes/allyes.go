@@ -12,7 +12,7 @@ const (
 // Init initializes the package manually.
 func Init() {
 	if gcmd.ContainsOpt("y") {
-		genv.Set(EnvName, "1")
+		genv.MustSet(EnvName, "1")
 	}
 }
 

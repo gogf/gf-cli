@@ -21,7 +21,11 @@ func main() {
 			}
 		}
 	}()
+
+	// zsh alias "git fetch" conflicts checks.
 	handleZshAlias()
+
+	// -y option checks.
 	allyes.Init()
 
 	var (
@@ -40,6 +44,7 @@ func main() {
 		cmd.Build,
 		cmd.Docker,
 		cmd.Install,
+		cmd.Version,
 	)
 	if err != nil {
 		panic(err)
