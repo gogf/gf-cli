@@ -21,6 +21,9 @@ import (
 )
 
 const (
+	defaultDaoPath      = `service/internal/dao`
+	defaultDtoPath      = `service/internal/dto`
+	defaultEntityPath   = `model/entity`
 	commandGenDaoConfig = `gfcli.gen.dao`
 	commandGenDaoUsage  = `gf gen dao [OPTION]`
 	commandGenDaoBrief  = `automatically generate go files for dao/dto/entity`
@@ -242,7 +245,12 @@ func doGenDaoForArray(ctx context.Context, index int, in commandGenDaoInput) {
 			ModName:            modName,
 		})
 	}
-	// Model.
+	// Dto.
+	generateDto(ctx, db, tableNames, newTableNames, commandGenDaoInternalInput{
+		commandGenDaoInput: in,
+		ModName:            modName,
+	})
+	// Entity.
 	generateEntity(ctx, db, tableNames, newTableNames, commandGenDaoInternalInput{
 		commandGenDaoInput: in,
 		ModName:            modName,
@@ -258,7 +266,7 @@ func generateDao(ctx context.Context, db gdb.DB, in commandGenDaoInternalInput) 
 	}
 	var (
 		dirRealPath             = gfile.RealPath(in.Path)
-		dirPathDao              = gfile.Join(in.Path, "dao")
+		dirPathDao              = gfile.Join(in.Path, defaultDaoPath)
 		tableNameCamelCase      = gstr.CaseCamel(in.NewTableName)
 		tableNameCamelLowerCase = gstr.CaseCamelLower(in.NewTableName)
 		tableNameSnakeCase      = gstr.CaseSnake(in.NewTableName)
@@ -291,6 +299,99 @@ func generateDao(ctx context.Context, db gdb.DB, in commandGenDaoInternalInput) 
 	generateDaoInternal(tableNameCamelCase, tableNameCamelLowerCase, importPrefix, dirPathDao, fileName, fieldMap, in)
 }
 
+func generateDto(ctx context.Context, db gdb.DB, tableNames, newTableNames []string, in commandGenDaoInternalInput) {
+	var (
+		dtoDirPath = gfile.Join(in.Path, defaultDtoPath)
+	)
+	in.NoJsonTag = true
+	in.DescriptionTag = false
+	in.NoModelComment = false
+	// Model content.
+	for i, tableName := range tableNames {
+		fieldMap, err := db.TableFields(ctx, tableName)
+		if err != nil {
+			mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", in.TableName, err)
+		}
+		var (
+			newTableName     = newTableNames[i]
+			dtoFilePath      = gfile.Join(dtoDirPath, gstr.CaseSnake(newTableName)+".go")
+			structDefinition = generateStructDefinition(generateStructDefinitionInput{
+				commandGenDaoInternalInput: in,
+				StructName:                 gstr.CaseCamel(newTableName),
+				FieldMap:                   fieldMap,
+				IsDto:                      true,
+			})
+		)
+		// replace struct types from "Xxx" to "XxxForDao".
+		structDefinition, _ = gregex.ReplaceStringFuncMatch(
+			`(type)\s+([A-Z]\w*?)\s+(struct\s+{)`,
+			structDefinition,
+			func(match []string) string {
+				return fmt.Sprintf(`%s %sForDao %s`, match[1], match[2], match[3])
+			},
+		)
+		// replace all types to interface{}.
+		structDefinition, _ = gregex.ReplaceStringFuncMatch(
+			"([A-Z]\\w*?)\\s+([\\w\\*\\.]+?)\\s+(//)",
+			structDefinition,
+			func(match []string) string {
+				// If the type is already a pointer/slice/map, it does nothing.
+				if !gstr.HasPrefix(match[2], "*") && !gstr.HasPrefix(match[2], "[]") && !gstr.HasPrefix(match[2], "map") {
+					return fmt.Sprintf(`%s interface{} %s`, match[1], match[3])
+				}
+				return match[0]
+			},
+		)
+		modelContent := generateDtoContent(
+			tableName,
+			gstr.CaseCamel(newTableName),
+			structDefinition,
+		)
+		err = gfile.PutContents(dtoFilePath, strings.TrimSpace(modelContent))
+		if err != nil {
+			mlog.Fatalf("writing content to '%s' failed: %v", dtoFilePath, err)
+		} else {
+			utils.GoFmt(dtoFilePath)
+			mlog.Print("generated:", dtoFilePath)
+		}
+	}
+}
+
+func generateEntity(ctx context.Context, db gdb.DB, tableNames, newTableNames []string, in commandGenDaoInternalInput) {
+	var (
+		entityDirPath = gfile.Join(in.Path, defaultEntityPath)
+	)
+
+	// Model content.
+	for i, tableName := range tableNames {
+		fieldMap, err := db.TableFields(ctx, tableName)
+		if err != nil {
+			mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", in.TableName, err)
+		}
+		var (
+			newTableName   = newTableNames[i]
+			entityFilePath = gfile.Join(entityDirPath, gstr.CaseSnake(newTableName)+".go")
+			entityContent  = generateEntityContent(
+				newTableName,
+				gstr.CaseCamel(newTableName),
+				generateStructDefinition(generateStructDefinitionInput{
+					commandGenDaoInternalInput: in,
+					StructName:                 gstr.CaseCamel(newTableName),
+					FieldMap:                   fieldMap,
+					IsDto:                      false,
+				}),
+			)
+		)
+		err = gfile.PutContents(entityFilePath, strings.TrimSpace(entityContent))
+		if err != nil {
+			mlog.Fatalf("writing content to '%s' failed: %v", entityFilePath, err)
+		} else {
+			utils.GoFmt(entityFilePath)
+			mlog.Print("generated:", entityFilePath)
+		}
+	}
+}
+
 func getImportPartContent(source string) string {
 	var (
 		packageImportsArray = garray.NewStrArray()
@@ -314,121 +415,17 @@ func getImportPartContent(source string) string {
 	return packageImportsStr
 }
 
-func generateEntity(ctx context.Context, db gdb.DB, tableNames, newTableNames []string, in commandGenDaoInternalInput) {
-	var (
-		modelContent string
-		dirPathModel = gfile.Join(in.Path, "model")
-	)
-
-	// Model content.
-	for i, tableName := range tableNames {
-		fieldMap, err := db.TableFields(ctx, tableName)
-		if err != nil {
-			mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", in.TableName, err)
-		}
-		newTableName := newTableNames[i]
-		modelContent += generateDaoModelStructContent(
-			newTableName,
-			gstr.CaseCamel(newTableName),
-			"",
-			generateStructDefinitionForModel(gstr.CaseCamel(newTableName), fieldMap, in),
-		)
-		modelContent += "\n"
-	}
-
-	// Generate and write content to golang file.
-	modelContent = gstr.ReplaceByMap(getTplModelIndexContent(""), g.MapStrStr{
-		"{TplPackageImports}": getImportPartContent(modelContent),
-		"{TplModelStructs}":   modelContent,
-	})
-	var (
-		err error
-		//path = gfile.Join(dirPathModel, req.ModelFileName)
-		path = gfile.Join(dirPathModel, "model.go")
-	)
-	err = gfile.PutContents(path, strings.TrimSpace(modelContent))
-	if err != nil {
-		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
-	} else {
-		utils.GoFmt(path)
-		mlog.Print("generated:", path)
-	}
-}
-
-// dto.
-//func generateModelForDaoContentFile(ctx context.Context, db gdb.DB, tableNames, newTableNames []string, in commandGenDaoInternalInput) {
-//	var (
-//		modelContent string
-//		dirPathModel = gfile.Join(in.Path, "model")
-//	)
-//	in.NoJsonTag = true
-//	in.DescriptionTag = false
-//	in.NoModelComment = false
-//	// Model content.
-//	for i, tableName := range tableNames {
-//		fieldMap, err := db.TableFields(ctx, tableName)
-//		if err != nil {
-//			mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", in.TableName, err)
-//		}
-//		newTableName := newTableNames[i]
-//
-//		modelForDaoStructContent := generateStructDefinitionForModel(gstr.CaseCamel(newTableName), fieldMap, in)
-//		// replace struct types from "Xxx" to "XxxForDao".
-//		modelForDaoStructContent, _ = gregex.ReplaceStringFuncMatch(
-//			`(type)\s+([A-Z]\w*?)\s+(struct\s+{)`,
-//			modelForDaoStructContent,
-//			func(match []string) string {
-//				return fmt.Sprintf(`%s %sForDao %s`, match[1], match[2], match[3])
-//			},
-//		)
-//		// replace all types to interface{}.
-//		modelForDaoStructContent, _ = gregex.ReplaceStringFuncMatch(
-//			"([A-Z]\\w*?)\\s+([\\w\\*\\.]+?)\\s+(//)",
-//			modelForDaoStructContent,
-//			func(match []string) string {
-//				// If the type is already a pointer/slice/map, it does nothing.
-//				if !gstr.HasPrefix(match[2], "*") && !gstr.HasPrefix(match[2], "[]") && !gstr.HasPrefix(match[2], "map") {
-//					return fmt.Sprintf(`%s interface{} %s`, match[1], match[3])
-//				}
-//				return match[0]
-//			},
-//		)
-//
-//		modelContent += generateModelForDaoStructContent(
-//			tableName,
-//			gstr.CaseCamel(newTableName),
-//			modelForDaoStructContent,
-//		)
-//		modelContent += "\n"
-//	}
-//	// Generate and write content to golang file.
-//	modelContent = gstr.ReplaceByMap(consts.TemplateModelForDaoIndexContent, g.MapStrStr{
-//		"{TplPackageImports}": getImportPartContent(modelContent),
-//		"{TplModelStructs}":   modelContent,
-//	})
-//	var (
-//		err  error
-//		path = gfile.Join(dirPathModel, in.ModelFileNameForDao)
-//	)
-//	err = gfile.PutContents(path, strings.TrimSpace(modelContent))
-//	if err != nil {
-//		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
-//	} else {
-//		utils.GoFmt(path)
-//		mlog.Print("generated:", path)
-//	}
-//}
-
-func generateDaoModelStructContent(tableName, tableNameCamelCase, tplModelStructPath, structDefine string) string {
-	return gstr.ReplaceByMap(getTplModelStructContent(tplModelStructPath), g.MapStrStr{
+func generateEntityContent(tableName, tableNameCamelCase, structDefine string) string {
+	return gstr.ReplaceByMap(consts.TemplateGenDaoEntityContent, g.MapStrStr{
 		"{TplTableName}":          tableName,
+		"{TplPackageImports}":     getImportPartContent(structDefine),
 		"{TplTableNameCamelCase}": tableNameCamelCase,
 		"{TplStructDefine}":       structDefine,
 	})
 }
 
-func generateModelForDaoStructContent(tableName, tableNameCamelCase, structDefine string) string {
-	return gstr.ReplaceByMap(consts.TemplateModelForDaoStructContent, g.MapStrStr{
+func generateDtoContent(tableName, tableNameCamelCase, structDefine string) string {
+	return gstr.ReplaceByMap(consts.TemplateGenDaoDtoContent, g.MapStrStr{
 		"{TplTableName}":          tableName,
 		"{TplTableNameCamelCase}": tableNameCamelCase,
 		"{TplStructDefine}":       structDefine,
@@ -477,14 +474,20 @@ func generateDaoInternal(
 	}
 }
 
-// generateStructDefinitionForModel generates and returns the struct definition for specified table.
-func generateStructDefinitionForModel(structName string, fieldMap map[string]*gdb.TableField, in commandGenDaoInternalInput) string {
+type generateStructDefinitionInput struct {
+	commandGenDaoInternalInput
+	StructName string                     // Struct name.
+	FieldMap   map[string]*gdb.TableField // Table field map.
+	IsDto      bool                       // Is generating DTO struct.
+}
+
+func generateStructDefinition(in generateStructDefinitionInput) string {
 	buffer := bytes.NewBuffer(nil)
-	array := make([][]string, len(fieldMap))
-	names := sortFieldKeyForDao(fieldMap)
+	array := make([][]string, len(in.FieldMap))
+	names := sortFieldKeyForDao(in.FieldMap)
 	for index, name := range names {
-		field := fieldMap[name]
-		array[index] = generateStructFieldForModel(field, in)
+		field := in.FieldMap[name]
+		array[index] = generateStructFieldDefinition(field, in)
 	}
 	tw := tablewriter.NewWriter(buffer)
 	tw.SetBorder(false)
@@ -499,14 +502,17 @@ func generateStructDefinitionForModel(structName string, fieldMap map[string]*gd
 	stContent = gstr.Replace(stContent, "` ", "`")
 	stContent = gstr.Replace(stContent, "``", "")
 	buffer.Reset()
-	buffer.WriteString(fmt.Sprintf("type %s struct {\n", structName))
+	buffer.WriteString(fmt.Sprintf("type %s struct {\n", in.StructName))
+	if in.IsDto {
+		buffer.WriteString(fmt.Sprintf("g.Meta `%s`\n", `orm:"dto:true"`))
+	}
 	buffer.WriteString(stContent)
 	buffer.WriteString("}")
 	return buffer.String()
 }
 
 // generateStructFieldForModel generates and returns the attribute definition for specified field.
-func generateStructFieldForModel(field *gdb.TableField, in commandGenDaoInternalInput) []string {
+func generateStructFieldDefinition(field *gdb.TableField, in generateStructDefinitionInput) []string {
 	var (
 		typeName string
 		jsonTag  = getJsonTagFromCase(field.Name, in.JsonCase)
@@ -694,20 +700,6 @@ func getTplDaoInternalContent(tplDaoInternalPath string) string {
 		return gfile.GetContents(tplDaoInternalPath)
 	}
 	return consts.TemplateDaoDaoInternalContent
-}
-
-func getTplModelIndexContent(tplModelIndexPath string) string {
-	if tplModelIndexPath != "" {
-		return gfile.GetContents(tplModelIndexPath)
-	}
-	return consts.TemplateDaoModelIndexContent
-}
-
-func getTplModelStructContent(tplModelStructPath string) string {
-	if tplModelStructPath != "" {
-		return gfile.GetContents(tplModelStructPath)
-	}
-	return consts.TemplateDaoModelStructContent
 }
 
 // getJsonTagFromCase call gstr.Case* function to convert the s to specified case.

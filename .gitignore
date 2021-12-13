@@ -25,3 +25,4 @@ buildgf.bat
 app/
 gf-cli
 .example/
+config.yaml
