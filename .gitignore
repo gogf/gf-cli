@@ -26,3 +26,4 @@ app/
 gf-cli
 .example/
 config.yaml
+temp/

@@ -27,7 +27,7 @@ type commandVersionInput struct {
 }
 type commandVersionOutput struct{}
 
-func (c commandVersion) Index(ctx context.Context, in commandVersionInput) (out *commandVersionOutput, err error) {
+func (c commandVersion) Index(ctx context.Context, in commandVersionInput) (*commandVersionOutput, error) {
 	info := gbuild.Info()
 	if info["git"] == "" {
 		info["git"] = "none"
@@ -43,7 +43,7 @@ func (c commandVersion) Index(ctx context.Context, in commandVersionInput) (out 
 	mlog.Printf(`CLI Installed At: %s`, gfile.SelfPath())
 	if info["gf"] == "" {
 		mlog.Print(`Current is a custom installed version, no installation information.`)
-		return
+		return nil, nil
 	}
 
 	mlog.Print(gstr.Trim(fmt.Sprintf(`
@@ -52,7 +52,7 @@ CLI Built Detail:
   Git Commit:  %s
   Build Time:  %s
 `, info["go"], info["git"], info["time"])))
-	return
+	return nil, nil
 }
 
 // getGFVersionOfCurrentProject checks and returns the GoFrame version current project using.

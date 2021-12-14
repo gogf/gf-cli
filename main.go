@@ -1,10 +1,11 @@
 package main
 
 import (
+	_ "github.com/gogf/gf-cli/v2/internal/packed"
+
 	"github.com/gogf/gf-cli/v2/internal/cmd"
 	"github.com/gogf/gf-cli/v2/utility/allyes"
 	"github.com/gogf/gf-cli/v2/utility/mlog"
-	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/os/gcmd"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gfile"
@@ -15,7 +16,7 @@ func main() {
 	defer func() {
 		if exception := recover(); exception != nil {
 			if err, ok := exception.(error); ok {
-				mlog.Print(gerror.Current(err).Error())
+				mlog.Print(err.Error())
 			} else {
 				panic(exception)
 			}

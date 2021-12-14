@@ -197,7 +197,7 @@ func (c commandBuild) Index(ctx context.Context, in commandBuildInput) (out *com
 	}
 
 	// Injected information by building flags.
-	ldFlags := fmt.Sprintf(`-X 'github.com/gogf/gf/os/gbuild.builtInVarStr=%v'`, c.getBuildInVarStr())
+	ldFlags := fmt.Sprintf(`-X 'github.com/gogf/gf/v2/os/gbuild.builtInVarStr=%v'`, c.getBuildInVarStr())
 
 	// start building
 	mlog.Print("start building...")
