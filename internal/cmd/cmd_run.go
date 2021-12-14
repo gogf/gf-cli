@@ -68,7 +68,7 @@ type (
 	commandRunInput struct {
 		g.Meta `name:"run"`
 		File   string `name:"FILE"  arg:"true" brief:"{commandRunFileBrief}" v:"required"`
-		Path   string `name:"path"  short:"p"  brief:"{commandRunPathBrief}"`
+		Path   string `name:"path"  short:"p"  brief:"{commandRunPathBrief}" d:"./"`
 		Extra  string `name:"extra" short:"e"  brief:"{commandRunExtraBrief}"`
 	}
 	commandRunOutput struct{}
