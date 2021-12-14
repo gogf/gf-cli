@@ -8,7 +8,7 @@ const TemplateDaoDaoIndexContent = `
 package dao
 
 import (
-	"{TplImportPrefix}/dao/internal"
+	"{TplImportPrefix}/internal"
 )
 
 // {TplTableNameCamelLowerCase}Dao is the data access object for table {TplTableName}.

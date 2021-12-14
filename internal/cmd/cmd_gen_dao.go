@@ -281,7 +281,7 @@ func generateDao(ctx context.Context, db gdb.DB, in commandGenDaoInternalInput) 
 			importPrefix = gstr.Replace(dirRealPath, gfile.Pwd(), "")
 		}
 		importPrefix = gstr.Replace(importPrefix, gfile.Separator, "/")
-		importPrefix = gstr.Join(g.SliceStr{in.ModName, importPrefix}, "/")
+		importPrefix = gstr.Join(g.SliceStr{in.ModName, importPrefix, defaultDaoPath}, "/")
 		importPrefix, _ = gregex.ReplaceString(`\/{2,}`, `/`, gstr.Trim(importPrefix, "/"))
 	}
 
@@ -321,14 +321,6 @@ func generateDto(ctx context.Context, db gdb.DB, tableNames, newTableNames []str
 				FieldMap:                   fieldMap,
 				IsDto:                      true,
 			})
-		)
-		// replace struct types from "Xxx" to "XxxForDao".
-		structDefinition, _ = gregex.ReplaceStringFuncMatch(
-			`(type)\s+([A-Z]\w*?)\s+(struct\s+{)`,
-			structDefinition,
-			func(match []string) string {
-				return fmt.Sprintf(`%s %sForDao %s`, match[1], match[2], match[3])
-			},
 		)
 		// replace all types to interface{}.
 		structDefinition, _ = gregex.ReplaceStringFuncMatch(
@@ -392,10 +384,15 @@ func generateEntity(ctx context.Context, db gdb.DB, tableNames, newTableNames []
 	}
 }
 
-func getImportPartContent(source string) string {
+func getImportPartContent(source string, isDto bool) string {
 	var (
 		packageImportsArray = garray.NewStrArray()
 	)
+
+	if isDto {
+		packageImportsArray.Append(`"github.com/gogf/gf/v2/frame/g"`)
+	}
+
 	// Time package recognition.
 	if strings.Contains(source, "gtime.Time") {
 		packageImportsArray.Append(`"github.com/gogf/gf/v2/os/gtime"`)
@@ -403,6 +400,7 @@ func getImportPartContent(source string) string {
 		packageImportsArray.Append(`"time"`)
 	}
 
+	// Json type.
 	if strings.Contains(source, "gjson.Json") {
 		packageImportsArray.Append(`"github.com/gogf/gf/v2/encoding/gjson"`)
 	}
@@ -418,7 +416,7 @@ func getImportPartContent(source string) string {
 func generateEntityContent(tableName, tableNameCamelCase, structDefine string) string {
 	return gstr.ReplaceByMap(consts.TemplateGenDaoEntityContent, g.MapStrStr{
 		"{TplTableName}":          tableName,
-		"{TplPackageImports}":     getImportPartContent(structDefine),
+		"{TplPackageImports}":     getImportPartContent(structDefine, false),
 		"{TplTableNameCamelCase}": tableNameCamelCase,
 		"{TplStructDefine}":       structDefine,
 	})
@@ -427,6 +425,7 @@ func generateEntityContent(tableName, tableNameCamelCase, structDefine string) s
 func generateDtoContent(tableName, tableNameCamelCase, structDefine string) string {
 	return gstr.ReplaceByMap(consts.TemplateGenDaoDtoContent, g.MapStrStr{
 		"{TplTableName}":          tableName,
+		"{TplPackageImports}":     getImportPartContent(structDefine, true),
 		"{TplTableNameCamelCase}": tableNameCamelCase,
 		"{TplStructDefine}":       structDefine,
 	})
