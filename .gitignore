@@ -24,3 +24,6 @@ buildgf.bat
 *.exe~
 app/
 gf-cli
+.example/
+config.yaml
+temp/
