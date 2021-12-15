@@ -12,16 +12,13 @@ import (
 	"github.com/gogf/gf/v2/encoding/gbase64"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gcmd"
-	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/genv"
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/gproc"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gregex"
 	"github.com/gogf/gf/v2/text/gstr"
-	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/gtag"
-	"github.com/gogf/gf/v2/util/gutil"
 )
 
 var (
@@ -121,6 +118,7 @@ type commandBuildInput struct {
 	Extra   string `short:"e" name:"extra"   brief:"extra custom \"go build\" options"`
 	Mod     string `short:"m" name:"mod"     brief:"like \"-mod\" option of \"go build\", use \"-m none\" to disable go module"`
 	Cgo     bool   `short:"c" name:"cgo"     brief:"enable or disable cgo feature, it's disabled in default" orphan:"true"`
+	VarMap  g.Map  `short:"r" name:"varMap"  brief:"custom built embedded variable into binary"`
 	Pack    string `name:"pack" brief:"pack specified folder into temporary go file before building and removes it after built"`
 }
 type commandBuildOutput struct{}
@@ -202,7 +200,7 @@ func (c commandBuild) Index(ctx context.Context, in commandBuildInput) (out *com
 	}
 
 	// Injected information by building flags.
-	ldFlags := fmt.Sprintf(`-X 'github.com/gogf/gf/v2/os/gbuild.builtInVarStr=%v'`, c.getBuildInVarStr())
+	ldFlags := fmt.Sprintf(`-X 'github.com/gogf/gf/v2/os/gbuild.builtInVarStr=%v'`, c.getBuildInVarStr(in))
 
 	// start building
 	mlog.Print("start building...")
@@ -269,20 +267,10 @@ buildDone:
 
 // getBuildInVarMapJson retrieves and returns the custom build-in variables in configuration
 // file as json.
-func (c commandBuild) getBuildInVarStr() string {
-	var (
-		ctx           = context.TODO()
-		config        = g.Cfg()
-		buildInVarMap = g.Map{}
-	)
-	if config.Available(gctx.New()) {
-		configMap := config.MustGet(ctx, c.nodeNameInConfigFile).Map()
-		if len(configMap) > 0 {
-			_, v := gutil.MapPossibleItemByKey(configMap, "VarMap")
-			if v != nil {
-				buildInVarMap = gconv.Map(v)
-			}
-		}
+func (c commandBuild) getBuildInVarStr(in commandBuildInput) string {
+	buildInVarMap := in.VarMap
+	if buildInVarMap == nil {
+		buildInVarMap = make(g.Map)
 	}
 	buildInVarMap["builtGit"] = c.getGitCommit()
 	buildInVarMap["builtTime"] = gtime.Now().String()
