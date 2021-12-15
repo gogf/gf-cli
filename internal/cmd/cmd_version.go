@@ -49,9 +49,10 @@ func (c commandVersion) Index(ctx context.Context, in commandVersionInput) (*com
 	mlog.Print(gstr.Trim(fmt.Sprintf(`
 CLI Built Detail:
   Go Version:  %s
+  GF Version:  %s
   Git Commit:  %s
   Build Time:  %s
-`, info["go"], info["git"], info["time"])))
+`, info["go"], info["gf"], info["git"], info["time"])))
 	return nil, nil
 }
 

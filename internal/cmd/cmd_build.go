@@ -298,8 +298,12 @@ func (c commandBuild) getGitCommit() string {
 	if gproc.SearchBinary("git") == "" {
 		return ""
 	}
-	if s, _ := gproc.ShellExec("git rev-list -1 HEAD"); s != "" {
-		if !gstr.Contains(s, " ") && !gstr.Contains(s, "fatal") {
+	s, err := gproc.ShellExec(`git log -1 --format="%cd %H" --date=format:"%Y-%m-%d %H:%M:%S"`)
+	if err != nil {
+		mlog.Fatal(err)
+	}
+	if s != "" {
+		if !gstr.Contains(s, "fatal") {
 			return gstr.Trim(s)
 		}
 	}
