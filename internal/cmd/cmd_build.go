@@ -126,6 +126,11 @@ type commandBuildInput struct {
 type commandBuildOutput struct{}
 
 func (c commandBuild) Index(ctx context.Context, in commandBuildInput) (out *commandBuildOutput, err error) {
+	// Necessary check.
+	if gproc.SearchBinary("go") == "" {
+		mlog.Fatalf(`command "go" not found in your environment, please install golang first to proceed this command`)
+	}
+
 	mlog.SetHeaderPrint(true)
 	var (
 		parser = gcmd.ParserFromCtx(ctx)

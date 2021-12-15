@@ -20,11 +20,11 @@ type (
 )
 
 func (c commandGen) Pb(ctx context.Context, in commandGenPbInput) (out *commandGenPbOutput, err error) {
-	// protoc search.
-	protocBinPath := gproc.SearchBinary("protoc")
-	if protocBinPath == "" {
-		mlog.Fatal(`"protoc" command not found, install it first to proceed proto files parsing`)
+	// Necessary check.
+	if gproc.SearchBinary("protoc") == "" {
+		mlog.Fatalf(`command "protoc" not found in your environment, please install protoc first to proceed this command`)
 	}
+
 	// protocol fold checks.
 	protoFolder := "protocol"
 	if !gfile.Exists(protoFolder) {

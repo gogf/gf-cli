@@ -75,6 +75,11 @@ type (
 )
 
 func (c commandRun) Index(ctx context.Context, in commandRunInput) (out *commandRunOutput, err error) {
+	// Necessary check.
+	if gproc.SearchBinary("go") == "" {
+		mlog.Fatalf(`command "go" not found in your environment, please install golang first to proceed this command`)
+	}
+
 	app := &commandRunApp{
 		File:    in.File,
 		Path:    in.Path,
