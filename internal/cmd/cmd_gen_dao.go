@@ -18,6 +18,11 @@ import (
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gtag"
 	"github.com/olekukonko/tablewriter"
+
+	_ "github.com/denisenkom/go-mssqldb"
+	_ "github.com/lib/pq"
+	//_ "github.com/mattn/go-oci8"
+	//_ "github.com/mattn/go-sqlite3"
 )
 
 const (
