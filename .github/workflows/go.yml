@@ -28,7 +28,7 @@ jobs:
       # gf build 
       - name: gf build
         run: |
-          ./gf build
+          ./gf build main.go -n gf-cli -a all -s all
       
       # 处理gf-cli批量编译后的文件结构
       - name: moving files before upx
