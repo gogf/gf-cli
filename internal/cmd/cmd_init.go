@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/gogf/gf-cli/v2/utility/allyes"
@@ -22,6 +23,7 @@ type commandInit struct {
 }
 
 const (
+	commandInitRepoPrefix = `github.com/gogf/`
 	commandInitMonoRepo   = `template-mono`
 	commandInitSingleRepo = `template-single`
 	commandInitBrief      = `create and initialize an empty GoFrame project`
@@ -58,21 +60,42 @@ func (c commandInit) Index(ctx context.Context, in commandInitInput) (out *comma
 		}
 	}
 	mlog.Print("initializing...")
+
+	// Create project folder and files.
+	var (
+		templateRepoName string
+	)
 	if in.Mono {
-		err = gres.Export(commandInitMonoRepo, in.Name, gres.ExportOption{
-			RemovePrefix: commandInitMonoRepo,
-		})
+		templateRepoName = commandInitMonoRepo
 	} else {
-		err = gres.Export(commandInitSingleRepo, in.Name, gres.ExportOption{
-			RemovePrefix: commandInitSingleRepo,
-		})
+		templateRepoName = commandInitSingleRepo
 	}
+	err = gres.Export(templateRepoName, in.Name, gres.ExportOption{
+		RemovePrefix: templateRepoName,
+	})
 	if err != nil {
 		return
 	}
+
+	// Replace template name to project name.
+	err = gfile.ReplaceDir(
+		commandInitRepoPrefix+templateRepoName,
+		gfile.Basename(gfile.RealPath(in.Name)),
+		in.Name,
+		"*",
+		true,
+	)
+	if err != nil {
+		return
+	}
+
 	mlog.Print("initialization done! ")
 	if !in.Mono {
-		mlog.Print("you can now run 'gf run main.go' to start your journey, enjoy!")
+		enjoyCommand := `gf run main.go`
+		if in.Name != "." {
+			enjoyCommand = fmt.Sprintf(`cd %s && %s`, in.Name, enjoyCommand)
+		}
+		mlog.Printf(`you can now run "%s" to start your journey, enjoy!`, enjoyCommand)
 	}
 	return
 }
