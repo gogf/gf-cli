@@ -59,13 +59,26 @@ CLI Built Detail:
 func (c commandVersion) getGFVersionOfCurrentProject() (string, error) {
 	goModPath := gfile.Join(gfile.Pwd(), "go.mod")
 	if gfile.Exists(goModPath) {
-		match, err := gregex.MatchString(`github.com/gogf/gf\s+([\w\d\.]+)`, gfile.GetContents(goModPath))
-		if err != nil {
-			return "", err
+		lines := gstr.SplitAndTrim(gfile.GetContents(goModPath), "\n")
+		for _, line := range lines {
+			line = gstr.Trim(line)
+			// Version 1.
+			match, err := gregex.MatchString(`^github\.com/gogf/gf\s+(.+)$`, line)
+			if err != nil {
+				return "", err
+			}
+			if len(match) <= 1 {
+				// Version > 1.
+				match, err = gregex.MatchString(`^github\.com/gogf/gf/v\d\s+(.+)$`, line)
+				if err != nil {
+					return "", err
+				}
+			}
+			if len(match) > 1 {
+				return gstr.Trim(match[1]), nil
+			}
 		}
-		if len(match) > 1 {
-			return match[1], nil
-		}
+
 		return "", gerror.New("cannot find goframe requirement in go.mod")
 	} else {
 		return "", gerror.New("cannot find go.mod")
