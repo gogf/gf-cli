@@ -313,6 +313,7 @@ func generateDto(ctx context.Context, db gdb.DB, tableNames, newTableNames []str
 	in.NoModelComment = false
 	// Model content.
 	for i, tableName := range tableNames {
+		in.TableName = tableName
 		fieldMap, err := db.TableFields(ctx, tableName)
 		if err != nil {
 			mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", in.TableName, err)
@@ -508,7 +509,7 @@ func generateStructDefinition(in generateStructDefinitionInput) string {
 	buffer.Reset()
 	buffer.WriteString(fmt.Sprintf("type %s struct {\n", in.StructName))
 	if in.IsDto {
-		buffer.WriteString(fmt.Sprintf("g.Meta `%s`\n", `orm:"dto:true"`))
+		buffer.WriteString(fmt.Sprintf("g.Meta `orm:\"table:%s, dto:true\"`\n", in.TableName))
 	}
 	buffer.WriteString(stContent)
 	buffer.WriteString("}")
