@@ -12,13 +12,13 @@ After downloads, please use `gf_xxx_xxx install` command to install gf binary to
 
 1. `Mac`
     ```shell
-    wget -O gf https://github.com/gogf/gf-cli/releases/download/v2.0.0/gf_darwin_amd64 && chmod +x gf && ./gf install
+    wget -O gf https://github.com/gogf/gf-cli/releases/download/v2.0.0-beta/gf_darwin_amd64 && chmod +x gf && ./gf install
     ```
    > If you're using `zsh`, you might need rename your alias by command `alias gf=gf` to resolve the conflicts between `gf` and `git fetch`.
                                                                                                                           
 1. `Linux` 
     ```shell
-    wget -O gf https://github.com/gogf/gf-cli/releases/download/v2.0.0/gf_linux_amd64 && chmod +x gf && ./gf install
+    wget -O gf https://github.com/gogf/gf-cli/releases/download/v2.0.0-beta/gf_linux_amd64 && chmod +x gf && ./gf install
     ```
                                                                                                                   
 1. `Windows`
@@ -37,7 +37,7 @@ After downloads, please use `gf_xxx_xxx install` command to install gf binary to
    
 1. Specified version
     ```
-    git install https://github.com/gogf/gf-cli/v2@v2.0.0
+    git install https://github.com/gogf/gf-cli/v2@v2.0.0-beta
     ```
    
 1. Database `sqlite` and `oracle` are not support in `gf gen` command in default as it needs `cgo` and `gcc`, you can manually make some changes to the source codes and do the building.
