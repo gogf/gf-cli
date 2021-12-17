@@ -44,17 +44,17 @@ CONFIGURATION SUPPORT
     Options are also supported by configuration file.
     It's suggested using configuration file instead of command line arguments making producing. 
     The configuration node name is "gf.gen.dao", which also supports multiple databases, for example(config.yaml):
-    gfcli:
-      gen:
-	  - dao:
-          link:     "mysql:root:12345678@tcp(127.0.0.1:3306)/test"
-          tables:   "order,products"
-          jsonCase: "CamelLower"
-      - dao:
-          link:   "mysql:root:12345678@tcp(127.0.0.1:3306)/primary"
-          path:   "./my-app"
-          prefix: "primary_"
-          tables: "user, userDetail"
+	gfcli:
+	  gen:
+		dao:
+		- link:     "mysql:root:12345678@tcp(127.0.0.1:3306)/test"
+		  tables:   "order,products"
+		  jsonCase: "CamelLower"
+	
+		- link:   "mysql:root:12345678@tcp(127.0.0.1:3306)/primary"
+		  path:   "./my-app"
+		  prefix: "primary_"
+		  tables: "user, userDetail" 
 `
 	commandGenDaoBriefPath            = `directory path for generated files`
 	commandGenDaoBriefLink            = `database configuration, the same as the ORM configuration of GoFrame`
