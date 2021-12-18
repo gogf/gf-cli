@@ -9,6 +9,6 @@ package dto
 
 {TplPackageImports}
 
-// {TplTableNameCamelCase}ForDao is the golang structure of table {TplTableName} for DAO operations like Where/Data.
+// {TplTableNameCamelCase} is the golang structure of table {TplTableName} for DAO operations like Where/Data.
 {TplStructDefine}
 `
