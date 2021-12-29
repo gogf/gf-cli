@@ -32,12 +32,12 @@ After downloads, please use `gf_xxx_xxx install` command to install gf binary to
 
 1. Latest version
     ```
-    go install https://github.com/gogf/gf-cli/v2@latest
+    go install github.com/gogf/gf-cli/v2@latest
     ```
    
 1. Specified version
     ```
-    go install https://github.com/gogf/gf-cli/v2@v2.0.0-beta
+    go install github.com/gogf/gf-cli/v2@v2.0.0-beta
     ```
    
 1. Database `sqlite` and `oracle` are not support in `gf gen` command in default as it needs `cgo` and `gcc`, you can manually make some changes to the source codes and do the building.
