@@ -50,9 +50,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	if err = command.Run(ctx); err != nil {
-		panic(err)
-	}
+	command.Run(ctx)
 }
 
 // zsh alias "git fetch" conflicts checks.
