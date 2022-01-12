@@ -87,6 +87,21 @@ generated json tag case for model struct, cases are as follows:
 | Kebab           | any-kind-of-string |
 | KebabScreaming  | ANY-KIND-OF-STRING |
 `
+
+	tplVarTableName               = `{TplTableName}`
+	tplVarTableNameCamelCase      = `{TplTableNameCamelCase}`
+	tplVarTableNameCamelLowerCase = `{TplTableNameCamelLowerCase}`
+	tplVarPackageImports          = `{TplPackageImports}`
+	tplVarImportPrefix            = `{TplImportPrefix}`
+	tplVarStructDefine            = `{TplStructDefine}`
+	tplVarColumnDefine            = `{TplColumnDefine}`
+	tplVarColumnNames             = `{TplColumnNames}`
+	tplVarGroupName               = `{TplGroupName}`
+	tplVarDatetime                = `{TplDatetime}`
+)
+
+var (
+	createdAt *gtime.Time
 )
 
 func init() {
@@ -114,6 +129,8 @@ func init() {
 		`commandGenDaoBriefGroup`:           commandGenDaoBriefGroup,
 		`commandGenDaoBriefJsonCase`:        commandGenDaoBriefJsonCase,
 	})
+
+	createdAt = gtime.Now()
 }
 
 type (
@@ -420,32 +437,37 @@ func getImportPartContent(source string, isDto bool) string {
 }
 
 func generateEntityContent(tableName, tableNameCamelCase, structDefine string) string {
-	return gstr.ReplaceByMap(consts.TemplateGenDaoEntityContent, g.MapStrStr{
-		"{TplTableName}":          tableName,
-		"{TplPackageImports}":     getImportPartContent(structDefine, false),
-		"{TplTableNameCamelCase}": tableNameCamelCase,
-		"{TplStructDefine}":       structDefine,
+	entityContent := gstr.ReplaceByMap(consts.TemplateGenDaoEntityContent, g.MapStrStr{
+		tplVarTableName:          tableName,
+		tplVarPackageImports:     getImportPartContent(structDefine, false),
+		tplVarTableNameCamelCase: tableNameCamelCase,
+		tplVarStructDefine:       structDefine,
 	})
+	entityContent = replaceDefaultVar(entityContent)
+	return entityContent
 }
 
 func generateDtoContent(tableName, tableNameCamelCase, structDefine string) string {
-	return gstr.ReplaceByMap(consts.TemplateGenDaoDtoContent, g.MapStrStr{
-		"{TplTableName}":          tableName,
-		"{TplPackageImports}":     getImportPartContent(structDefine, true),
-		"{TplTableNameCamelCase}": tableNameCamelCase,
-		"{TplStructDefine}":       structDefine,
+	dtoContent := gstr.ReplaceByMap(consts.TemplateGenDaoDtoContent, g.MapStrStr{
+		tplVarTableName:          tableName,
+		tplVarPackageImports:     getImportPartContent(structDefine, true),
+		tplVarTableNameCamelCase: tableNameCamelCase,
+		tplVarStructDefine:       structDefine,
 	})
+	dtoContent = replaceDefaultVar(dtoContent)
+	return dtoContent
 }
 
 func generateDaoIndex(tableNameCamelCase, tableNameCamelLowerCase, importPrefix, dirPathDao, fileName string, in commandGenDaoInternalInput) {
 	path := gfile.Join(dirPathDao, fileName+".go")
 	if in.OverwriteDao || !gfile.Exists(path) {
 		indexContent := gstr.ReplaceByMap(getTplDaoIndexContent(""), g.MapStrStr{
-			"{TplImportPrefix}":            importPrefix,
-			"{TplTableName}":               in.TableName,
-			"{TplTableNameCamelCase}":      tableNameCamelCase,
-			"{TplTableNameCamelLowerCase}": tableNameCamelLowerCase,
+			tplVarImportPrefix:            importPrefix,
+			tplVarTableName:               in.TableName,
+			tplVarTableNameCamelCase:      tableNameCamelCase,
+			tplVarTableNameCamelLowerCase: tableNameCamelLowerCase,
 		})
+		indexContent = replaceDefaultVar(indexContent)
 		if err := gfile.PutContents(path, strings.TrimSpace(indexContent)); err != nil {
 			mlog.Fatalf("writing content to '%s' failed: %v", path, err)
 		} else {
@@ -463,20 +485,27 @@ func generateDaoInternal(
 ) {
 	path := gfile.Join(dirPathDao, "internal", fileName+".go")
 	modelContent := gstr.ReplaceByMap(getTplDaoInternalContent(""), g.MapStrStr{
-		"{TplImportPrefix}":            importPrefix,
-		"{TplTableName}":               in.TableName,
-		"{TplGroupName}":               in.Group,
-		"{TplTableNameCamelCase}":      tableNameCamelCase,
-		"{TplTableNameCamelLowerCase}": tableNameCamelLowerCase,
-		"{TplColumnDefine}":            gstr.Trim(generateColumnDefinitionForDao(fieldMap)),
-		"{TplColumnNames}":             gstr.Trim(generateColumnNamesForDao(fieldMap)),
+		tplVarImportPrefix:            importPrefix,
+		tplVarTableName:               in.TableName,
+		tplVarGroupName:               in.Group,
+		tplVarTableNameCamelCase:      tableNameCamelCase,
+		tplVarTableNameCamelLowerCase: tableNameCamelLowerCase,
+		tplVarColumnDefine:            gstr.Trim(generateColumnDefinitionForDao(fieldMap)),
+		tplVarColumnNames:             gstr.Trim(generateColumnNamesForDao(fieldMap)),
 	})
+	modelContent = replaceDefaultVar(modelContent)
 	if err := gfile.PutContents(path, strings.TrimSpace(modelContent)); err != nil {
 		mlog.Fatalf("writing content to '%s' failed: %v", path, err)
 	} else {
 		utils.GoFmt(path)
 		mlog.Print("generated:", path)
 	}
+}
+
+func replaceDefaultVar(origin string) string {
+	return gstr.ReplaceByMap(origin, g.MapStrStr{
+		tplVarDatetime: createdAt.String(),
+	})
 }
 
 type generateStructDefinitionInput struct {
