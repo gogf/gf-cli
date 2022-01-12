@@ -12,13 +12,13 @@ After downloads, please use `gf_xxx_xxx install` command to install gf binary to
 
 1. `Mac`
     ```shell
-    wget -O gf https://github.com/gogf/gf-cli/releases/download/v1.16.3/gf_darwin_amd64 && chmod +x gf && ./gf install
+    wget -O gf https://github.com/gogf/gf-cli/releases/download/v2.0.0-beta/gf_darwin_amd64 && chmod +x gf && ./gf install
     ```
    > If you're using `zsh`, you might need rename your alias by command `alias gf=gf` to resolve the conflicts between `gf` and `git fetch`.
                                                                                                                           
 1. `Linux` 
     ```shell
-    wget -O gf https://github.com/gogf/gf-cli/releases/download/v1.16.3/gf_linux_amd64 && chmod +x gf && ./gf install
+    wget -O gf https://github.com/gogf/gf-cli/releases/download/v2.0.0-beta/gf_linux_amd64 && chmod +x gf && ./gf install
     ```
                                                                                                                   
 1. `Windows`
@@ -28,17 +28,16 @@ After downloads, please use `gf_xxx_xxx install` command to install gf binary to
 ### 2). Manually Install
 
 > You might need setting the goproxy to make through building.
+> Please make sure your Golang version > v1.15.
 
 1. Latest version
     ```
-    git clone https://github.com/gogf/gf-cli 
-    cd gf-cli && go build main.go && ./main install
+    go install github.com/gogf/gf-cli/v2@latest
     ```
    
 1. Specified version
     ```
-    git clone --branch v1.16.3 https://github.com/gogf/gf-cli 
-    cd gf-cli && go build main.go && ./main install
+    go install github.com/gogf/gf-cli/v2@v2.0.0-beta
     ```
    
 1. Database `sqlite` and `oracle` are not support in `gf gen` command in default as it needs `cgo` and `gcc`, you can manually make some changes to the source codes and do the building.
@@ -47,32 +46,27 @@ After downloads, please use `gf_xxx_xxx install` command to install gf binary to
 ```html
 $ gf
 USAGE
-    gf COMMAND [ARGUMENT] [OPTION]
+    gf COMMAND [OPTION]
 
 COMMAND
-    env        show current Golang environment variables
-    get        install or update GF to system in default...
-    gen        automatically generate go files for ORM models...
-    mod        extra features for go modules...
-    run        running go codes with hot-compiled-like feature...
-    init       initialize an empty GF project at current working directory...
-    help       show more information about a specified command
-    pack       packing any file/directory to a resource file, or a go file...
-    build      cross-building go project for lots of platforms...
-    docker     create a docker image for current GF project...
-    swagger    swagger feature for current project...
-    update     update current gf binary to latest one (might need root/admin permission)
-    install    install gf binary to system (might need root/admin permission)
-    version    show current binary version info
+   env        show current Golang environment variables
+   run        running go codes with hot-compiled-like feature
+   gen        automatically generate go files for dao/dto/entity/pb/pbentity...
+   init       create and initialize an empty GoFrame project
+   pack       packing any file/directory to a resource file, or a go file
+   build      cross-building go project for lots of platforms
+   docker     build docker image for current GoFrame project
+   install    install gf binary to system (might need root/admin permission)
+   version    show version information of current binary
 
 OPTION
-    -y         all yes for all command without prompt ask
-    -?,-h      show this help or detail for specified command
-    -v,-i      show version information
+   -y, --yes        all yes for all command without prompt ask
+   -v, --version    show version information of current binary
+   -d, --debug      show internal detailed debugging information
+   -h, --help       more information about this command
 
 ADDITIONAL
-    Use 'gf help COMMAND' or 'gf COMMAND -h' for detail about a command, which has '...'
-    in the tail of their comments.
+    Use "gf COMMAND -h" for details about a command.
 ```
 
 ## 3. FAQ

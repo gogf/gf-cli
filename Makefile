@@ -1,14 +1,18 @@
 
-.PHONY: default
+pack: pack.template-single pack.template-mono
 
-default:
-	@echo "USAGE: make build/upx"
+pack.template-single:
+	@rm -fr temp
+	@mkdir temp || exit 0
+	@cd temp && git clone https://github.com/gogf/template-single
+	@rm -fr temp/template-single/.git
+	@cd temp && gf pack template-single ../internal/packed/template-single.go -n=packed -y
+	@rm -fr temp
 
-build:
-	gf build main.go
-	make upx
-
-upx:
-	@upx -9 ./bin/darwin_amd64/*
-	@upx -9 ./bin/linux_386/*
-	@upx -9 ./bin/linux_amd64/*
+pack.template-mono:
+	@rm -fr temp
+	@mkdir temp || exit 0
+	@cd temp && git clone https://github.com/gogf/template-mono
+	@rm -fr temp/template-mono/.git
+	@cd temp && gf pack template-mono ../internal/packed/template-mono.go -n=packed -y
+	@rm -fr temp

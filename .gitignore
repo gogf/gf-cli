@@ -18,9 +18,11 @@ cbuild
 config/config.toml
 main
 .vscode
-go.sum
 buildgf.bat
 *.exe
 *.exe~
 app/
 gf-cli
+.example/
+config.yaml
+temp/
