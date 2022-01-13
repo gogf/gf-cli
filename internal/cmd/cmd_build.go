@@ -253,6 +253,8 @@ func (c commandBuild) Index(ctx context.Context, in commandBuildInput) (out *com
 			mlog.Print(cmdShow)
 			if result, err := gproc.ShellExec(cmd); err != nil {
 				mlog.Printf("failed to build, os:%s, arch:%s, error:\n%s\n", system, arch, gstr.Trim(result))
+			} else {
+				mlog.Debug(gstr.Trim(result))
 			}
 			// single binary building.
 			if len(customSystems) == 0 && len(customArches) == 0 {

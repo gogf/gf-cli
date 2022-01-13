@@ -1,46 +1,50 @@
 # GoFrame CLI TOOL
 
-`gf-cli` is a powerful CLI tool for building [GoFrame](https://goframe.org) application with convenience.
+`gf` is a powerful CLI tool for building [GoFrame](https://goframe.org) application with convenience.
 
 ## 1. Install
 
-### 1). Binary
-
-It's recommended using pre-compiled binaries: https://github.com/gogf/gf-cli/releases
-
-After downloads, please use `gf_xxx_xxx install` command to install gf binary to system binary path.
-
-1. `Mac`
-    ```shell
-    wget -O gf https://github.com/gogf/gf-cli/releases/download/v2.0.0-beta/gf_darwin_amd64 && chmod +x gf && ./gf install
-    ```
-   > If you're using `zsh`, you might need rename your alias by command `alias gf=gf` to resolve the conflicts between `gf` and `git fetch`.
-                                                                                                                          
-1. `Linux` 
-    ```shell
-    wget -O gf https://github.com/gogf/gf-cli/releases/download/v2.0.0-beta/gf_linux_amd64 && chmod +x gf && ./gf install
-    ```
-                                                                                                                  
-1. `Windows`
-
-    Manually download, execute it and then follow the instruction.
-
-### 2). Manually Install
+### 1). Manually Install
 
 > You might need setting the goproxy to make through building.
 > Please make sure your Golang version > v1.15.
 
 1. Latest version
     ```
-    go install github.com/gogf/gf-cli/v2@latest
+    go install github.com/gogf/gf-cli/v2/gf@latest
     ```
    
-1. Specified version
+2. Specified version
     ```
-    go install github.com/gogf/gf-cli/v2@v2.0.0-beta
+    go install github.com/gogf/gf-cli/v2/gf@v2.0.0-beta
     ```
-   
-1. Database `sqlite` and `oracle` are not support in `gf gen` command in default as it needs `cgo` and `gcc`, you can manually make some changes to the source codes and do the building.
+
+3. Check installation
+   ```
+   gf -v
+   ```
+### 2). PreBuilt Binary
+
+You can also install `gf` tool using pre-built binaries: https://github.com/gogf/gf-cli/releases
+
+After downloads, please use `gf_xxx_xxx install` command to install gf binary to system binary path.
+
+1. `Mac`
+    ```shell
+    wget -O gf https://github.com/gogf/gf-cli/releases/download/v2.0.0-rc/gf_darwin_amd64 && chmod +x gf && ./gf install
+    ```
+   > If you're using `zsh`, you might need rename your alias by command `alias gf=gf` to resolve the conflicts between `gf` and `git fetch`.
+
+2. `Linux`
+    ```shell
+    wget -O gf https://github.com/gogf/gf-cli/releases/download/v2.0.0-rc/gf_linux_amd64 && chmod +x gf && ./gf install
+    ```
+
+3. `Windows`
+
+   Manually download, execute it and then follow the instruction.
+
+4. Database `sqlite` and `oracle` are not support in `gf gen` command in default as it needs `cgo` and `gcc`, you can manually make some changes to the source codes and do the building.
 
 ## 2. Commands
 ```html
