@@ -2,6 +2,7 @@ package mlog
 
 import (
 	"context"
+
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gcmd"
 	"github.com/gogf/gf/v2/os/genv"
@@ -24,7 +25,7 @@ func init() {
 	} else {
 		logger.SetHeaderPrint(false)
 	}
-	if gcmd.ContainsOpt("debug") {
+	if gcmd.ContainsOpt("debug") || gcmd.ContainsOpt("gf.debug") {
 		logger.SetDebug(true)
 	} else {
 		logger.SetDebug(false)
