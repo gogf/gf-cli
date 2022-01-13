@@ -42,7 +42,7 @@ gf gen dao -r user_
 	commandGenDaoAd = `
 CONFIGURATION SUPPORT
     Options are also supported by configuration file.
-    It's suggested using configuration file instead of command line arguments making producing. 
+    It's suggested using configuration file instead of command line arguments making producing.
     The configuration node name is "gf.gen.dao", which also supports multiple databases, for example(config.yaml):
 	gfcli:
 	  gen:
@@ -50,11 +50,11 @@ CONFIGURATION SUPPORT
 		- link:     "mysql:root:12345678@tcp(127.0.0.1:3306)/test"
 		  tables:   "order,products"
 		  jsonCase: "CamelLower"
-	
+
 		- link:   "mysql:root:12345678@tcp(127.0.0.1:3306)/primary"
 		  path:   "./my-app"
 		  prefix: "primary_"
-		  tables: "user, userDetail" 
+		  tables: "user, userDetail"
 `
 	commandGenDaoBriefPath            = `directory path for generated files`
 	commandGenDaoBriefLink            = `database configuration, the same as the ORM configuration of GoFrame`
@@ -79,7 +79,7 @@ it's not necessary and the default value is "default"
 generated json tag case for model struct, cases are as follows:
 | Case            | Example            |
 |---------------- |--------------------|
-| Camel           | AnyKindOfString    | 
+| Camel           | AnyKindOfString    |
 | CamelLower      | anyKindOfString    | default
 | Snake           | any_kind_of_string |
 | SnakeScreaming  | ANY_KIND_OF_STRING |
@@ -587,7 +587,7 @@ func generateStructFieldDefinition(field *gdb.TableField, in generateStructDefin
 		} else {
 			typeName = "*gtime.Time"
 		}
-	case "json":
+	case "json", "jsonb":
 		if in.GJsonSupport {
 			typeName = "*gjson.Json"
 		} else {
