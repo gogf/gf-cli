@@ -108,6 +108,10 @@ func (c *cTpl) parsePath(ctx context.Context, path string, output string, values
 }
 
 func (c *cTpl) parseFile(ctx context.Context, file string, output string, values g.Map, replace bool) (err error) {
+	output = gstr.ReplaceByMap(output, g.MapStrStr{
+		`\\`: `\`,
+		`//`: `/`,
+	})
 	content, err := g.View().Parse(ctx, file, values)
 	if err != nil {
 		return err
