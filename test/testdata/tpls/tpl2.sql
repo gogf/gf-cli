@@ -1,1 +1,1 @@
-insert into {{$sql.table}}
+insert into {{.sql.table}}

@@ -1,2 +1,2 @@
 server:
-  address: {{$server.address}}
+  address: {{.server.address}}
