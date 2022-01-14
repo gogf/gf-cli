@@ -12,15 +12,15 @@ import (
 )
 
 var (
-	GF = commandGF{}
+	GF = cGF{}
 )
 
-type commandGF struct {
-	g.Meta `name:"gf" ad:"{commandGFAd}"`
+type cGF struct {
+	g.Meta `name:"gf" ad:"{cGFAd}"`
 }
 
 const (
-	commandGFAd = `
+	cGFAd = `
 ADDITIONAL
     Use "gf COMMAND -h" for details about a command.
 `
@@ -28,22 +28,22 @@ ADDITIONAL
 
 func init() {
 	gtag.Sets(g.MapStrStr{
-		`commandGFAd`: commandGFAd,
+		`cGFAd`: cGFAd,
 	})
 }
 
-type commandGFInput struct {
+type cGFInput struct {
 	g.Meta  `name:"gf"`
 	Yes     bool `short:"y" name:"yes"     brief:"all yes for all command without prompt ask"   orphan:"true"`
 	Version bool `short:"v" name:"version" brief:"show version information of current binary"   orphan:"true"`
 	Debug   bool `short:"d" name:"debug"   brief:"show internal detailed debugging information" orphan:"true"`
 }
-type commandGFOutput struct{}
+type cGFOutput struct{}
 
-func (c commandGF) Index(ctx context.Context, in commandGFInput) (out *commandGFOutput, err error) {
+func (c cGF) Index(ctx context.Context, in cGFInput) (out *cGFOutput, err error) {
 	// Version.
 	if in.Version {
-		_, err = Version.Index(ctx, commandVersionInput{})
+		_, err = Version.Index(ctx, cVersionInput{})
 		return
 	}
 	// No argument or option, do installation checks.

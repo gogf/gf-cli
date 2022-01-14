@@ -15,19 +15,19 @@ import (
 )
 
 var (
-	Version = commandVersion{}
+	Version = cVersion{}
 )
 
-type commandVersion struct {
+type cVersion struct {
 	g.Meta `name:"version" brief:"show version information of current binary"`
 }
 
-type commandVersionInput struct {
+type cVersionInput struct {
 	g.Meta `name:"version"`
 }
-type commandVersionOutput struct{}
+type cVersionOutput struct{}
 
-func (c commandVersion) Index(ctx context.Context, in commandVersionInput) (*commandVersionOutput, error) {
+func (c cVersion) Index(ctx context.Context, in cVersionInput) (*cVersionOutput, error) {
 	info := gbuild.Info()
 	if info["git"] == "" {
 		info["git"] = "none"
@@ -57,7 +57,7 @@ CLI Built Detail:
 }
 
 // getGFVersionOfCurrentProject checks and returns the GoFrame version current project using.
-func (c commandVersion) getGFVersionOfCurrentProject() (string, error) {
+func (c cVersion) getGFVersionOfCurrentProject() (string, error) {
 	goModPath := gfile.Join(gfile.Pwd(), "go.mod")
 	if gfile.Exists(goModPath) {
 		lines := gstr.SplitAndTrim(gfile.GetContents(goModPath), "\n")

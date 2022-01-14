@@ -14,17 +14,17 @@ import (
 )
 
 var (
-	Pack = commandPack{}
+	Pack = cPack{}
 )
 
-type commandPack struct {
-	g.Meta `name:"pack" usage:"{commandPackUsage}" brief:"{commandPackBrief}" eg:"{commandPackEg}"`
+type cPack struct {
+	g.Meta `name:"pack" usage:"{cPackUsage}" brief:"{cPackBrief}" eg:"{cPackEg}"`
 }
 
 const (
-	commandPackUsage = `gf pack SRC DST`
-	commandPackBrief = `packing any file/directory to a resource file, or a go file`
-	commandPackEg    = `
+	cPackUsage = `gf pack SRC DST`
+	cPackBrief = `packing any file/directory to a resource file, or a go file`
+	cPackEg    = `
 gf pack public data.bin
 gf pack public,template data.bin
 gf pack public,template packed/data.go
@@ -32,37 +32,37 @@ gf pack public,template,config packed/data.go
 gf pack public,template,config packed/data.go -n=packed -p=/var/www/my-app
 gf pack /var/www/public packed/data.go -n=packed
 `
-	commandPackSrcBrief = `source path for packing, which can be multiple source paths.`
-	commandPackDstBrief = `
+	cPackSrcBrief = `source path for packing, which can be multiple source paths.`
+	cPackDstBrief = `
 destination file path for packed file. if extension of the filename is ".go" and "-n" option is given, 
 it enables packing SRC to go file, or else it packs SRC into a binary file.
 `
-	commandPackNameBrief   = `package name for output go file, it's set as its directory name if no name passed`
-	commandPackPrefixBrief = `prefix for each file packed into the resource file`
+	cPackNameBrief   = `package name for output go file, it's set as its directory name if no name passed`
+	cPackPrefixBrief = `prefix for each file packed into the resource file`
 )
 
 func init() {
 	gtag.Sets(g.MapStrStr{
-		`commandPackUsage`:       commandPackUsage,
-		`commandPackBrief`:       commandPackBrief,
-		`commandPackEg`:          commandPackEg,
-		`commandPackSrcBrief`:    commandPackSrcBrief,
-		`commandPackDstBrief`:    commandPackDstBrief,
-		`commandPackNameBrief`:   commandPackNameBrief,
-		`commandPackPrefixBrief`: commandPackPrefixBrief,
+		`cPackUsage`:       cPackUsage,
+		`cPackBrief`:       cPackBrief,
+		`cPackEg`:          cPackEg,
+		`cPackSrcBrief`:    cPackSrcBrief,
+		`cPackDstBrief`:    cPackDstBrief,
+		`cPackNameBrief`:   cPackNameBrief,
+		`cPackPrefixBrief`: cPackPrefixBrief,
 	})
 }
 
-type commandPackInput struct {
+type cPackInput struct {
 	g.Meta `name:"pack"`
-	Src    string `name:"SRC" arg:"true" v:"required" brief:"{commandPackSrcBrief}"`
-	Dst    string `name:"DST" arg:"true" v:"required" brief:"{commandPackDstBrief}"`
-	Name   string `name:"name"   short:"n" brief:"{commandPackNameBrief}"`
-	Prefix string `name:"prefix" short:"p" brief:"{commandPackPrefixBrief}"`
+	Src    string `name:"SRC" arg:"true" v:"required" brief:"{cPackSrcBrief}"`
+	Dst    string `name:"DST" arg:"true" v:"required" brief:"{cPackDstBrief}"`
+	Name   string `name:"name"   short:"n" brief:"{cPackNameBrief}"`
+	Prefix string `name:"prefix" short:"p" brief:"{cPackPrefixBrief}"`
 }
-type commandPackOutput struct{}
+type cPackOutput struct{}
 
-func (c commandPack) Index(ctx context.Context, in commandPackInput) (out *commandPackOutput, err error) {
+func (c cPack) Index(ctx context.Context, in cPackInput) (out *cPackOutput, err error) {
 	if gfile.Exists(in.Dst) && gfile.IsDir(in.Dst) {
 		mlog.Fatalf("DST path '%s' cannot be a directory", in.Dst)
 	}

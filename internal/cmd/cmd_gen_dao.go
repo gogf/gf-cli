@@ -26,20 +26,20 @@ import (
 )
 
 const (
-	defaultDaoPath      = `service/internal/dao`
-	defaultDtoPath      = `service/internal/dto`
-	defaultEntityPath   = `model/entity`
-	commandGenDaoConfig = `gfcli.gen.dao`
-	commandGenDaoUsage  = `gf gen dao [OPTION]`
-	commandGenDaoBrief  = `automatically generate go files for dao/dto/entity`
-	commandGenDaoEg     = `
+	defaultDaoPath    = `service/internal/dao`
+	defaultDtoPath    = `service/internal/dto`
+	defaultEntityPath = `model/entity`
+	cGenDaoConfig     = `gfcli.gen.dao`
+	cGenDaoUsage      = `gf gen dao [OPTION]`
+	cGenDaoBrief      = `automatically generate go files for dao/dto/entity`
+	cGenDaoEg         = `
 gf gen dao
 gf gen dao -l "mysql:root:12345678@tcp(127.0.0.1:3306)/test"
 gf gen dao -p ./model -c config.yaml -g user-center -t user,user_detail,user_login
 gf gen dao -r user_
 `
 
-	commandGenDaoAd = `
+	cGenDaoAd = `
 CONFIGURATION SUPPORT
     Options are also supported by configuration file.
     It's suggested using configuration file instead of command line arguments making producing.
@@ -56,26 +56,26 @@ CONFIGURATION SUPPORT
 		  prefix: "primary_"
 		  tables: "user, userDetail"
 `
-	commandGenDaoBriefPath            = `directory path for generated files`
-	commandGenDaoBriefLink            = `database configuration, the same as the ORM configuration of GoFrame`
-	commandGenDaoBriefTables          = `generate models only for given tables, multiple table names separated with ','`
-	commandGenDaoBriefTablesEx        = `generate models excluding given tables, multiple table names separated with ','`
-	commandGenDaoBriefPrefix          = `add prefix for all table of specified link/database tables`
-	commandGenDaoBriefRemovePrefix    = `remove specified prefix of the table, multiple prefix separated with ','`
-	commandGenDaoBriefStdTime         = `use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables`
-	commandGenDaoBriefGJsonSupport    = `use gJsonSupport to use *gjson.Json instead of string for generated json fields of tables`
-	commandGenDaoBriefImportPrefix    = `custom import prefix for generated go files`
-	commandGenDaoBriefOverwriteDao    = `overwrite all dao files both inside/outside internal folder`
-	commandGenDaoBriefModelFile       = `custom file name for storing generated model content`
-	commandGenDaoBriefModelFileForDao = `custom file name generating model for DAO operations like Where/Data. It's empty in default`
-	commandGenDaoBriefDescriptionTag  = `add comment to description tag for each field`
-	commandGenDaoBriefNoJsonTag       = `no json tag will be added for each field`
-	commandGenDaoBriefNoModelComment  = `no model comment will be added for each field`
-	commandGenDaoBriefGroup           = `
+	cGenDaoBriefPath            = `directory path for generated files`
+	cGenDaoBriefLink            = `database configuration, the same as the ORM configuration of GoFrame`
+	cGenDaoBriefTables          = `generate models only for given tables, multiple table names separated with ','`
+	cGenDaoBriefTablesEx        = `generate models excluding given tables, multiple table names separated with ','`
+	cGenDaoBriefPrefix          = `add prefix for all table of specified link/database tables`
+	cGenDaoBriefRemovePrefix    = `remove specified prefix of the table, multiple prefix separated with ','`
+	cGenDaoBriefStdTime         = `use time.Time from stdlib instead of gtime.Time for generated time/date fields of tables`
+	cGenDaoBriefGJsonSupport    = `use gJsonSupport to use *gjson.Json instead of string for generated json fields of tables`
+	cGenDaoBriefImportPrefix    = `custom import prefix for generated go files`
+	cGenDaoBriefOverwriteDao    = `overwrite all dao files both inside/outside internal folder`
+	cGenDaoBriefModelFile       = `custom file name for storing generated model content`
+	cGenDaoBriefModelFileForDao = `custom file name generating model for DAO operations like Where/Data. It's empty in default`
+	cGenDaoBriefDescriptionTag  = `add comment to description tag for each field`
+	cGenDaoBriefNoJsonTag       = `no json tag will be added for each field`
+	cGenDaoBriefNoModelComment  = `no model comment will be added for each field`
+	cGenDaoBriefGroup           = `
 specifying the configuration group name of database for generated ORM instance,
 it's not necessary and the default value is "default"
 `
-	commandGenDaoBriefJsonCase = `
+	cGenDaoBriefJsonCase = `
 generated json tag case for model struct, cases are as follows:
 | Case            | Example            |
 |---------------- |--------------------|
@@ -106,65 +106,65 @@ var (
 
 func init() {
 	gtag.Sets(g.MapStrStr{
-		`commandGenDaoConfig`:               commandGenDaoConfig,
-		`commandGenDaoUsage`:                commandGenDaoUsage,
-		`commandGenDaoBrief`:                commandGenDaoBrief,
-		`commandGenDaoEg`:                   commandGenDaoEg,
-		`commandGenDaoAd`:                   commandGenDaoAd,
-		`commandGenDaoBriefPath`:            commandGenDaoBriefPath,
-		`commandGenDaoBriefLink`:            commandGenDaoBriefLink,
-		`commandGenDaoBriefTables`:          commandGenDaoBriefTables,
-		`commandGenDaoBriefTablesEx`:        commandGenDaoBriefTablesEx,
-		`commandGenDaoBriefPrefix`:          commandGenDaoBriefPrefix,
-		`commandGenDaoBriefRemovePrefix`:    commandGenDaoBriefRemovePrefix,
-		`commandGenDaoBriefStdTime`:         commandGenDaoBriefStdTime,
-		`commandGenDaoBriefGJsonSupport`:    commandGenDaoBriefGJsonSupport,
-		`commandGenDaoBriefImportPrefix`:    commandGenDaoBriefImportPrefix,
-		`commandGenDaoBriefOverwriteDao`:    commandGenDaoBriefOverwriteDao,
-		`commandGenDaoBriefModelFile`:       commandGenDaoBriefModelFile,
-		`commandGenDaoBriefModelFileForDao`: commandGenDaoBriefModelFileForDao,
-		`commandGenDaoBriefDescriptionTag`:  commandGenDaoBriefDescriptionTag,
-		`commandGenDaoBriefNoJsonTag`:       commandGenDaoBriefNoJsonTag,
-		`commandGenDaoBriefNoModelComment`:  commandGenDaoBriefNoModelComment,
-		`commandGenDaoBriefGroup`:           commandGenDaoBriefGroup,
-		`commandGenDaoBriefJsonCase`:        commandGenDaoBriefJsonCase,
+		`cGenDaoConfig`:               cGenDaoConfig,
+		`cGenDaoUsage`:                cGenDaoUsage,
+		`cGenDaoBrief`:                cGenDaoBrief,
+		`cGenDaoEg`:                   cGenDaoEg,
+		`cGenDaoAd`:                   cGenDaoAd,
+		`cGenDaoBriefPath`:            cGenDaoBriefPath,
+		`cGenDaoBriefLink`:            cGenDaoBriefLink,
+		`cGenDaoBriefTables`:          cGenDaoBriefTables,
+		`cGenDaoBriefTablesEx`:        cGenDaoBriefTablesEx,
+		`cGenDaoBriefPrefix`:          cGenDaoBriefPrefix,
+		`cGenDaoBriefRemovePrefix`:    cGenDaoBriefRemovePrefix,
+		`cGenDaoBriefStdTime`:         cGenDaoBriefStdTime,
+		`cGenDaoBriefGJsonSupport`:    cGenDaoBriefGJsonSupport,
+		`cGenDaoBriefImportPrefix`:    cGenDaoBriefImportPrefix,
+		`cGenDaoBriefOverwriteDao`:    cGenDaoBriefOverwriteDao,
+		`cGenDaoBriefModelFile`:       cGenDaoBriefModelFile,
+		`cGenDaoBriefModelFileForDao`: cGenDaoBriefModelFileForDao,
+		`cGenDaoBriefDescriptionTag`:  cGenDaoBriefDescriptionTag,
+		`cGenDaoBriefNoJsonTag`:       cGenDaoBriefNoJsonTag,
+		`cGenDaoBriefNoModelComment`:  cGenDaoBriefNoModelComment,
+		`cGenDaoBriefGroup`:           cGenDaoBriefGroup,
+		`cGenDaoBriefJsonCase`:        cGenDaoBriefJsonCase,
 	})
 
 	createdAt = gtime.Now()
 }
 
 type (
-	commandGenDaoInput struct {
-		g.Meta         `name:"dao" config:"{commandGenDaoConfig}" usage:"{commandGenDaoUsage}" brief:"{commandGenDaoBrief}" eg:"{commandGenDaoEg}" ad:"{commandGenDaoAd}"`
-		Path           string `name:"path"            short:"p" brief:"{commandGenDaoBriefPath}" d:"internal"`
-		Link           string `name:"link"            short:"l" brief:"{commandGenDaoBriefLink}"`
-		Tables         string `name:"tables"          short:"t" brief:"{commandGenDaoBriefTables}"`
-		TablesEx       string `name:"tablesEx"        short:"e" brief:"{commandGenDaoBriefTablesEx}"`
-		Group          string `name:"group"           short:"g" brief:"{commandGenDaoBriefGroup}" d:"default"`
-		Prefix         string `name:"prefix"          short:"f" brief:"{commandGenDaoBriefPrefix}"`
-		RemovePrefix   string `name:"removePrefix"    short:"r" brief:"{commandGenDaoBriefRemovePrefix}"`
-		JsonCase       string `name:"jsonCase"        short:"j" brief:"{commandGenDaoBriefJsonCase}" d:"CamelLower"`
-		ImportPrefix   string `name:"importPrefix"    short:"i" brief:"{commandGenDaoBriefImportPrefix}"`
-		StdTime        bool   `name:"stdTime"         short:"s" brief:"{commandGenDaoBriefStdTime}"         orphan:"true"`
-		GJsonSupport   bool   `name:"gJsonSupport"    short:"n" brief:"{commandGenDaoBriefGJsonSupport}"    orphan:"true"`
-		OverwriteDao   bool   `name:"overwriteDao"    short:"o" brief:"{commandGenDaoBriefOverwriteDao}"    orphan:"true"`
-		DescriptionTag bool   `name:"descriptionTag"  short:"d" brief:"{commandGenDaoBriefDescriptionTag}"  orphan:"true"`
-		NoJsonTag      bool   `name:"noJsonTag"       short:"k" brief:"{commandGenDaoBriefNoJsonTag"        orphan:"true"`
-		NoModelComment bool   `name:"noModelComment"  short:"m" brief:"{commandGenDaoBriefNoModelComment}"  orphan:"true"`
+	cGenDaoInput struct {
+		g.Meta         `name:"dao" config:"{cGenDaoConfig}" usage:"{cGenDaoUsage}" brief:"{cGenDaoBrief}" eg:"{cGenDaoEg}" ad:"{cGenDaoAd}"`
+		Path           string `name:"path"            short:"p" brief:"{cGenDaoBriefPath}" d:"internal"`
+		Link           string `name:"link"            short:"l" brief:"{cGenDaoBriefLink}"`
+		Tables         string `name:"tables"          short:"t" brief:"{cGenDaoBriefTables}"`
+		TablesEx       string `name:"tablesEx"        short:"e" brief:"{cGenDaoBriefTablesEx}"`
+		Group          string `name:"group"           short:"g" brief:"{cGenDaoBriefGroup}" d:"default"`
+		Prefix         string `name:"prefix"          short:"f" brief:"{cGenDaoBriefPrefix}"`
+		RemovePrefix   string `name:"removePrefix"    short:"r" brief:"{cGenDaoBriefRemovePrefix}"`
+		JsonCase       string `name:"jsonCase"        short:"j" brief:"{cGenDaoBriefJsonCase}" d:"CamelLower"`
+		ImportPrefix   string `name:"importPrefix"    short:"i" brief:"{cGenDaoBriefImportPrefix}"`
+		StdTime        bool   `name:"stdTime"         short:"s" brief:"{cGenDaoBriefStdTime}"         orphan:"true"`
+		GJsonSupport   bool   `name:"gJsonSupport"    short:"n" brief:"{cGenDaoBriefGJsonSupport}"    orphan:"true"`
+		OverwriteDao   bool   `name:"overwriteDao"    short:"o" brief:"{cGenDaoBriefOverwriteDao}"    orphan:"true"`
+		DescriptionTag bool   `name:"descriptionTag"  short:"d" brief:"{cGenDaoBriefDescriptionTag}"  orphan:"true"`
+		NoJsonTag      bool   `name:"noJsonTag"       short:"k" brief:"{cGenDaoBriefNoJsonTag"        orphan:"true"`
+		NoModelComment bool   `name:"noModelComment"  short:"m" brief:"{cGenDaoBriefNoModelComment}"  orphan:"true"`
 	}
-	commandGenDaoOutput struct{}
+	cGenDaoOutput struct{}
 
-	commandGenDaoInternalInput struct {
-		commandGenDaoInput
+	cGenDaoInternalInput struct {
+		cGenDaoInput
 		TableName    string // TableName specifies the table name of the table.
 		NewTableName string // NewTableName specifies the prefix-stripped name of the table.
 		ModName      string // ModName specifies the module name of current golang project, which is used for import purpose.
 	}
 )
 
-func (c commandGen) Dao(ctx context.Context, in commandGenDaoInput) (out *commandGenDaoOutput, err error) {
+func (c cGen) Dao(ctx context.Context, in cGenDaoInput) (out *cGenDaoOutput, err error) {
 	if g.Cfg().Available(ctx) {
-		v := g.Cfg().MustGet(ctx, commandGenDaoConfig)
+		v := g.Cfg().MustGet(ctx, cGenDaoConfig)
 		if v.IsSlice() {
 			for i := 0; i < len(v.Interfaces()); i++ {
 				doGenDaoForArray(ctx, i, in)
@@ -180,7 +180,7 @@ func (c commandGen) Dao(ctx context.Context, in commandGenDaoInput) (out *comman
 }
 
 // doGenDaoForArray implements the "gen dao" command for configuration array.
-func doGenDaoForArray(ctx context.Context, index int, in commandGenDaoInput) {
+func doGenDaoForArray(ctx context.Context, index int, in cGenDaoInput) {
 	var (
 		err     error
 		db      gdb.DB
@@ -189,10 +189,10 @@ func doGenDaoForArray(ctx context.Context, index int, in commandGenDaoInput) {
 	if index >= 0 {
 		err = g.Cfg().MustGet(
 			ctx,
-			fmt.Sprintf(`%s.%d`, commandGenDaoConfig, index),
+			fmt.Sprintf(`%s.%d`, cGenDaoConfig, index),
 		).Scan(&in)
 		if err != nil {
-			mlog.Fatalf(`invalid configuration of "%s": %+v`, commandGenDaoConfig, err)
+			mlog.Fatalf(`invalid configuration of "%s": %+v`, cGenDaoConfig, err)
 		}
 	}
 	if dirRealPath := gfile.RealPath(in.Path); dirRealPath == "" {
@@ -260,27 +260,27 @@ func doGenDaoForArray(ctx context.Context, index int, in commandGenDaoInput) {
 		newTableName = in.Prefix + newTableName
 		newTableNames[i] = newTableName
 		// Dao.
-		generateDao(ctx, db, commandGenDaoInternalInput{
-			commandGenDaoInput: in,
-			TableName:          tableName,
-			NewTableName:       newTableName,
-			ModName:            modName,
+		generateDao(ctx, db, cGenDaoInternalInput{
+			cGenDaoInput: in,
+			TableName:    tableName,
+			NewTableName: newTableName,
+			ModName:      modName,
 		})
 	}
 	// Dto.
-	generateDto(ctx, db, tableNames, newTableNames, commandGenDaoInternalInput{
-		commandGenDaoInput: in,
-		ModName:            modName,
+	generateDto(ctx, db, tableNames, newTableNames, cGenDaoInternalInput{
+		cGenDaoInput: in,
+		ModName:      modName,
 	})
 	// Entity.
-	generateEntity(ctx, db, tableNames, newTableNames, commandGenDaoInternalInput{
-		commandGenDaoInput: in,
-		ModName:            modName,
+	generateEntity(ctx, db, tableNames, newTableNames, cGenDaoInternalInput{
+		cGenDaoInput: in,
+		ModName:      modName,
 	})
 }
 
 // generateDaoContentFile generates the dao and model content of given table.
-func generateDao(ctx context.Context, db gdb.DB, in commandGenDaoInternalInput) {
+func generateDao(ctx context.Context, db gdb.DB, in cGenDaoInternalInput) {
 	// Generating table data preparing.
 	fieldMap, err := db.TableFields(ctx, in.TableName)
 	if err != nil {
@@ -321,7 +321,7 @@ func generateDao(ctx context.Context, db gdb.DB, in commandGenDaoInternalInput) 
 	generateDaoInternal(tableNameCamelCase, tableNameCamelLowerCase, importPrefix, dirPathDao, fileName, fieldMap, in)
 }
 
-func generateDto(ctx context.Context, db gdb.DB, tableNames, newTableNames []string, in commandGenDaoInternalInput) {
+func generateDto(ctx context.Context, db gdb.DB, tableNames, newTableNames []string, in cGenDaoInternalInput) {
 	var (
 		dtoDirPath = gfile.Join(in.Path, defaultDtoPath)
 	)
@@ -339,10 +339,10 @@ func generateDto(ctx context.Context, db gdb.DB, tableNames, newTableNames []str
 			newTableName     = newTableNames[i]
 			dtoFilePath      = gfile.Join(dtoDirPath, gstr.CaseSnake(newTableName)+".go")
 			structDefinition = generateStructDefinition(generateStructDefinitionInput{
-				commandGenDaoInternalInput: in,
-				StructName:                 gstr.CaseCamel(newTableName),
-				FieldMap:                   fieldMap,
-				IsDto:                      true,
+				cGenDaoInternalInput: in,
+				StructName:           gstr.CaseCamel(newTableName),
+				FieldMap:             fieldMap,
+				IsDto:                true,
 			})
 		)
 		// replace all types to interface{}.
@@ -372,7 +372,7 @@ func generateDto(ctx context.Context, db gdb.DB, tableNames, newTableNames []str
 	}
 }
 
-func generateEntity(ctx context.Context, db gdb.DB, tableNames, newTableNames []string, in commandGenDaoInternalInput) {
+func generateEntity(ctx context.Context, db gdb.DB, tableNames, newTableNames []string, in cGenDaoInternalInput) {
 	var (
 		entityDirPath = gfile.Join(in.Path, defaultEntityPath)
 	)
@@ -390,10 +390,10 @@ func generateEntity(ctx context.Context, db gdb.DB, tableNames, newTableNames []
 				newTableName,
 				gstr.CaseCamel(newTableName),
 				generateStructDefinition(generateStructDefinitionInput{
-					commandGenDaoInternalInput: in,
-					StructName:                 gstr.CaseCamel(newTableName),
-					FieldMap:                   fieldMap,
-					IsDto:                      false,
+					cGenDaoInternalInput: in,
+					StructName:           gstr.CaseCamel(newTableName),
+					FieldMap:             fieldMap,
+					IsDto:                false,
 				}),
 			)
 		)
@@ -458,7 +458,7 @@ func generateDtoContent(tableName, tableNameCamelCase, structDefine string) stri
 	return dtoContent
 }
 
-func generateDaoIndex(tableNameCamelCase, tableNameCamelLowerCase, importPrefix, dirPathDao, fileName string, in commandGenDaoInternalInput) {
+func generateDaoIndex(tableNameCamelCase, tableNameCamelLowerCase, importPrefix, dirPathDao, fileName string, in cGenDaoInternalInput) {
 	path := gfile.Join(dirPathDao, fileName+".go")
 	if in.OverwriteDao || !gfile.Exists(path) {
 		indexContent := gstr.ReplaceByMap(getTplDaoIndexContent(""), g.MapStrStr{
@@ -481,7 +481,7 @@ func generateDaoInternal(
 	tableNameCamelCase, tableNameCamelLowerCase, importPrefix string,
 	dirPathDao, fileName string,
 	fieldMap map[string]*gdb.TableField,
-	in commandGenDaoInternalInput,
+	in cGenDaoInternalInput,
 ) {
 	path := gfile.Join(dirPathDao, "internal", fileName+".go")
 	modelContent := gstr.ReplaceByMap(getTplDaoInternalContent(""), g.MapStrStr{
@@ -509,7 +509,7 @@ func replaceDefaultVar(origin string) string {
 }
 
 type generateStructDefinitionInput struct {
-	commandGenDaoInternalInput
+	cGenDaoInternalInput
 	StructName string                     // Struct name.
 	FieldMap   map[string]*gdb.TableField // Table field map.
 	IsDto      bool                       // Is generating DTO struct.

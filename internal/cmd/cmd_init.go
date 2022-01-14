@@ -15,23 +15,23 @@ import (
 )
 
 var (
-	Init = commandInit{}
+	Init = cInit{}
 )
 
-type commandInit struct {
-	g.Meta `name:"init" brief:"{commandInitBrief}" eg:"{commandInitEg}"`
+type cInit struct {
+	g.Meta `name:"init" brief:"{cInitBrief}" eg:"{cInitEg}"`
 }
 
 const (
-	commandInitRepoPrefix = `github.com/gogf/`
-	commandInitMonoRepo   = `template-mono`
-	commandInitSingleRepo = `template-single`
-	commandInitBrief      = `create and initialize an empty GoFrame project`
-	commandInitEg         = `
+	cInitRepoPrefix = `github.com/gogf/`
+	cInitMonoRepo   = `template-mono`
+	cInitSingleRepo = `template-single`
+	cInitBrief      = `create and initialize an empty GoFrame project`
+	cInitEg         = `
 gf init my-project
 gf init my-mono-repo -m
 `
-	commandInitNameBrief = `
+	cInitNameBrief = `
 name for the project. It will create a folder with NAME in current directory.
 The NAME will also be the module name for the project.
 `
@@ -39,20 +39,20 @@ The NAME will also be the module name for the project.
 
 func init() {
 	gtag.Sets(g.MapStrStr{
-		`commandInitBrief`:     commandInitBrief,
-		`commandInitEg`:        commandInitEg,
-		`commandInitNameBrief`: commandInitNameBrief,
+		`cInitBrief`:     cInitBrief,
+		`cInitEg`:        cInitEg,
+		`cInitNameBrief`: cInitNameBrief,
 	})
 }
 
-type commandInitInput struct {
+type cInitInput struct {
 	g.Meta `name:"init"`
-	Name   string `name:"NAME" arg:"true" v:"required" brief:"{commandInitNameBrief}"`
+	Name   string `name:"NAME" arg:"true" v:"required" brief:"{cInitNameBrief}"`
 	Mono   bool   `name:"mono" short:"m" brief:"initialize a mono-repo instead a single-repo" orphan:"true"`
 }
-type commandInitOutput struct{}
+type cInitOutput struct{}
 
-func (c commandInit) Index(ctx context.Context, in commandInitInput) (out *commandInitOutput, err error) {
+func (c cInit) Index(ctx context.Context, in cInitInput) (out *cInitOutput, err error) {
 	if !gfile.IsEmpty(in.Name) && !allyes.Check() {
 		s := gcmd.Scanf(`the folder "%s" is not empty, files might be overwrote, continue? [y/n]: `, in.Name)
 		if strings.EqualFold(s, "n") {
@@ -66,9 +66,9 @@ func (c commandInit) Index(ctx context.Context, in commandInitInput) (out *comma
 		templateRepoName string
 	)
 	if in.Mono {
-		templateRepoName = commandInitMonoRepo
+		templateRepoName = cInitMonoRepo
 	} else {
-		templateRepoName = commandInitSingleRepo
+		templateRepoName = cInitSingleRepo
 	}
 	err = gres.Export(templateRepoName, in.Name, gres.ExportOption{
 		RemovePrefix: templateRepoName,
@@ -79,7 +79,7 @@ func (c commandInit) Index(ctx context.Context, in commandInitInput) (out *comma
 
 	// Replace template name to project name.
 	err = gfile.ReplaceDir(
-		commandInitRepoPrefix+templateRepoName,
+		cInitRepoPrefix+templateRepoName,
 		gfile.Basename(gfile.RealPath(in.Name)),
 		in.Name,
 		"*",

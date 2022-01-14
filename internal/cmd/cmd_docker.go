@@ -12,17 +12,17 @@ import (
 )
 
 var (
-	Docker = commandDocker{}
+	Docker = cDocker{}
 )
 
-type commandDocker struct {
-	g.Meta `name:"docker" usage:"{commandDockerUsage}" brief:"{commandDockerBrief}" eg:"{commandDockerEg}" dc:"{commandDockerDc}"`
+type cDocker struct {
+	g.Meta `name:"docker" usage:"{cDockerUsage}" brief:"{cDockerBrief}" eg:"{cDockerEg}" dc:"{cDockerDc}"`
 }
 
 const (
-	commandDockerUsage = `gf docker [MAIN] [OPTION]`
-	commandDockerBrief = `build docker image for current GoFrame project`
-	commandDockerEg    = `
+	cDockerUsage = `gf docker [MAIN] [OPTION]`
+	cDockerBrief = `build docker image for current GoFrame project`
+	cDockerEg    = `
 gf docker 
 gf docker -t hub.docker.com/john/image:tag
 gf docker -p -t hub.docker.com/john/image:tag
@@ -31,47 +31,47 @@ gf docker main.go -t hub.docker.com/john/image:tag
 gf docker main.go -t hub.docker.com/john/image:tag
 gf docker main.go -p -t hub.docker.com/john/image:tag
 `
-	commandDockerDc = `
+	cDockerDc = `
 The "docker" command builds the GF project to a docker images.
 It runs "gf build" firstly to compile the project to binary file.
 It then runs "docker build" command automatically to generate the docker image.
 You should have docker installed, and there must be a Dockerfile in the root of the project.
 `
-	commandDockerMainBrief  = `main golang file path for "gf build", it's "main.go" in default`
-	commandDockerFileBrief  = `file path of the Dockerfile. it's "manifest/docker/Dockerfile" in default`
-	commandDockerShellBrief = `path of the shell file which is executed before docker build`
-	commandDockerPushBrief  = `auto push the docker image to docker registry if "-t" option passed`
-	commandDockerTagBrief   = `tag name for this docker, which is usually used for docker push`
-	commandDockerExtraBrief = `extra build options passed to "docker image"`
+	cDockerMainBrief  = `main golang file path for "gf build", it's "main.go" in default`
+	cDockerFileBrief  = `file path of the Dockerfile. it's "manifest/docker/Dockerfile" in default`
+	cDockerShellBrief = `path of the shell file which is executed before docker build`
+	cDockerPushBrief  = `auto push the docker image to docker registry if "-t" option passed`
+	cDockerTagBrief   = `tag name for this docker, which is usually used for docker push`
+	cDockerExtraBrief = `extra build options passed to "docker image"`
 )
 
 func init() {
 	gtag.Sets(g.MapStrStr{
-		`commandDockerUsage`:      commandDockerUsage,
-		`commandDockerBrief`:      commandDockerBrief,
-		`commandDockerEg`:         commandDockerEg,
-		`commandDockerDc`:         commandDockerDc,
-		`commandDockerMainBrief`:  commandDockerMainBrief,
-		`commandDockerFileBrief`:  commandDockerFileBrief,
-		`commandDockerShellBrief`: commandDockerShellBrief,
-		`commandDockerPushBrief`:  commandDockerPushBrief,
-		`commandDockerTagBrief`:   commandDockerTagBrief,
-		`commandDockerExtraBrief`: commandDockerExtraBrief,
+		`cDockerUsage`:      cDockerUsage,
+		`cDockerBrief`:      cDockerBrief,
+		`cDockerEg`:         cDockerEg,
+		`cDockerDc`:         cDockerDc,
+		`cDockerMainBrief`:  cDockerMainBrief,
+		`cDockerFileBrief`:  cDockerFileBrief,
+		`cDockerShellBrief`: cDockerShellBrief,
+		`cDockerPushBrief`:  cDockerPushBrief,
+		`cDockerTagBrief`:   cDockerTagBrief,
+		`cDockerExtraBrief`: cDockerExtraBrief,
 	})
 }
 
-type commandDockerInput struct {
+type cDockerInput struct {
 	g.Meta `name:"docker" config:"gfcli.docker"`
-	Main   string `name:"MAIN"  arg:"true" brief:"{commandDockerMainBrief}"  d:"main.go"`
-	File   string `name:"file"  short:"f"  brief:"{commandDockerFileBrief}"  d:"manifest/docker/Dockerfile"`
-	Shell  string `name:"shell" short:"s"  brief:"{commandDockerShellBrief}" d:"manifest/docker/docker.sh"`
-	Tag    string `name:"tag"   short:"t"  brief:"{commandDockerTagBrief}"`
-	Push   bool   `name:"push"  short:"p"  brief:"{commandDockerPushBrief}" orphan:"true"`
-	Extra  string `name:"extra" short:"e"  brief:"{commandDockerExtraBrief}"`
+	Main   string `name:"MAIN"  arg:"true" brief:"{cDockerMainBrief}"  d:"main.go"`
+	File   string `name:"file"  short:"f"  brief:"{cDockerFileBrief}"  d:"manifest/docker/Dockerfile"`
+	Shell  string `name:"shell" short:"s"  brief:"{cDockerShellBrief}" d:"manifest/docker/docker.sh"`
+	Tag    string `name:"tag"   short:"t"  brief:"{cDockerTagBrief}"`
+	Push   bool   `name:"push"  short:"p"  brief:"{cDockerPushBrief}" orphan:"true"`
+	Extra  string `name:"extra" short:"e"  brief:"{cDockerExtraBrief}"`
 }
-type commandDockerOutput struct{}
+type cDockerOutput struct{}
 
-func (c commandDocker) Index(ctx context.Context, in commandDockerInput) (out *commandDockerOutput, err error) {
+func (c cDocker) Index(ctx context.Context, in cDockerInput) (out *cDockerOutput, err error) {
 	// Necessary check.
 	if gproc.SearchBinary("docker") == "" {
 		mlog.Fatalf(`command "docker" not found in your environment, please install docker first to proceed this command`)

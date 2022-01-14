@@ -17,14 +17,14 @@ import (
 )
 
 var (
-	Run = commandRun{}
+	Run = cRun{}
 )
 
-type commandRun struct {
-	g.Meta `name:"run" usage:"{commandRunUsage}" brief:"{commandRunBrief}" eg:"{commandRunEg}" dc:"{commandRunDc}"`
+type cRun struct {
+	g.Meta `name:"run" usage:"{cRunUsage}" brief:"{cRunBrief}" eg:"{cRunEg}" dc:"{cRunDc}"`
 }
 
-type commandRunApp struct {
+type cRunApp struct {
 	File    string // Go run file name.
 	Path    string // Directory storing built binary.
 	Options string // Extra "go run" options.
@@ -32,20 +32,20 @@ type commandRunApp struct {
 }
 
 const (
-	commandRunUsage = `gf run FILE [OPTION]`
-	commandRunBrief = `running go codes with hot-compiled-like feature`
-	commandRunEg    = `
+	cRunUsage = `gf run FILE [OPTION]`
+	cRunBrief = `running go codes with hot-compiled-like feature`
+	cRunEg    = `
 gf run main.go
 gf run main.go --args "server -p 8080"
 gf run main.go -mod=vendor
 `
-	commandRunDc = `
+	cRunDc = `
 The "run" command is used for running go codes with hot-compiled-like feature,
 which compiles and runs the go codes asynchronously when codes change.
 `
-	commandRunFileBrief  = `building file path.`
-	commandRunPathBrief  = `output directory path for built binary file. it's "manifest/output" in default`
-	commandRunExtraBrief = `the same options as "go run"/"go build" except some options as follows defined`
+	cRunFileBrief  = `building file path.`
+	cRunPathBrief  = `output directory path for built binary file. it's "manifest/output" in default`
+	cRunExtraBrief = `the same options as "go run"/"go build" except some options as follows defined`
 )
 
 var (
@@ -54,33 +54,33 @@ var (
 
 func init() {
 	gtag.Sets(g.MapStrStr{
-		`commandRunUsage`:      commandRunUsage,
-		`commandRunBrief`:      commandRunBrief,
-		`commandRunEg`:         commandRunEg,
-		`commandRunDc`:         commandRunDc,
-		`commandRunFileBrief`:  commandRunFileBrief,
-		`commandRunPathBrief`:  commandRunPathBrief,
-		`commandRunExtraBrief`: commandRunExtraBrief,
+		`cRunUsage`:      cRunUsage,
+		`cRunBrief`:      cRunBrief,
+		`cRunEg`:         cRunEg,
+		`cRunDc`:         cRunDc,
+		`cRunFileBrief`:  cRunFileBrief,
+		`cRunPathBrief`:  cRunPathBrief,
+		`cRunExtraBrief`: cRunExtraBrief,
 	})
 }
 
 type (
-	commandRunInput struct {
+	cRunInput struct {
 		g.Meta `name:"run"`
-		File   string `name:"FILE"  arg:"true" brief:"{commandRunFileBrief}" v:"required"`
-		Path   string `name:"path"  short:"p"  brief:"{commandRunPathBrief}" d:"./"`
-		Extra  string `name:"extra" short:"e"  brief:"{commandRunExtraBrief}"`
+		File   string `name:"FILE"  arg:"true" brief:"{cRunFileBrief}" v:"required"`
+		Path   string `name:"path"  short:"p"  brief:"{cRunPathBrief}" d:"./"`
+		Extra  string `name:"extra" short:"e"  brief:"{cRunExtraBrief}"`
 	}
-	commandRunOutput struct{}
+	cRunOutput struct{}
 )
 
-func (c commandRun) Index(ctx context.Context, in commandRunInput) (out *commandRunOutput, err error) {
+func (c cRun) Index(ctx context.Context, in cRunInput) (out *cRunOutput, err error) {
 	// Necessary check.
 	if gproc.SearchBinary("go") == "" {
 		mlog.Fatalf(`command "go" not found in your environment, please install golang first to proceed this command`)
 	}
 
-	app := &commandRunApp{
+	app := &cRunApp{
 		File:    in.File,
 		Path:    in.Path,
 		Options: in.Extra,
@@ -108,7 +108,7 @@ func (c commandRun) Index(ctx context.Context, in commandRunInput) (out *command
 	select {}
 }
 
-func (app *commandRunApp) Run() {
+func (app *cRunApp) Run() {
 	// Rebuild and run the codes.
 	renamePath := ""
 	mlog.Printf("build: %s", app.File)

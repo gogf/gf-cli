@@ -8,19 +8,19 @@ import (
 )
 
 var (
-	Install = commandInstall{}
+	Install = cInstall{}
 )
 
-type commandInstall struct {
+type cInstall struct {
 	g.Meta `name:"install" brief:"install gf binary to system (might need root/admin permission)"`
 }
 
-type commandInstallInput struct {
+type cInstallInput struct {
 	g.Meta `name:"install"`
 }
-type commandInstallOutput struct{}
+type cInstallOutput struct{}
 
-func (c commandInstall) Index(ctx context.Context, in commandInstallInput) (out *commandInstallOutput, err error) {
+func (c cInstall) Index(ctx context.Context, in cInstallInput) (out *cInstallOutput, err error) {
 	err = service.Install.Run(ctx)
 	return
 }

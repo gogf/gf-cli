@@ -13,19 +13,19 @@ import (
 )
 
 var (
-	Env = commandEnv{}
+	Env = cEnv{}
 )
 
-type commandEnv struct {
+type cEnv struct {
 	g.Meta `name:"env" brief:"show current Golang environment variables"`
 }
 
-type commandEnvInput struct {
+type cEnvInput struct {
 	g.Meta `name:"env"`
 }
-type commandEnvOutput struct{}
+type cEnvOutput struct{}
 
-func (c commandEnv) Index(ctx context.Context, in commandEnvInput) (out *commandEnvOutput, err error) {
+func (c cEnv) Index(ctx context.Context, in cEnvInput) (out *cEnvOutput, err error) {
 	result, err := gproc.ShellExec("go env")
 	if err != nil {
 		mlog.Fatal(err)

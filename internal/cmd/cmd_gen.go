@@ -6,16 +6,16 @@ import (
 )
 
 var (
-	Gen = commandGen{}
+	Gen = cGen{}
 )
 
-type commandGen struct {
-	g.Meta `name:"gen" brief:"{commandGenBrief}" dc:"{commandGenDc}"`
+type cGen struct {
+	g.Meta `name:"gen" brief:"{cGenBrief}" dc:"{cGenDc}"`
 }
 
 const (
-	commandGenBrief = `automatically generate go files for dao/dto/entity/pb/pbentity`
-	commandGenDc    = `
+	cGenBrief = `automatically generate go files for dao/dto/entity/pb/pbentity`
+	cGenDc    = `
 The "gen" command is designed for multiple generating purposes. 
 It's currently supporting generating go files for ORM models, protobuf and protobuf entity files.
 Please use "gf gen dao -h" for specified type help.
@@ -24,7 +24,7 @@ Please use "gf gen dao -h" for specified type help.
 
 func init() {
 	gtag.Sets(g.MapStrStr{
-		`commandGenBrief`: commandGenBrief,
-		`commandGenDc`:    commandGenDc,
+		`cGenBrief`: cGenBrief,
+		`cGenDc`:    cGenDc,
 	})
 }

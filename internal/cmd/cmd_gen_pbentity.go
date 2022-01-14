@@ -20,16 +20,16 @@ import (
 )
 
 const (
-	commandGenPbEntityConfig = `gfcli.gen.pbentity`
-	commandGenPbEntityBrief  = `generate entity message files in protobuf3 format`
-	commandGenPbEntityEg     = `
+	cGenPbEntityConfig = `gfcli.gen.pbentity`
+	cGenPbEntityBrief  = `generate entity message files in protobuf3 format`
+	cGenPbEntityEg     = `
 gf gen pbentity
 gf gen pbentity -l "mysql:root:12345678@tcp(127.0.0.1:3306)/test"
 gf gen pbentity -p ./protocol/demos/entity -t user,user_detail,user_login
 gf gen pbentity -r user_
 `
 
-	commandGenPbEntityAd = `
+	cGenPbEntityAd = `
 CONFIGURATION SUPPORT
     Options are also supported by configuration file.
     It's suggested using configuration file instead of command line arguments making producing. 
@@ -52,19 +52,19 @@ CONFIGURATION SUPPORT
 			  option java_package  = "protobuf/demos";
 			  option php_namespace = "protobuf/demos";
 `
-	commandGenPbEntityBriefPath         = `directory path for generated files`
-	commandGenPbEntityBriefPackage      = `package name for all entity proto files`
-	commandGenPbEntityBriefLink         = `database configuration, the same as the ORM configuration of GoFrame`
-	commandGenPbEntityBriefTables       = `generate models only for given tables, multiple table names separated with ','`
-	commandGenPbEntityBriefPrefix       = `add specified prefix for all entity names and entity proto files`
-	commandGenPbEntityBriefRemovePrefix = `remove specified prefix of the table, multiple prefix separated with ','`
-	commandGenPbEntityBriefOption       = `extra protobuf options`
-	commandGenPbEntityBriefGroup        = `
+	cGenPbEntityBriefPath         = `directory path for generated files`
+	cGenPbEntityBriefPackage      = `package name for all entity proto files`
+	cGenPbEntityBriefLink         = `database configuration, the same as the ORM configuration of GoFrame`
+	cGenPbEntityBriefTables       = `generate models only for given tables, multiple table names separated with ','`
+	cGenPbEntityBriefPrefix       = `add specified prefix for all entity names and entity proto files`
+	cGenPbEntityBriefRemovePrefix = `remove specified prefix of the table, multiple prefix separated with ','`
+	cGenPbEntityBriefOption       = `extra protobuf options`
+	cGenPbEntityBriefGroup        = `
 specifying the configuration group name of database for generated ORM instance,
 it's not necessary and the default value is "default"
 `
 
-	commandGenPbEntityBriefNameCase = `
+	cGenPbEntityBriefNameCase = `
 case for message attribute names, default is "Camel":
 | Case            | Example            |
 |---------------- |--------------------|
@@ -77,29 +77,29 @@ case for message attribute names, default is "Camel":
 | KebabScreaming  | ANY-KIND-OF-STRING |
 `
 
-	commandGenPbEntityBriefJsonCase = `
+	cGenPbEntityBriefJsonCase = `
 case for message json tag, cases are the same as "nameCase", default "CamelLower".
 set it to "none" to ignore json tag generating.
 `
 )
 
 type (
-	commandGenPbEntityInput struct {
-		g.Meta       `name:"pbentity" config:"{commandGenPbEntityConfig}" brief:"{commandGenPbEntityBrief}" eg:"{commandGenPbEntityEg}" ad:"{commandGenPbEntityAd}"`
-		Path         string `name:"path"         short:"p" brief:"{commandGenPbEntityBriefPath}"`
-		Package      string `name:"package"      short:"k" brief:"{commandGenPbEntityBriefPackage}"`
-		Link         string `name:"link"         short:"l" brief:"{commandGenPbEntityBriefLink}"`
-		Tables       string `name:"tables"       short:"t" brief:"{commandGenPbEntityBriefTables}"`
-		Prefix       string `name:"prefix"       short:"f" brief:"{commandGenPbEntityBriefPrefix}"`
-		RemovePrefix string `name:"removePrefix" short:"r" brief:"{commandGenPbEntityBriefRemovePrefix}"`
-		NameCase     string `name:"nameCase"     short:"n" brief:"{commandGenPbEntityBriefNameCase}" d:"Camel"`
-		JsonCase     string `name:"jsonCase"     short:"j" brief:"{commandGenPbEntityBriefJsonCase}" d:"CamelLower"`
-		Option       string `name:"option"       short:"o" brief:"{commandGenPbEntityBriefOption}"`
+	cGenPbEntityInput struct {
+		g.Meta       `name:"pbentity" config:"{cGenPbEntityConfig}" brief:"{cGenPbEntityBrief}" eg:"{cGenPbEntityEg}" ad:"{cGenPbEntityAd}"`
+		Path         string `name:"path"         short:"p" brief:"{cGenPbEntityBriefPath}"`
+		Package      string `name:"package"      short:"k" brief:"{cGenPbEntityBriefPackage}"`
+		Link         string `name:"link"         short:"l" brief:"{cGenPbEntityBriefLink}"`
+		Tables       string `name:"tables"       short:"t" brief:"{cGenPbEntityBriefTables}"`
+		Prefix       string `name:"prefix"       short:"f" brief:"{cGenPbEntityBriefPrefix}"`
+		RemovePrefix string `name:"removePrefix" short:"r" brief:"{cGenPbEntityBriefRemovePrefix}"`
+		NameCase     string `name:"nameCase"     short:"n" brief:"{cGenPbEntityBriefNameCase}" d:"Camel"`
+		JsonCase     string `name:"jsonCase"     short:"j" brief:"{cGenPbEntityBriefJsonCase}" d:"CamelLower"`
+		Option       string `name:"option"       short:"o" brief:"{cGenPbEntityBriefOption}"`
 	}
-	commandGenPbEntityOutput struct{}
+	cGenPbEntityOutput struct{}
 
-	commandGenPbEntityInternalInput struct {
-		commandGenPbEntityInput
+	cGenPbEntityInternalInput struct {
+		cGenPbEntityInput
 		TableName    string // TableName specifies the table name of the table.
 		NewTableName string // NewTableName specifies the prefix-stripped name of the table.
 	}
@@ -107,29 +107,29 @@ type (
 
 func init() {
 	gtag.Sets(g.MapStrStr{
-		`commandGenPbEntityConfig`:            commandGenPbEntityConfig,
-		`commandGenPbEntityBrief`:             commandGenPbEntityBrief,
-		`commandGenPbEntityEg`:                commandGenPbEntityEg,
-		`commandGenPbEntityAd`:                commandGenPbEntityAd,
-		`commandGenPbEntityBriefPath`:         commandGenPbEntityBriefPath,
-		`commandGenPbEntityBriefPackage`:      commandGenPbEntityBriefPackage,
-		`commandGenPbEntityBriefLink`:         commandGenPbEntityBriefLink,
-		`commandGenPbEntityBriefTables`:       commandGenPbEntityBriefTables,
-		`commandGenPbEntityBriefPrefix`:       commandGenPbEntityBriefPrefix,
-		`commandGenPbEntityBriefRemovePrefix`: commandGenPbEntityBriefRemovePrefix,
-		`commandGenPbEntityBriefGroup`:        commandGenPbEntityBriefGroup,
-		`commandGenPbEntityBriefNameCase`:     commandGenPbEntityBriefNameCase,
-		`commandGenPbEntityBriefJsonCase`:     commandGenPbEntityBriefJsonCase,
-		`commandGenPbEntityBriefOption`:       commandGenPbEntityBriefOption,
+		`cGenPbEntityConfig`:            cGenPbEntityConfig,
+		`cGenPbEntityBrief`:             cGenPbEntityBrief,
+		`cGenPbEntityEg`:                cGenPbEntityEg,
+		`cGenPbEntityAd`:                cGenPbEntityAd,
+		`cGenPbEntityBriefPath`:         cGenPbEntityBriefPath,
+		`cGenPbEntityBriefPackage`:      cGenPbEntityBriefPackage,
+		`cGenPbEntityBriefLink`:         cGenPbEntityBriefLink,
+		`cGenPbEntityBriefTables`:       cGenPbEntityBriefTables,
+		`cGenPbEntityBriefPrefix`:       cGenPbEntityBriefPrefix,
+		`cGenPbEntityBriefRemovePrefix`: cGenPbEntityBriefRemovePrefix,
+		`cGenPbEntityBriefGroup`:        cGenPbEntityBriefGroup,
+		`cGenPbEntityBriefNameCase`:     cGenPbEntityBriefNameCase,
+		`cGenPbEntityBriefJsonCase`:     cGenPbEntityBriefJsonCase,
+		`cGenPbEntityBriefOption`:       cGenPbEntityBriefOption,
 	})
 }
 
-func (c commandGen) PbEntity(ctx context.Context, in commandGenPbEntityInput) (out *commandGenPbEntityOutput, err error) {
+func (c cGen) PbEntity(ctx context.Context, in cGenPbEntityInput) (out *cGenPbEntityOutput, err error) {
 	var (
 		config = g.Cfg()
 	)
 	if config.Available(ctx) {
-		v := config.MustGet(ctx, commandGenPbEntityConfig)
+		v := config.MustGet(ctx, cGenPbEntityConfig)
 		if v.IsSlice() {
 			for i := 0; i < len(v.Interfaces()); i++ {
 				doGenPbEntityForArray(ctx, i, in)
@@ -144,7 +144,7 @@ func (c commandGen) PbEntity(ctx context.Context, in commandGenPbEntityInput) (o
 	return
 }
 
-func doGenPbEntityForArray(ctx context.Context, index int, in commandGenPbEntityInput) {
+func doGenPbEntityForArray(ctx context.Context, index int, in cGenPbEntityInput) {
 	var (
 		err error
 		db  gdb.DB
@@ -152,10 +152,10 @@ func doGenPbEntityForArray(ctx context.Context, index int, in commandGenPbEntity
 	if index >= 0 {
 		err = g.Cfg().MustGet(
 			ctx,
-			fmt.Sprintf(`%s.%d`, commandGenDaoConfig, index),
+			fmt.Sprintf(`%s.%d`, cGenDaoConfig, index),
 		).Scan(&in)
 		if err != nil {
-			mlog.Fatalf(`invalid configuration of "%s": %+v`, commandGenDaoConfig, err)
+			mlog.Fatalf(`invalid configuration of "%s": %+v`, cGenDaoConfig, err)
 		}
 	}
 	if in.Package == "" {
@@ -197,16 +197,16 @@ func doGenPbEntityForArray(ctx context.Context, index int, in commandGenPbEntity
 		for _, v := range removePrefixArray {
 			newTableName = gstr.TrimLeftStr(newTableName, v, 1)
 		}
-		generatePbEntityContentFile(ctx, db, commandGenPbEntityInternalInput{
-			commandGenPbEntityInput: in,
-			TableName:               tableName,
-			NewTableName:            newTableName,
+		generatePbEntityContentFile(ctx, db, cGenPbEntityInternalInput{
+			cGenPbEntityInput: in,
+			TableName:         tableName,
+			NewTableName:      newTableName,
 		})
 	}
 }
 
 // generatePbEntityContentFile generates the protobuf files for given table.
-func generatePbEntityContentFile(ctx context.Context, db gdb.DB, in commandGenPbEntityInternalInput) {
+func generatePbEntityContentFile(ctx context.Context, db gdb.DB, in cGenPbEntityInternalInput) {
 	fieldMap, err := db.TableFields(ctx, in.TableName)
 	if err != nil {
 		mlog.Fatalf("fetching tables fields failed for table '%s':\n%v", in.TableName, err)
@@ -233,7 +233,7 @@ func generatePbEntityContentFile(ctx context.Context, db gdb.DB, in commandGenPb
 }
 
 // generateEntityMessageDefinition generates and returns the message definition for specified table.
-func generateEntityMessageDefinition(entityName string, fieldMap map[string]*gdb.TableField, in commandGenPbEntityInternalInput) string {
+func generateEntityMessageDefinition(entityName string, fieldMap map[string]*gdb.TableField, in cGenPbEntityInternalInput) string {
 	var (
 		buffer = bytes.NewBuffer(nil)
 		array  = make([][]string, len(fieldMap))
@@ -260,7 +260,7 @@ func generateEntityMessageDefinition(entityName string, fieldMap map[string]*gdb
 }
 
 // generateMessageFieldForPbEntity generates and returns the message definition for specified field.
-func generateMessageFieldForPbEntity(index int, field *gdb.TableField, in commandGenPbEntityInternalInput) []string {
+func generateMessageFieldForPbEntity(index int, field *gdb.TableField, in cGenPbEntityInternalInput) []string {
 	var (
 		typeName   string
 		comment    string

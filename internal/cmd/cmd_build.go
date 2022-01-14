@@ -22,21 +22,21 @@ import (
 )
 
 var (
-	Build = commandBuild{
+	Build = cBuild{
 		nodeNameInConfigFile: "gfcli.build",
 		packedGoFileName:     "build_pack_data.go",
 	}
 )
 
-type commandBuild struct {
-	g.Meta               `name:"build" brief:"{commandBuildBrief}" dc:"{commandBuildDc}" eg:"{commandBuildEg}" ad:"{commandBuildAd}"`
+type cBuild struct {
+	g.Meta               `name:"build" brief:"{cBuildBrief}" dc:"{cBuildDc}" eg:"{cBuildEg}" ad:"{cBuildAd}"`
 	nodeNameInConfigFile string // nodeNameInConfigFile is the node name for compiler configurations in configuration file.
 	packedGoFileName     string // packedGoFileName specifies the file name for packing common folders into one single go file.
 }
 
 const (
-	commandBuildBrief = `cross-building go project for lots of platforms`
-	commandBuildEg    = `
+	cBuildBrief = `cross-building go project for lots of platforms`
+	cBuildEg    = `
 gf build main.go
 gf build main.go --pack public,template
 gf build main.go --cgo
@@ -45,7 +45,7 @@ gf build main.go -n my-app -a all -s all
 gf build main.go -n my-app -a amd64,386 -s linux -p .
 gf build main.go -n my-app -v 1.0 -a amd64,386 -s linux,windows,darwin -p ./docker/bin
 `
-	commandBuildDc = `
+	cBuildDc = `
 The "build" command is most commonly used command, which is designed as a powerful wrapper for 
 "go build" command for convenience cross-compiling usage. 
 It provides much more features for building binary:
@@ -53,7 +53,7 @@ It provides much more features for building binary:
 2. Configuration file support for compiling.
 3. Build-In Variables.
 `
-	commandBuildAd = `
+	cBuildAd = `
 PLATFORMS
     darwin    amd64,arm64
     freebsd   386,amd64,arm
@@ -63,7 +63,7 @@ PLATFORMS
     windows   386,amd64
 `
 	// https://golang.google.cn/doc/install/source
-	commandBuildPlatforms = `
+	cBuildPlatforms = `
 darwin    amd64
 darwin    arm64
 ios       amd64
@@ -99,14 +99,14 @@ solaris   amd64
 
 func init() {
 	gtag.Sets(g.MapStrStr{
-		`commandBuildBrief`: commandBuildBrief,
-		`commandBuildDc`:    commandBuildDc,
-		`commandBuildEg`:    commandBuildEg,
-		`commandBuildAd`:    commandBuildAd,
+		`cBuildBrief`: cBuildBrief,
+		`cBuildDc`:    cBuildDc,
+		`cBuildEg`:    cBuildEg,
+		`cBuildAd`:    cBuildAd,
 	})
 }
 
-type commandBuildInput struct {
+type cBuildInput struct {
 	g.Meta  `name:"build" config:"gfcli.build"`
 	File    string `name:"FILE" arg:"true"   brief:"building file path"`
 	Name    string `short:"n" name:"name"    brief:"output binary name"`
@@ -121,9 +121,9 @@ type commandBuildInput struct {
 	VarMap  g.Map  `short:"r" name:"varMap"  brief:"custom built embedded variable into binary"`
 	Pack    string `name:"pack" brief:"pack specified folder into temporary go file before building and removes it after built"`
 }
-type commandBuildOutput struct{}
+type cBuildOutput struct{}
 
-func (c commandBuild) Index(ctx context.Context, in commandBuildInput) (out *commandBuildOutput, err error) {
+func (c cBuild) Index(ctx context.Context, in cBuildInput) (out *cBuildOutput, err error) {
 	// Necessary check.
 	if gproc.SearchBinary("go") == "" {
 		mlog.Fatalf(`command "go" not found in your environment, please install golang first to proceed this command`)
@@ -171,7 +171,7 @@ func (c commandBuild) Index(ctx context.Context, in commandBuildInput) (out *com
 		spaceRegex  = regexp.MustCompile(`\s+`)
 		platformMap = make(map[string]map[string]bool)
 	)
-	for _, line := range strings.Split(strings.TrimSpace(commandBuildPlatforms), "\n") {
+	for _, line := range strings.Split(strings.TrimSpace(cBuildPlatforms), "\n") {
 		line = gstr.Trim(line)
 		line = spaceRegex.ReplaceAllString(line, " ")
 		var (
@@ -269,7 +269,7 @@ buildDone:
 
 // getBuildInVarMapJson retrieves and returns the custom build-in variables in configuration
 // file as json.
-func (c commandBuild) getBuildInVarStr(in commandBuildInput) string {
+func (c cBuild) getBuildInVarStr(in cBuildInput) string {
 	buildInVarMap := in.VarMap
 	if buildInVarMap == nil {
 		buildInVarMap = make(g.Map)
@@ -284,7 +284,7 @@ func (c commandBuild) getBuildInVarStr(in commandBuildInput) string {
 }
 
 // getGitCommit retrieves and returns the latest git commit hash string if present.
-func (c commandBuild) getGitCommit() string {
+func (c cBuild) getGitCommit() string {
 	if gproc.SearchBinary("git") == "" {
 		return ""
 	}
