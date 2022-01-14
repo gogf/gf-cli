@@ -29,9 +29,7 @@ func main() {
 	// -y option checks.
 	allyes.Init()
 
-	var (
-		ctx = gctx.New()
-	)
+	var ctx = gctx.New()
 	command, err := gcmd.NewFromObject(cmd.GF)
 	if err != nil {
 		panic(err)
@@ -51,7 +49,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	command.Run(ctx)
+	if err = command.RunWithError(ctx); err != nil {
+		mlog.Print(err.Error())
+	}
 }
 
 // zsh alias "git fetch" conflicts checks.

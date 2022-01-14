@@ -18,7 +18,7 @@ var (
 )
 
 type cTpl struct {
-	g.Meta `name:"tpl" brief:"{cTplBrief}" dc:"{cTplDc}" eg:"{cTplEg}"`
+	g.Meta `name:"tpl" brief:"{cTplBrief}" dc:"{cTplDc}"`
 }
 
 const (
