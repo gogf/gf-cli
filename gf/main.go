@@ -40,6 +40,7 @@ func main() {
 		cmd.Env,
 		cmd.Run,
 		cmd.Gen,
+		cmd.Tpl,
 		cmd.Init,
 		cmd.Pack,
 		cmd.Build,
