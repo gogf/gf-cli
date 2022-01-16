@@ -11,12 +11,12 @@
 
 1. Latest version
     ```
-    go install github.com/gogf/gf-cli/v2/gf@latest
+    go install github.com/gogf/gf-cli/v2@latest
     ```
    
 2. Specified version
     ```
-    go install github.com/gogf/gf-cli/v2/gf@v2.0.0-beta
+    go install github.com/gogf/gf-cli/v2@v2.0.0-rc
     ```
 
 3. Check installation
