@@ -55,7 +55,7 @@ USAGE
 COMMAND
    env        show current Golang environment variables
    run        running go codes with hot-compiled-like feature
-   gen        automatically generate go files for dao/dto/entity/pb/pbentity
+   gen        automatically generate go files for dao/do/entity/pb/pbentity
    tpl        template parsing and building commands
    init       create and initialize an empty GoFrame project
    pack       packing any file/directory to a resource file, or a go file

@@ -27,11 +27,11 @@ import (
 
 const (
 	defaultDaoPath    = `service/internal/dao`
-	defaultDtoPath    = `service/internal/dto`
+	defaultDoPath     = `service/internal/do`
 	defaultEntityPath = `model/entity`
 	cGenDaoConfig     = `gfcli.gen.dao`
 	cGenDaoUsage      = `gf gen dao [OPTION]`
-	cGenDaoBrief      = `automatically generate go files for dao/dto/entity`
+	cGenDaoBrief      = `automatically generate go files for dao/do/entity`
 	cGenDaoEg         = `
 gf gen dao
 gf gen dao -l "mysql:root:12345678@tcp(127.0.0.1:3306)/test"
@@ -267,8 +267,8 @@ func doGenDaoForArray(ctx context.Context, index int, in cGenDaoInput) {
 			ModName:      modName,
 		})
 	}
-	// Dto.
-	generateDto(ctx, db, tableNames, newTableNames, cGenDaoInternalInput{
+	// Do.
+	generateDo(ctx, db, tableNames, newTableNames, cGenDaoInternalInput{
 		cGenDaoInput: in,
 		ModName:      modName,
 	})
@@ -321,9 +321,9 @@ func generateDao(ctx context.Context, db gdb.DB, in cGenDaoInternalInput) {
 	generateDaoInternal(tableNameCamelCase, tableNameCamelLowerCase, importPrefix, dirPathDao, fileName, fieldMap, in)
 }
 
-func generateDto(ctx context.Context, db gdb.DB, tableNames, newTableNames []string, in cGenDaoInternalInput) {
+func generateDo(ctx context.Context, db gdb.DB, tableNames, newTableNames []string, in cGenDaoInternalInput) {
 	var (
-		dtoDirPath = gfile.Join(in.Path, defaultDtoPath)
+		doDirPath = gfile.Join(in.Path, defaultDoPath)
 	)
 	in.NoJsonTag = true
 	in.DescriptionTag = false
@@ -337,12 +337,12 @@ func generateDto(ctx context.Context, db gdb.DB, tableNames, newTableNames []str
 		}
 		var (
 			newTableName     = newTableNames[i]
-			dtoFilePath      = gfile.Join(dtoDirPath, gstr.CaseSnake(newTableName)+".go")
+			doFilePath       = gfile.Join(doDirPath, gstr.CaseSnake(newTableName)+".go")
 			structDefinition = generateStructDefinition(generateStructDefinitionInput{
 				cGenDaoInternalInput: in,
 				StructName:           gstr.CaseCamel(newTableName),
 				FieldMap:             fieldMap,
-				IsDto:                true,
+				IsDo:                 true,
 			})
 		)
 		// replace all types to interface{}.
@@ -357,17 +357,17 @@ func generateDto(ctx context.Context, db gdb.DB, tableNames, newTableNames []str
 				return match[0]
 			},
 		)
-		modelContent := generateDtoContent(
+		modelContent := generateDoContent(
 			tableName,
 			gstr.CaseCamel(newTableName),
 			structDefinition,
 		)
-		err = gfile.PutContents(dtoFilePath, strings.TrimSpace(modelContent))
+		err = gfile.PutContents(doFilePath, strings.TrimSpace(modelContent))
 		if err != nil {
-			mlog.Fatalf("writing content to '%s' failed: %v", dtoFilePath, err)
+			mlog.Fatalf("writing content to '%s' failed: %v", doFilePath, err)
 		} else {
-			utils.GoFmt(dtoFilePath)
-			mlog.Print("generated:", dtoFilePath)
+			utils.GoFmt(doFilePath)
+			mlog.Print("generated:", doFilePath)
 		}
 	}
 }
@@ -393,7 +393,7 @@ func generateEntity(ctx context.Context, db gdb.DB, tableNames, newTableNames []
 					cGenDaoInternalInput: in,
 					StructName:           gstr.CaseCamel(newTableName),
 					FieldMap:             fieldMap,
-					IsDto:                false,
+					IsDo:                 false,
 				}),
 			)
 		)
@@ -407,12 +407,12 @@ func generateEntity(ctx context.Context, db gdb.DB, tableNames, newTableNames []
 	}
 }
 
-func getImportPartContent(source string, isDto bool) string {
+func getImportPartContent(source string, isDo bool) string {
 	var (
 		packageImportsArray = garray.NewStrArray()
 	)
 
-	if isDto {
+	if isDo {
 		packageImportsArray.Append(`"github.com/gogf/gf/v2/frame/g"`)
 	}
 
@@ -447,15 +447,15 @@ func generateEntityContent(tableName, tableNameCamelCase, structDefine string) s
 	return entityContent
 }
 
-func generateDtoContent(tableName, tableNameCamelCase, structDefine string) string {
-	dtoContent := gstr.ReplaceByMap(consts.TemplateGenDaoDtoContent, g.MapStrStr{
+func generateDoContent(tableName, tableNameCamelCase, structDefine string) string {
+	doContent := gstr.ReplaceByMap(consts.TemplateGenDaoDoContent, g.MapStrStr{
 		tplVarTableName:          tableName,
 		tplVarPackageImports:     getImportPartContent(structDefine, true),
 		tplVarTableNameCamelCase: tableNameCamelCase,
 		tplVarStructDefine:       structDefine,
 	})
-	dtoContent = replaceDefaultVar(dtoContent)
-	return dtoContent
+	doContent = replaceDefaultVar(doContent)
+	return doContent
 }
 
 func generateDaoIndex(tableNameCamelCase, tableNameCamelLowerCase, importPrefix, dirPathDao, fileName string, in cGenDaoInternalInput) {
@@ -512,7 +512,7 @@ type generateStructDefinitionInput struct {
 	cGenDaoInternalInput
 	StructName string                     // Struct name.
 	FieldMap   map[string]*gdb.TableField // Table field map.
-	IsDto      bool                       // Is generating DTO struct.
+	IsDo       bool                       // Is generating DTO struct.
 }
 
 func generateStructDefinition(in generateStructDefinitionInput) string {
@@ -537,8 +537,8 @@ func generateStructDefinition(in generateStructDefinitionInput) string {
 	stContent = gstr.Replace(stContent, "``", "")
 	buffer.Reset()
 	buffer.WriteString(fmt.Sprintf("type %s struct {\n", in.StructName))
-	if in.IsDto {
-		buffer.WriteString(fmt.Sprintf("g.Meta `orm:\"table:%s, dto:true\"`\n", in.TableName))
+	if in.IsDo {
+		buffer.WriteString(fmt.Sprintf("g.Meta `orm:\"table:%s, do:true\"`\n", in.TableName))
 	}
 	buffer.WriteString(stContent)
 	buffer.WriteString("}")
