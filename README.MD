@@ -9,11 +9,11 @@
 > You might need setting the goproxy to make through building.
 > Please make sure your Golang version > v1.15.
 
-1. Latest version
+1. Latest feature version
     ```
-    go install github.com/gogf/gf-cli/v2/gf@latest
+    go install github.com/gogf/gf-cli/v2/gf@master
     ```
-   
+
 2. Specified version
     ```
     go install github.com/gogf/gf-cli/v2/gf@v2.0.0-beta
@@ -55,7 +55,8 @@ USAGE
 COMMAND
    env        show current Golang environment variables
    run        running go codes with hot-compiled-like feature
-   gen        automatically generate go files for dao/dto/entity/pb/pbentity...
+   gen        automatically generate go files for dao/dto/entity/pb/pbentity
+   tpl        template parsing and building commands
    init       create and initialize an empty GoFrame project
    pack       packing any file/directory to a resource file, or a go file
    build      cross-building go project for lots of platforms
@@ -64,10 +65,10 @@ COMMAND
    version    show version information of current binary
 
 OPTION
-   -y, --yes        all yes for all command without prompt ask
-   -v, --version    show version information of current binary
-   -d, --debug      show internal detailed debugging information
-   -h, --help       more information about this command
+   -y, --yes       all yes for all command without prompt ask
+   -v, --version   show version information of current binary
+   -d, --debug     show internal detailed debugging information
+   -h, --help      more information about this command
 
 ADDITIONAL
     Use "gf COMMAND -h" for details about a command.

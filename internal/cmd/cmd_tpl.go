@@ -32,7 +32,7 @@ like json/xml/yaml/toml/ini.
 	cTplParseEg    = `
 gf tpl parse -p ./template -v values.json -r
 gf tpl parse -p ./template -v values.json -n *.tpl -r
-gf tpl parse -p ./template -v values.json -d ${,}} -r
+gf tpl parse -p ./template -v values.json -d '${,}}' -r
 gf tpl parse -p ./template -v values.json -o ./template.parsed
 `
 	cTplSupportValuesFilePattern = `*.json,*.xml,*.yaml,*.yml,*.toml,*.ini`
@@ -65,8 +65,8 @@ func (c *cTpl) Parse(ctx context.Context, in cTplParseInput) (out *cTplParseOutp
 	if in.Output == "" && in.Replace == false {
 		return nil, gerror.New(`parameter output and replace should not be both empty`)
 	}
-	mlog.Debug("delimiters:", in.Delimiters)
 	delimiters := gstr.SplitAndTrim(in.Delimiters, ",")
+	mlog.Debugf("delimiters input:%s, parsed:%#v", in.Delimiters, delimiters)
 	if len(delimiters) != 2 {
 		return nil, gerror.Newf(`invalid delimiters: %s`, in.Delimiters)
 	}
