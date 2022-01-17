@@ -22,13 +22,13 @@ jobs:
       - name: Build gf to build all
         run: |
           echo "Building linux amd64 binary..."
-          GOOS=linux GOARCH=amd64 go build -o gf
+          GOOS=linux GOARCH=amd64 go build gf/main.go -o gf
           chmod +x gf
       
       # gf build 
       - name: gf build
         run: |
-          ./gf build main.go -n gf -a all -s all
+          ./gf build gf/main.go -n gf -a all -s all
       
       # 处理gf-cli批量编译后的文件结构
       - name: moving files before upx
