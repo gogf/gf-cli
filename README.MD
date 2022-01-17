@@ -9,7 +9,7 @@
 > You might need setting the goproxy to make through building.
 > Please make sure your Golang version > v1.15.
 
-1. Latest feature version
+1. Latest version
     ```
     go install github.com/gogf/gf-cli/v2/gf@master
     ```
