@@ -25,7 +25,7 @@ func init() {
 	} else {
 		logger.SetHeaderPrint(false)
 	}
-	if gcmd.ContainsOpt("debug") || gcmd.ContainsOpt("gf.debug") {
+	if gcmd.GetOpt("debug") != nil || gcmd.GetOpt("gf.debug") != nil {
 		logger.SetDebug(true)
 	} else {
 		logger.SetDebug(false)

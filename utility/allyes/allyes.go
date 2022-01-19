@@ -11,7 +11,7 @@ const (
 
 // Init initializes the package manually.
 func Init() {
-	if gcmd.ContainsOpt("y") {
+	if gcmd.GetOpt("y") != nil {
 		genv.MustSet(EnvName, "1")
 	}
 }
