@@ -288,13 +288,13 @@ func (c cBuild) getGitCommit() string {
 	if gproc.SearchBinary("git") == "" {
 		return ""
 	}
-	s, err := gproc.ShellExec(`git log -1 --format="%cd %H" --date=format:"%Y-%m-%d %H:%M:%S"`)
+	s, err := gproc.ShellExec(`git log -1 --format=%cd_%H --date=format:%Y-%m-%d_%H:%M:%S`)
 	if err != nil {
 		mlog.Fatal(err)
 	}
 	if s != "" {
 		if !gstr.Contains(s, "fatal") {
-			return gstr.Trim(s)
+			return gstr.Trim(gstr.Replace(s, "_", " "))
 		}
 	}
 	return ""
