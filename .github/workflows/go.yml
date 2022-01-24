@@ -8,30 +8,32 @@ name: Build and Release
 
 jobs:
   build:
-    name: Build and Release
+    name: Build And Release
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout github code
         uses: actions/checkout@v2
       
-      - name: Set up Go
+      - name: Set up golang environment
         uses: actions/setup-go@v2
         with:
           go-version: 1.17
       
-      - name: Build gf to build all
+      - name: Build gf binary
         run: |
           echo "Building linux amd64 binary..."
-          GOOS=linux GOARCH=amd64 go build -o gf gf/main.go
-          chmod +x gf
+          GOOS=linux GOARCH=amd64 go build gf/main.go
+          chmod +x main
+          main install -y
       
       # gf build 
-      - name: gf build
+      - name: Build all platform gf binary
         run: |
-          ./gf build gf/main.go -n gf -a all -s all
+          ls -la
+          gf build gf/main.go -n gf -a all -s all
       
       # 处理gf-cli批量编译后的文件结构
-      - name: moving files before upx
+      - name: Move files before upx
         run: |
           cd bin
           for OS in *;do for FILE in $OS/*;\
@@ -41,32 +43,32 @@ jobs:
           fi;done;done
 
       # UPX 加壳所有文件
-      - name: upx all binary
+      - name: Upx all binary
         uses: gacts/upx@master
         with:
           dir:      './bin'
           upx_args: '-9'
       
       # 移动未UPX的windows程序到上传bin目录下
-      - name: moving files after upx
+      - name: Move files after upx
         run: |
           cd bin
           mv noupx/* ./ && rm -rf noupx
           ls -l
            
-      - name: Create Release
+      - name: Create github release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
+          tag_name:     ${{ github.ref }}
           release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
+          draft:        false
+          prerelease:   false
       
       - name: Upload Release Asset
-        id: upload-release-asset 
+        id:   upload-release-asset
         uses: alexellis/upload-assets@0.2.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
