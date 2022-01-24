@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/denisenkom/go-mssqldb v0.11.0
-	github.com/gogf/gf/v2 v2.0.0-rc.0.20220119153523-7401fb09c984
+	github.com/gogf/gf/v2 v2.0.0-rc.0.20220124023219-43f1354e7983
 	github.com/lib/pq v1.10.4
 	github.com/mattn/go-runewidth v0.0.10 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect

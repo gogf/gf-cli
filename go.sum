@@ -36,6 +36,8 @@ github.com/gogf/gf/v2 v2.0.0-rc.0.20220119122504-69935f3d1c6d h1:7ena3lGQv0xag4P
 github.com/gogf/gf/v2 v2.0.0-rc.0.20220119122504-69935f3d1c6d/go.mod h1:apktt6TleWtCIwpz63vBqUnw8MX8gWKoZyxgDpXFtgM=
 github.com/gogf/gf/v2 v2.0.0-rc.0.20220119153523-7401fb09c984 h1:HvExNk4YNgaHTkp3V7osEP52YDCOPxQFlgnh1UDcibQ=
 github.com/gogf/gf/v2 v2.0.0-rc.0.20220119153523-7401fb09c984/go.mod h1:apktt6TleWtCIwpz63vBqUnw8MX8gWKoZyxgDpXFtgM=
+github.com/gogf/gf/v2 v2.0.0-rc.0.20220124023219-43f1354e7983 h1:INOUPZaXysuSYTEwhPgNDZfdmEPqIpAXwcgXlVEAzeQ=
+github.com/gogf/gf/v2 v2.0.0-rc.0.20220124023219-43f1354e7983/go.mod h1:apktt6TleWtCIwpz63vBqUnw8MX8gWKoZyxgDpXFtgM=
 github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe h1:lXe2qZdvpiX5WZkZR4hgp4KJVfY3nMkvmwbVkpv1rVY=
 github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe/go.mod h1:8vg3r2VgvsThLBIFL93Qb5yWzgyZWhEmBwUJWevAkK0=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=

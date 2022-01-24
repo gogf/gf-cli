@@ -51,17 +51,17 @@ func Printf(format string, v ...interface{}) {
 }
 
 func Fatal(v ...interface{}) {
-	logger.Fatal(ctx, append(g.Slice{"Error:"}, v...)...)
+	logger.Fatal(ctx, append(g.Slice{"ERROR:"}, v...)...)
 }
 
 func Fatalf(format string, v ...interface{}) {
-	logger.Fatalf(ctx, "Error: "+format, v...)
+	logger.Fatalf(ctx, "ERROR: "+format, v...)
 }
 
 func Debug(v ...interface{}) {
-	logger.Debug(ctx, append(g.Slice{"Debug:"}, v...)...)
+	logger.Debug(ctx, append(g.Slice{"DEBUG:"}, v...)...)
 }
 
 func Debugf(format string, v ...interface{}) {
-	logger.Debugf(ctx, "Debug: "+format, v...)
+	logger.Debugf(ctx, "DEBUG: "+format, v...)
 }

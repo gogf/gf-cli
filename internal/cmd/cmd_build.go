@@ -124,12 +124,14 @@ type cBuildInput struct {
 type cBuildOutput struct{}
 
 func (c cBuild) Index(ctx context.Context, in cBuildInput) (out *cBuildOutput, err error) {
+	mlog.SetHeaderPrint(true)
+
+	mlog.Debugf(`build input: %+v`, in)
 	// Necessary check.
 	if gproc.SearchBinary("go") == "" {
 		mlog.Fatalf(`command "go" not found in your environment, please install golang first to proceed this command`)
 	}
 
-	mlog.SetHeaderPrint(true)
 	var (
 		parser = gcmd.ParserFromCtx(ctx)
 		file   = parser.GetArg(2).String()
@@ -288,10 +290,11 @@ func (c cBuild) getGitCommit() string {
 	if gproc.SearchBinary("git") == "" {
 		return ""
 	}
-	s, err := gproc.ShellExec(`git log -1 --format="%cd %H" --date=format:"%Y-%m-%d %H:%M:%S"`)
-	if err != nil {
-		mlog.Fatal(err)
-	}
+	var (
+		cmd  = `git log -1 --format="%cd %H" --date=format:"%Y-%m-%d %H:%M:%S"`
+		s, _ = gproc.ShellExec(cmd)
+	)
+	mlog.Debug(cmd)
 	if s != "" {
 		if !gstr.Contains(s, "fatal") {
 			return gstr.Trim(s)
