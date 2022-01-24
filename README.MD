@@ -1,5 +1,7 @@
 # GoFrame CLI TOOL
 
+> This repo. is archived and moved to https://github.com/gogf/gf/tree/master/cmd/gf for better maintenance.
+
 `gf` is a powerful CLI tool for building [GoFrame](https://goframe.org) application with convenience.
 
 ## 1. Install
