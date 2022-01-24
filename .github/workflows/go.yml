@@ -22,7 +22,7 @@ jobs:
       - name: Build gf to build all
         run: |
           echo "Building linux amd64 binary..."
-          GOOS=linux GOARCH=amd64 go build gf/main.go -o gf
+          GOOS=linux GOARCH=amd64 go build -o gf gf/main.go
           chmod +x gf
       
       # gf build 
@@ -44,7 +44,7 @@ jobs:
       - name: upx all binary
         uses: gacts/upx@master
         with:
-          dir: './bin'
+          dir:      './bin'
           upx_args: '-9'
       
       # 移动未UPX的windows程序到上传bin目录下
